@@ -50,8 +50,8 @@ export default function LoginPage() {
     });
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-neutral-50 p-4">
-            <Card className="w-full max-w-md shadow-lg">
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <Card className="border-0 shadow-none bg-transparent">
                 <CardHeader className="space-y-1 text-center">
                     <CardTitle className="text-2xl font-bold tracking-tight">Welcome back</CardTitle>
                     <CardDescription>Enter your email and password to access your account.</CardDescription>
