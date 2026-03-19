@@ -1,64 +1,124 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
+import { getPublicProjects } from "@/services/project.service";
+import PublicNavbar from "../components/ui/layout/PublicNavbar";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Badge } from "../components/ui/badge";
+import { ArrowRight, Leaf } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+
+export default function HomePage() {
+  const { data: projects, isLoading } = useQuery({
+    queryKey: ["publicProjects"],
+    queryFn: getPublicProjects,
+  });
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+    <div className="flex min-h-screen flex-col bg-neutral-50">
+      <PublicNavbar />
+
+      <main className="flex-1">
+        {/* HERO SECTION */}
+        <section className="relative overflow-hidden bg-slate-900 py-24 sm:py-32">
+          {/* Background overlay */}
+          <div className="absolute inset-0 z-0 bg-linear-to-br from-primary/40 to-slate-900/90" />
+
+          <div className="container relative z-10 mx-auto px-4 text-center md:px-8">
+            <Badge variant="secondary" className="mb-6 bg-white/10 text-emerald-300 hover:bg-white/20">
+              Empowering Student Research
+            </Badge>
+            <h1 className="mx-auto max-w-4xl text-4xl font-extrabold tracking-tight text-white sm:text-6xl">
+              Turn sustainable ideas into <span className="text-emerald-400">reality.</span>
+            </h1>
+            <p className="mx-auto mt-6 max-w-2xl text-lg text-slate-300 leading-relaxed">
+              Join the premier community connecting brilliant academic minds with industry sponsors. Fund hardware prototypes, launch solar projects, and build a greener future.
+            </p>
+            <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+              <Link href="/projects">
+                <Button size="lg" className="h-12 px-8 text-base w-full sm:w-auto">
+                  Explore Ideas
+                </Button>
+              </Link>
+              <Link href="/register">
+                <Button variant="outline" size="lg" className="h-12 px-8 text-base w-full sm:w-auto bg-transparent text-white border-slate-600 hover:bg-slate-800 hover:text-white">
+                  Start a Project
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* FEATURED IDEAS SECTION */}
+        <section className="container mx-auto py-20 px-4 md:px-8">
+          <div className="mb-12 flex flex-col items-center justify-between gap-4 md:flex-row">
+            <div>
+              <h2 className="text-3xl font-bold tracking-tight text-neutral-900">Featured Ideas</h2>
+              <p className="text-neutral-500 mt-2">Discover groundbreaking sustainability projects waiting for your support.</p>
+            </div>
+            <Link href="/projects">
+              <Button variant="ghost" className="gap-2 text-primary hover:text-primary/80">
+                View all ideas <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
+
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {isLoading ? (
+              // Loading Skeletons
+              Array.from({ length: 3 }).map((_, i) => (
+                <Card key={i} className="overflow-hidden">
+                  <Skeleton className="h-48 w-full rounded-none" />
+                  <CardHeader className="space-y-2"><Skeleton className="h-4 w-20" /><Skeleton className="h-6 w-full" /></CardHeader>
+                  <CardContent><Skeleton className="h-16 w-full" /></CardContent>
+                </Card>
+              ))
+            ) : projects && projects.length > 0 ? (
+              projects.map((project: any) => (
+                <Card key={project.id} className="flex flex-col overflow-hidden transition-all hover:shadow-lg">
+                  <div className="aspect-video w-full bg-slate-100 overflow-hidden relative">
+                    {/* Fallback pattern if no images exist */}
+                    {project.images?.[0] ? (
+                      <img src={project.images[0]} alt={project.title} className="object-cover w-full h-full" />
+                    ) : (
+                      <div className="flex h-full items-center justify-center bg-emerald-50 text-emerald-200">
+                        <Leaf className="h-16 w-16" />
+                      </div>
+                    )}
+                  </div>
+                  <CardHeader>
+                    <div className="mb-2 flex items-center justify-between">
+                      <Badge variant="secondary" className="text-xs font-medium text-primary bg-primary/10">
+                        {project.categories?.[0]?.name || "Sustainability"}
+                      </Badge>
+                    </div>
+                    <h3 className="line-clamp-2 text-xl font-bold">{project.title}</h3>
+                  </CardHeader>
+                  <CardContent className="flex-1">
+                    <p className="line-clamp-3 text-sm text-neutral-500">{project.description}</p>
+                  </CardContent>
+                  <CardFooter className="border-t bg-neutral-50/50 p-4">
+                    <div className="flex w-full items-center justify-between">
+                      <div className="flex flex-col">
+                        <span className="text-xs text-neutral-500">Raised</span>
+                        <span className="font-semibold text-primary">${project.raisedAmount} / ${project.goalAmount}</span>
+                      </div>
+                      <Link href={`/projects/${project.id}`}>
+                        <Button size="sm" variant="outline">View Details</Button>
+                      </Link>
+                    </div>
+                  </CardFooter>
+                </Card>
+              ))
+            ) : (
+              <div className="col-span-full py-12 text-center text-neutral-500">
+                No approved projects found. Be the first to submit an idea!
+              </div>
+            )}
+          </div>
+        </section>
       </main>
     </div>
   );

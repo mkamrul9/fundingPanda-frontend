@@ -1,0 +1,56 @@
+"use client";
+
+import Link from "next/link";
+import { useSession } from "@/lib/auth-client";
+import { Button } from "@/components/ui/button";
+import { Leaf, Menu } from "lucide-react";
+
+export default function PublicNavbar() {
+    const { data: session, isPending } = useSession();
+
+    return (
+        <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md">
+            <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-8">
+                <Link href="/" className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
+                        <Leaf className="h-5 w-5 text-primary-foreground" />
+                    </div>
+                    <span className="text-xl font-bold tracking-tight text-neutral-900">
+                        Funding<span className="text-primary">Panda</span>
+                    </span>
+                </Link>
+
+                {/* Desktop Navigation */}
+                <nav className="hidden md:flex items-center gap-8">
+                    <Link href="/" className="text-sm font-medium text-neutral-600 hover:text-primary transition-colors">Home</Link>
+                    <Link href="/projects" className="text-sm font-medium text-neutral-600 hover:text-primary transition-colors">Explore Ideas</Link>
+                    <Link href="/about" className="text-sm font-medium text-neutral-600 hover:text-primary transition-colors">About Us</Link>
+                </nav>
+
+                <div className="hidden md:flex items-center gap-4">
+                    {isPending ? (
+                        <div className="h-9 w-24 animate-pulse rounded-md bg-neutral-200" />
+                    ) : session ? (
+                        <Link href="/dashboard">
+                            <Button>Go to Dashboard</Button>
+                        </Link>
+                    ) : (
+                        <>
+                            <Link href="/login">
+                                <Button variant="ghost">Log in</Button>
+                            </Link>
+                            <Link href="/register">
+                                <Button>Sign up</Button>
+                            </Link>
+                        </>
+                    )}
+                </div>
+
+                {/* Mobile Menu Button (Placeholder for now) */}
+                <Button variant="ghost" size="icon" className="md:hidden">
+                    <Menu className="h-6 w-6" />
+                </Button>
+            </div>
+        </header>
+    );
+}

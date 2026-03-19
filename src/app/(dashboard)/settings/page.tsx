@@ -33,9 +33,9 @@ export default function SettingsPage() {
         onError: (error: unknown) => {
             const message =
                 typeof error === "object" &&
-                error !== null &&
-                "response" in error &&
-                typeof (error as { response?: { data?: { message?: unknown } } }).response?.data?.message === "string"
+                    error !== null &&
+                    "response" in error &&
+                    typeof (error as { response?: { data?: { message?: unknown } } }).response?.data?.message === "string"
                     ? (error as { response?: { data?: { message?: string } } }).response?.data?.message
                     : "Failed to update profile.";
             toast.error(message);
