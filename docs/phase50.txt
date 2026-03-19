@@ -1,4 +1,0 @@
-Gemini said
-Summary of Phase 50
-What we did: We replaced the basic await promise syntax with BetterAuth's robust lifecycle callbacks (onRequest, onSuccess, onError) in the login and registration forms.
-Why we did it: To correctly intercept HTTP error codes (like 401 Unauthorized or 404 Not Found) and display highly specific, user-friendly toast notifications when a user enters the wrong password or tries to log in with an unregistered email.
