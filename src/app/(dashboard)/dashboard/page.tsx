@@ -1,6 +1,7 @@
 "use client";
 
 import { useSession } from "@/lib/auth-client";
+import { User } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function DashboardPage() {
@@ -8,12 +9,14 @@ export default function DashboardPage() {
 
     if (!session) return null;
 
+    const user = session.user as unknown as User;
+
     return (
         <div className="space-y-6">
             <div>
                 <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
                 <p className="text-neutral-500">
-                    Welcome back, {session.user.name}. Here's an overview of your activity.
+                    Welcome back, {user.name}. Here is an overview of your activity.
                 </p>
             </div>
 
@@ -24,7 +27,7 @@ export default function DashboardPage() {
                         <CardTitle className="text-sm font-medium">Platform Role</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold capitalize">{session.user.role.toLowerCase()}</div>
+                        <div className="text-2xl font-bold capitalize">{user.role.toLowerCase()}</div>
                         <p className="text-xs text-neutral-500">Your current account type</p>
                     </CardContent>
                 </Card>

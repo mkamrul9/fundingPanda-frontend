@@ -7,6 +7,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { signIn } from "@/lib/auth-client";
 import { loginSchema, emailSchema, passwordSchema } from "@/lib/validations/auth";
+import { Eye, EyeOff } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +17,7 @@ import { Label } from "@/components/ui/label";
 export default function LoginPage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     const Form = useForm({
         defaultValues: {
@@ -51,7 +53,7 @@ export default function LoginPage() {
 
     return (
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <Card className="border-0 shadow-none bg-transparent">
+            <Card className="border-0 shadow-none bg-transparent w-full max-w-md">
                 <CardHeader className="space-y-1 text-center">
                     <CardTitle className="text-2xl font-bold tracking-tight">Welcome back</CardTitle>
                     <CardDescription>Enter your email and password to access your account.</CardDescription>
@@ -106,20 +108,31 @@ export default function LoginPage() {
                                 <div className="space-y-2">
                                     <div className="flex items-center justify-between">
                                         <Label htmlFor={field.name}>Password</Label>
-                                        <Link href="/forgot-password" className="text-sm text-blue-600 hover:underline">
+                                        <Link href="/forgot-password" className="text-sm text-primary hover:underline">
                                             Forgot password?
                                         </Link>
                                     </div>
-                                    <Input
-                                        id={field.name}
-                                        type="password"
-                                        value={field.state.value}
-                                        onChange={(e) => field.handleChange(e.target.value)}
-                                        onBlur={field.handleBlur}
-                                        disabled={isLoading}
-                                    />
+                                    <div className="relative">
+                                        <Input
+                                            id={field.name}
+                                            type={showPassword ? "text" : "password"}
+                                            value={field.state.value}
+                                            onChange={(e) => field.handleChange(e.target.value)}
+                                            onBlur={field.handleBlur}
+                                            disabled={isLoading}
+                                            className="pr-10"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-0 top-0 h-full px-3 py-2 text-muted-foreground hover:text-foreground focus:outline-none"
+                                            disabled={isLoading}
+                                        >
+                                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                        </button>
+                                    </div>
                                     {field.state.meta.errors.length > 0 && (
-                                        <p className="text-sm text-red-500">{field.state.meta.errors[0]}</p>
+                                        <p className="text-sm text-destructive">{field.state.meta.errors[0]}</p>
                                     )}
                                 </div>
                             )}
@@ -130,10 +143,10 @@ export default function LoginPage() {
                         </Button>
                     </form>
                 </CardContent>
-                <CardFooter className="flex justify-center border-t p-4">
-                    <p className="text-sm text-neutral-600">
-                        Don&apos;t have an account?{" "}
-                        <Link href="/register" className="font-semibold text-blue-600 hover:underline">
+                <CardFooter className="flex justify-center border-t border-border/50 p-4">
+                    <p className="text-sm text-muted-foreground">
+                        Don&apos;t have an account? {" "}
+                        <Link href="/register" className="font-semibold text-primary hover:underline">
                             Sign up
                         </Link>
                     </p>

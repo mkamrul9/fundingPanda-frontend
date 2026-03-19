@@ -1,6 +1,7 @@
 "use client";
 
 import { ReactNode, useEffect } from "react";
+import { User } from "@/types";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession, signOut } from "@/lib/auth-client";
@@ -37,7 +38,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     // Prevent rendering protected content if unauthenticated
     if (!session) return null;
 
-    const userRole = ((session.user as unknown as { role?: string }).role ?? "STUDENT") as string; // STUDENT, SPONSOR, or ADMIN
+    // Cast session user to our application `User` type (we store role there)
+    const user = session.user as unknown as User;
+    const userRole = (user.role ?? "STUDENT") as string; // STUDENT, SPONSOR, or ADMIN
 
     return (
         <div className="flex min-h-screen flex-col bg-neutral-50 md:flex-row">
@@ -90,10 +93,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 <div className="absolute bottom-4 w-full px-4 md:w-64">
                     <div className="mb-4 flex items-center gap-3 rounded-lg border bg-neutral-50 p-3">
                         <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">
-                            {session.user.name.charAt(0)}
+                            {user.name.charAt(0)}
                         </div>
                         <div className="flex flex-col overflow-hidden">
-                            <span className="truncate text-sm font-medium">{session.user.name}</span>
+                            <span className="truncate text-sm font-medium">{user.name}</span>
                             <span className="text-xs text-neutral-500 capitalize">{userRole.toLowerCase()}</span>
                         </div>
                     </div>
