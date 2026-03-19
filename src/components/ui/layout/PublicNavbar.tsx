@@ -1,12 +1,16 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Leaf, Menu } from "lucide-react";
 
 export default function PublicNavbar() {
     const { data: session, isPending } = useSession();
+    const pathname = usePathname();
+
+    const isActive = (path: string) => pathname === path;
 
     return (
         <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md">
@@ -20,11 +24,26 @@ export default function PublicNavbar() {
                     </span>
                 </Link>
 
-                {/* Desktop Navigation */}
+                {/* Desktop Navigation with Active States */}
                 <nav className="hidden md:flex items-center gap-8">
-                    <Link href="/" className="text-sm font-medium text-neutral-600 hover:text-primary transition-colors">Home</Link>
-                    <Link href="/projects" className="text-sm font-medium text-neutral-600 hover:text-primary transition-colors">Explore Ideas</Link>
-                    <Link href="/about" className="text-sm font-medium text-neutral-600 hover:text-primary transition-colors">About Us</Link>
+                    <Link
+                        href="/"
+                        className={`text-sm font-medium transition-colors hover:text-primary ${isActive("/") ? "text-primary border-b-2 border-primary py-5" : "text-neutral-600"}`}
+                    >
+                        Home
+                    </Link>
+                    <Link
+                        href="/projects"
+                        className={`text-sm font-medium transition-colors hover:text-primary ${isActive("/projects") ? "text-primary border-b-2 border-primary py-5" : "text-neutral-600"}`}
+                    >
+                        Explore Ideas
+                    </Link>
+                    <Link
+                        href="/about"
+                        className={`text-sm font-medium transition-colors hover:text-primary ${isActive("/about") ? "text-primary border-b-2 border-primary py-5" : "text-neutral-600"}`}
+                    >
+                        About Us
+                    </Link>
                 </nav>
 
                 <div className="hidden md:flex items-center gap-4">
@@ -32,7 +51,7 @@ export default function PublicNavbar() {
                         <div className="h-9 w-24 animate-pulse rounded-md bg-neutral-200" />
                     ) : session ? (
                         <Link href="/dashboard">
-                            <Button>Go to Dashboard</Button>
+                            <Button>Dashboard</Button>
                         </Link>
                     ) : (
                         <>

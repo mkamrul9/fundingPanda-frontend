@@ -6,19 +6,19 @@ export const getPublicProjects = async () => {
     return response.data.data;
 };
 
-export const getAllProjects = async (params?: { searchTerm?: string; category?: string }) => {
-    let query = '?status=APPROVED'; // Only show approved projects to the public
+export const getAllProjects = async (params: Record<string, any> = {}) => {
+    // Use native URLSearchParams to safely encode the query string
+    const query = new URLSearchParams({ status: "APPROVED" });
 
-    if (params?.searchTerm) {
-        query += `&searchTerm=${encodeURIComponent(params.searchTerm)}`;
-    }
-    if (params?.category && params.category !== 'ALL') {
-        // Assuming your backend query builder filters by category ID or name
-        query += `&categories=${encodeURIComponent(params.category)}`;
-    }
+    // Dynamically append any filter that actually has a value
+    Object.entries(params).forEach(([key, value]) => {
+        if (value && value !== "ALL") {
+            query.append(key, String(value));
+        }
+    });
 
-    const response = await apiClient.get(`/projects${query}`);
-    return response.data.data; // Adjust if your backend returns pagination meta data!
+    const response = await apiClient.get(`/projects?${query.toString()}`);
+    return response.data.data;
 };
 
 export const getCategories = async () => {
