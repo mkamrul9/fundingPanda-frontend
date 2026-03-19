@@ -82,7 +82,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                         </Link>
                     )}
 
-                    <Link href="/dashboard/settings">
+                    <Link href="/settings">
                         <Button variant="ghost" className="w-full justify-start">
                             <Settings className="mr-2 h-4 w-4" />
                             Settings
