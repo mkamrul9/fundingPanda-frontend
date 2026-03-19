@@ -19,35 +19,85 @@ export default function LoginPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
 
+    const parseAuthError = (raw: unknown) => {
+        const err = (raw ?? {}) as {
+            status?: number;
+            code?: string;
+            message?: string;
+        };
+
+        const code = (err.code || "").toUpperCase();
+        const message = (err.message || "").toLowerCase();
+
+        const isUserMissing =
+            code.includes("USER_NOT_FOUND") ||
+            code.includes("ACCOUNT_NOT_FOUND") ||
+            message.includes("user not found") ||
+            message.includes("account not found") ||
+            message.includes("no account") ||
+            message.includes("not registered") ||
+            message.includes("does not exist");
+
+        const isInvalidCredential =
+            code.includes("INVALID_EMAIL_OR_PASSWORD") ||
+            code.includes("INVALID_CREDENTIAL") ||
+            message.includes("invalid email or password") ||
+            message.includes("incorrect email or password") ||
+            message.includes("invalid credentials") ||
+            message.includes("wrong password");
+
+        if (err.status === 404 || isUserMissing) {
+            return "This email has no account yet. Please register first.";
+        }
+        if (
+            err.status === 401 ||
+            err.status === 403 ||
+            isInvalidCredential
+        ) {
+            return "Incorrect email or password. Please try again.";
+        }
+        return err.message || "Authentication failed. Please try again.";
+    };
+
     const Form = useForm({
         defaultValues: {
             email: "",
             password: "",
         },
         onSubmit: async ({ value }) => {
-            // Final full-form safety check
             const validation = loginSchema.safeParse(value);
             if (!validation.success) {
                 toast.error("Please fix the errors before submitting.");
                 return;
             }
 
-            setIsLoading(true);
-
-            const { error } = await signIn.email({
-                email: value.email,
-                password: value.password,
-            });
-
-            setIsLoading(false);
-
-            if (error) {
-                toast.error(error.message || "Failed to log in. Please check your credentials.");
-                return;
+            // Use BetterAuth lifecycle callbacks so UI updates align with auth flow
+            try {
+                await signIn.email(
+                    {
+                        email: value.email,
+                        password: value.password,
+                    },
+                    {
+                        onRequest: () => {
+                            setIsLoading(true);
+                        },
+                        onSuccess: () => {
+                            setIsLoading(false);
+                            toast.success("Successfully logged in!");
+                            router.push("/dashboard");
+                        },
+                        onError: (ctx: unknown) => {
+                            setIsLoading(false);
+                            const errorMessage = parseAuthError((ctx as { error?: unknown })?.error ?? ctx);
+                            toast.error(errorMessage);
+                        },
+                    }
+                );
+            } catch (err) {
+                setIsLoading(false);
+                toast.error(parseAuthError(err));
             }
-
-            toast.success("Successfully logged in!");
-            router.push("/dashboard");
         },
     });
 

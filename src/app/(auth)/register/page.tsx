@@ -18,6 +18,33 @@ export default function RegisterPage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
 
+    const parseSignupError = (raw: unknown) => {
+        const err = (raw ?? {}) as {
+            status?: number;
+            code?: string;
+            message?: string;
+        };
+
+        const code = (err.code || "").toUpperCase();
+        const message = (err.message || "").toLowerCase();
+
+        const isExistingUser =
+            code.includes("USER_ALREADY_EXISTS") ||
+            code.includes("EMAIL_ALREADY_EXISTS") ||
+            message.includes("already exists") ||
+            message.includes("already registered") ||
+            message.includes("email is already") ||
+            message.includes("duplicate");
+
+        if (err.status === 409 || isExistingUser) {
+            return "An account with that email already exists. Please sign in.";
+        }
+        if (err.status === 400 || code.includes("INVALID_PAYLOAD") || code.includes("VALIDATION")) {
+            return "Invalid registration information. Please check your inputs.";
+        }
+        return err.message || "Signup failed. Please try again.";
+    };
+
     const Form = useForm({
         defaultValues: {
             name: "",
@@ -33,25 +60,34 @@ export default function RegisterPage() {
                 return;
             }
 
-            setIsLoading(true);
-
-            const { error } = await signUp.email({
-                name: value.name,
-                email: value.email,
-                password: value.password,
-                // Passing custom data to BetterAuth (it will be saved to your DB if configured)
-                role: value.role,
-            } as Parameters<typeof signUp.email>[0]);
-
-            setIsLoading(false);
-
-            if (error) {
-                toast.error(error.message || "Failed to create account.");
-                return;
+            // Use BetterAuth lifecycle callbacks for consistent UX
+            try {
+                await signUp.email(
+                    {
+                        name: value.name,
+                        email: value.email,
+                        password: value.password,
+                        // Passing custom data to BetterAuth (it will be saved to your DB if configured)
+                        role: value.role,
+                    } as Parameters<typeof signUp.email>[0],
+                    {
+                        onRequest: () => setIsLoading(true),
+                        onSuccess: () => {
+                            setIsLoading(false);
+                            toast.success("Account created successfully!");
+                            router.push("/dashboard");
+                        },
+                        onError: (ctx: unknown) => {
+                            setIsLoading(false);
+                            const errorMessage = parseSignupError((ctx as { error?: unknown })?.error ?? ctx);
+                            toast.error(errorMessage);
+                        },
+                    }
+                );
+            } catch (err) {
+                setIsLoading(false);
+                toast.error(parseSignupError(err));
             }
-
-            toast.success("Account created successfully!");
-            router.push("/dashboard");
         },
     });
 
