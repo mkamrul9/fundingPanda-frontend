@@ -36,6 +36,7 @@ type ProjectDetail = {
     pitchDoc?: string | null;
     images: string[];
     categories?: Array<{ id: string; name: string }>;
+    studentId?: string;
     student?: {
         name?: string;
         email?: string;
@@ -51,6 +52,7 @@ export default function ProjectDetailsPage() {
     const { data: session } = useSession();
     const currentUser = session?.user as unknown as User | undefined;
     const isSponsor = currentUser?.role === "SPONSOR";
+    const isAdmin = currentUser?.role === "ADMIN";
     const [isDonateModalOpen, setIsDonateModalOpen] = useState(false);
     const [donationAmount, setDonationAmount] = useState<number>(50);
 
@@ -130,6 +132,22 @@ export default function ProjectDetailsPage() {
         }
 
         setIsDonateModalOpen(true);
+    };
+
+    const handleShare = async () => {
+        try {
+            const url = `${window.location.origin}/projects/${project.id}`;
+            if (navigator.share) {
+                await navigator.share({ title: project.title, text: project.description, url });
+                toast.success('Shared successfully');
+                return;
+            }
+
+            await navigator.clipboard.writeText(url);
+            toast.success('Project link copied to clipboard');
+        } catch (err) {
+            toast.error('Unable to share this project');
+        }
     };
 
     const proceedToCheckout = () => {
@@ -237,7 +255,7 @@ export default function ProjectDetailsPage() {
                                 )}
 
                                 <div className="flex gap-2">
-                                    <Button variant="outline" className="w-full bg-neutral-50 text-neutral-600">
+                                    <Button variant="outline" className="w-full bg-neutral-50 text-neutral-600" onClick={handleShare}>
                                         <Share2 className="mr-2 h-4 w-4" /> Share
                                     </Button>
                                 </div>
@@ -249,13 +267,29 @@ export default function ProjectDetailsPage() {
                                 <CardTitle className="text-base">About the Researcher</CardTitle>
                             </CardHeader>
                             <CardContent className="flex items-start gap-4 pt-4">
-                                <Avatar className="h-12 w-12 border">
-                                    <AvatarFallback className="bg-primary/10 font-bold text-primary">
-                                        {project.student?.name?.charAt(0) || "U"}
-                                    </AvatarFallback>
-                                </Avatar>
+                                { (isSponsor || isAdmin) && project.studentId ? (
+                                    <Link href={`/users/${project.studentId}`} className="block">
+                                        <Avatar className="h-12 w-12 border">
+                                            <AvatarFallback className="bg-primary/10 font-bold text-primary">
+                                                {project.student?.name?.charAt(0) || "U"}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                    </Link>
+                                ) : (
+                                    <Avatar className="h-12 w-12 border">
+                                        <AvatarFallback className="bg-primary/10 font-bold text-primary">
+                                            {project.student?.name?.charAt(0) || "U"}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                )}
                                 <div className="space-y-1">
-                                    <h4 className="font-semibold text-neutral-900">{project.student?.name || "Anonymous Scholar"}</h4>
+                                    { (isSponsor || isAdmin) && project.studentId ? (
+                                        <Link href={`/users/${project.studentId}`} className="font-semibold text-neutral-900 hover:text-primary hover:underline">
+                                            {project.student?.name || "Anonymous Scholar"}
+                                        </Link>
+                                    ) : (
+                                        <h4 className="font-semibold text-neutral-900">{project.student?.name || "Anonymous Scholar"}</h4>
+                                    )}
                                     <div className="flex items-center gap-1 text-sm text-neutral-500">
                                         <GraduationCap className="h-4 w-4" />
                                         <span>{project.student?.university || "Independent Researcher"}</span>
