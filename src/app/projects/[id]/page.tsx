@@ -267,7 +267,7 @@ export default function ProjectDetailsPage() {
                                 <CardTitle className="text-base">About the Researcher</CardTitle>
                             </CardHeader>
                             <CardContent className="flex items-start gap-4 pt-4">
-                                { (isSponsor || isAdmin) && project.studentId ? (
+                                {(isSponsor || isAdmin) && project.studentId ? (
                                     <Link href={`/users/${project.studentId}`} className="block">
                                         <Avatar className="h-12 w-12 border">
                                             <AvatarFallback className="bg-primary/10 font-bold text-primary">
@@ -283,7 +283,7 @@ export default function ProjectDetailsPage() {
                                     </Avatar>
                                 )}
                                 <div className="space-y-1">
-                                    { (isSponsor || isAdmin) && project.studentId ? (
+                                    {(isSponsor || isAdmin) && project.studentId ? (
                                         <Link href={`/users/${project.studentId}`} className="font-semibold text-neutral-900 hover:text-primary hover:underline">
                                             {project.student?.name || "Anonymous Scholar"}
                                         </Link>
