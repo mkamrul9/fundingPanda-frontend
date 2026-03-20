@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
-import { Leaf, Menu } from "lucide-react";
+import { Leaf, Menu, MessageSquare } from "lucide-react";
 
 export default function PublicNavbar() {
     const { data: session, isPending } = useSession();
@@ -44,6 +44,14 @@ export default function PublicNavbar() {
                     >
                         About Us
                     </Link>
+                    {session && (
+                        <Link
+                            href="/dashboard/messages"
+                            className={`text-sm font-medium transition-colors hover:text-primary ${isActive("/dashboard/messages") ? "text-primary border-b-2 border-primary py-5" : "text-neutral-600"}`}
+                        >
+                            <div className="flex items-center gap-2"><MessageSquare className="h-4 w-4" /> Inbox</div>
+                        </Link>
+                    )}
                 </nav>
 
                 <div className="hidden md:flex items-center gap-4">

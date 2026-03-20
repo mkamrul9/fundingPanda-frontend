@@ -24,7 +24,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FileText, Leaf, GraduationCap, Calendar, Share2, Heart, ArrowLeft } from "lucide-react";
+import { FileText, Leaf, GraduationCap, Calendar, Share2, Heart, ArrowLeft, MessageSquare } from "lucide-react";
 
 type ProjectDetail = {
     id: string;
@@ -299,6 +299,16 @@ export default function ProjectDetailsPage() {
                                         <span>Joined {joinedDateLabel}</span>
                                     </div>
                                 </div>
+                                {/* Message Researcher Button */}
+                                {session?.user?.id !== project.studentId && project.studentId && (
+                                    <div className="mt-4">
+                                        <Link href={`/dashboard/messages?contact=${project.studentId}`} className="block w-full">
+                                            <Button variant="outline" className="w-full gap-2">
+                                                <MessageSquare className="h-4 w-4" /> Message {project.student?.name?.split(' ')[0] || "Researcher"}
+                                            </Button>
+                                        </Link>
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
                     </div>

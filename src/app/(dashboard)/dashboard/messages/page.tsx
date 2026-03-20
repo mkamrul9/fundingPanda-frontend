@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "@/lib/auth-client";
 import { socket } from "@/lib/socket";
@@ -36,6 +37,9 @@ export default function MessagesPage() {
         enabled: !!currentUserId,
     });
 
+    const searchParams = useSearchParams();
+    const contactParam = searchParams?.get?.("contact");
+
     const { isLoading: loadingHistory } = useQuery({
         queryKey: ["chatHistory", activeContact?.id],
         queryFn: async () => {
@@ -51,20 +55,43 @@ export default function MessagesPage() {
 
         socket.connect();
 
-        socket.on("receiveMessage", (message: Message) => {
+        // Let the server bind this socket to the authenticated user's room
+        try {
+            socket.emit("join_own_room");
+        } catch (err) {
+            // ignore emit errors
+        }
+
+        // Listen for incoming messages (server uses snake_case events)
+        const receiveHandler = (message: Message) => {
             if (
                 activeContact &&
                 (message.senderId === activeContact.id || message.receiverId === activeContact.id)
             ) {
                 setMessages((prev) => [...prev, message]);
             }
-        });
+        };
+
+        socket.on("receive_message", receiveHandler);
 
         return () => {
-            socket.off("receiveMessage");
+            socket.off("receive_message", receiveHandler);
             socket.disconnect();
         };
     }, [currentUserId, activeContact]);
+
+    // Auto-select contact from ?contact=ID immediately (fallback when conversations empty)
+    useEffect(() => {
+        if (!contactParam) return;
+        const found = contacts?.find?.((c: any) => c.id === contactParam);
+        if (found) {
+            setActiveContact(found);
+            return;
+        }
+
+        // If not found in existing conversations, set a minimal placeholder so chat opens
+        setActiveContact({ id: contactParam, name: 'Researcher' });
+    }, [contactParam, contacts]);
 
     useEffect(() => {
         if (scrollRef.current) {
@@ -81,7 +108,8 @@ export default function MessagesPage() {
             content: newMessage,
         };
 
-        socket.emit("sendMessage", messagePayload);
+        // Emit according to backend contract
+        socket.emit("send_message", messagePayload);
 
         setMessages((prev) => [
             ...prev,
@@ -158,8 +186,8 @@ export default function MessagesPage() {
                                             <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
                                                 <div
                                                     className={`max-w-[70%] rounded-2xl px-4 py-2 ${isMe
-                                                            ? "bg-primary text-primary-foreground rounded-br-sm"
-                                                            : "bg-white border text-neutral-900 rounded-bl-sm shadow-sm"
+                                                        ? "bg-primary text-primary-foreground rounded-br-sm"
+                                                        : "bg-white border text-neutral-900 rounded-bl-sm shadow-sm"
                                                         }`}
                                                 >
                                                     <p className="text-sm">{msg.content}</p>
