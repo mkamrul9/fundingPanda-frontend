@@ -20,7 +20,9 @@ interface Message {
     receiverId: string;
     content: string;
     createdAt: string;
+    clientTempId?: string | null;
 }
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function MessagesPage() {
     const { data: session } = useSession();
@@ -36,6 +38,8 @@ export default function MessagesPage() {
         queryFn: getConversations,
         enabled: !!currentUserId,
     });
+
+    const queryClient = useQueryClient();
 
     const searchParams = useSearchParams();
     const contactParam = searchParams?.get?.("contact");
@@ -64,12 +68,32 @@ export default function MessagesPage() {
 
         // Listen for incoming messages (server uses snake_case events)
         const receiveHandler = (message: Message) => {
-            if (
-                activeContact &&
-                (message.senderId === activeContact.id || message.receiverId === activeContact.id)
-            ) {
-                setMessages((prev) => [...prev, message]);
+            // If this message corresponds to an optimistic pending message, replace it
+            if (message.clientTempId) {
+                setMessages((prev) => {
+                    const idx = prev.findIndex((m) => m.id === message.clientTempId);
+                    if (idx !== -1) {
+                        const copy = [...prev];
+                        copy[idx] = message; // replace optimistic with server message
+                        return copy;
+                    }
+                    // not found, append if relevant
+                    if (activeContact && (message.senderId === activeContact.id || message.receiverId === activeContact.id)) {
+                        return [...prev, message];
+                    }
+                    return prev;
+                });
+            } else {
+                if (
+                    activeContact &&
+                    (message.senderId === activeContact.id || message.receiverId === activeContact.id)
+                ) {
+                    setMessages((prev) => [...prev, message]);
+                }
             }
+
+            // Refresh conversations list so left pane shows latest message
+            queryClient.invalidateQueries(['conversations']);
         };
 
         socket.on("receive_message", receiveHandler);
@@ -82,7 +106,10 @@ export default function MessagesPage() {
 
     // Auto-select contact from ?contact=ID immediately (fallback when conversations empty)
     useEffect(() => {
+        // Only auto-select from the URL `contact` param when we don't already have a manual selection.
         if (!contactParam) return;
+        if (activeContact) return; // don't override a user-picked contact
+
         const found = contacts?.find?.((c: any) => c.id === contactParam);
         if (found) {
             setActiveContact(found);
@@ -91,7 +118,7 @@ export default function MessagesPage() {
 
         // If not found in existing conversations, set a minimal placeholder so chat opens
         setActiveContact({ id: contactParam, name: 'Researcher' });
-    }, [contactParam, contacts]);
+    }, [contactParam, contacts, activeContact]);
 
     useEffect(() => {
         if (scrollRef.current) {
@@ -103,22 +130,27 @@ export default function MessagesPage() {
         e.preventDefault();
         if (!newMessage.trim() || !activeContact) return;
 
+        const tempId = `temp-${Date.now().toString()}`;
+
         const messagePayload = {
             receiverId: activeContact.id,
             content: newMessage,
+            tempId,
         };
 
-        // Emit according to backend contract
+        // Emit according to backend contract (includes our tempId)
         socket.emit("send_message", messagePayload);
 
+        // Optimistic UI: use tempId as the local message id so we can replace it when server responds
         setMessages((prev) => [
             ...prev,
             {
-                id: Date.now().toString(),
+                id: tempId,
                 senderId: currentUserId!,
                 receiverId: activeContact.id,
                 content: newMessage,
                 createdAt: new Date().toISOString(),
+                clientTempId: tempId,
             },
         ]);
 
