@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
@@ -12,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FileText, Send, Clock, CheckCircle, Plus, LayoutList } from "lucide-react";
+import { FileText, Send, Clock, CheckCircle, Plus, LayoutList, Pencil } from "lucide-react";
 
 type MyProject = {
     id: string;
@@ -24,6 +25,17 @@ type MyProject = {
     goalAmount: number;
     createdAt: string;
 };
+
+type MyProjectTab = "ALL" | "DRAFT" | "PENDING" | "APPROVED" | "FUNDED" | "COMPLETED";
+
+const projectTabs: Array<{ value: MyProjectTab; label: string }> = [
+    { value: "ALL", label: "All" },
+    { value: "DRAFT", label: "Draft" },
+    { value: "PENDING", label: "In Review" },
+    { value: "APPROVED", label: "Approved" },
+    { value: "FUNDED", label: "Funded" },
+    { value: "COMPLETED", label: "Completed" },
+];
 
 // Helper function to color-code project statuses
 const getStatusBadge = (status: string) => {
@@ -40,6 +52,7 @@ const getStatusBadge = (status: string) => {
 export default function MyProjectsPage() {
     const { data: session } = useSession();
     const queryClient = useQueryClient();
+    const [activeTab, setActiveTab] = useState<MyProjectTab>("ALL");
 
     const { data: projects, isLoading } = useQuery({
         queryKey: ["myProjects"],
@@ -63,6 +76,11 @@ export default function MyProjectsPage() {
 
     if (!session) return null;
 
+    const projectList = (projects ?? []) as MyProject[];
+    const filteredProjects = activeTab === "ALL"
+        ? projectList
+        : projectList.filter((project) => project.status === activeTab);
+
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -75,6 +93,19 @@ export default function MyProjectsPage() {
                 </Link>
             </div>
 
+            <div className="flex flex-wrap gap-2">
+                {projectTabs.map((tab) => (
+                    <Button
+                        key={tab.value}
+                        size="sm"
+                        variant={activeTab === tab.value ? "default" : "outline"}
+                        onClick={() => setActiveTab(tab.value)}
+                    >
+                        {tab.label}
+                    </Button>
+                ))}
+            </div>
+
             <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
                 {isLoading ? (
                     Array.from({ length: 3 }).map((_, i) => (
@@ -83,8 +114,8 @@ export default function MyProjectsPage() {
                             <CardContent><Skeleton className="h-16 w-full" /></CardContent>
                         </Card>
                     ))
-                ) : projects && projects.length > 0 ? (
-                    projects.map((project: MyProject) => (
+                ) : filteredProjects.length > 0 ? (
+                    filteredProjects.map((project: MyProject) => (
                         <Card key={project.id} className="flex flex-col relative overflow-hidden">
                             {/* Optional Admin Feedback Alert */}
                             {project.adminFeedback && project.status === "DRAFT" && (
@@ -111,6 +142,11 @@ export default function MyProjectsPage() {
                             <CardFooter className="border-t bg-neutral-50 p-4 flex gap-2">
                                 {project.status === "DRAFT" ? (
                                     <>
+                                        <Link href={`/dashboard/create-project?projectId=${project.id}`} className="w-full">
+                                            <Button variant="outline" className="w-full gap-2">
+                                                <Pencil className="h-4 w-4" /> Edit Draft
+                                            </Button>
+                                        </Link>
                                         <Button
                                             className="w-full gap-2"
                                             onClick={() => submitMutation.mutate(project.id)}
@@ -132,8 +168,8 @@ export default function MyProjectsPage() {
                         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
                             <LayoutList className="h-8 w-8 text-primary" />
                         </div>
-                        <h3 className="text-lg font-semibold text-neutral-900">No projects yet</h3>
-                        <p className="text-neutral-500 mb-6">You have not created any thesis projects.</p>
+                        <h3 className="text-lg font-semibold text-neutral-900">No projects in this status</h3>
+                        <p className="text-neutral-500 mb-6">Try another tab or create a new project.</p>
                         <Link href="/dashboard/create-project">
                             <Button>Start your first project</Button>
                         </Link>

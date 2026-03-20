@@ -1,13 +1,19 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { isAxiosError } from "axios";
 import { toast } from "sonner";
 
-import { getCategories, createProject } from "@/services/project.service";
+import {
+    createProject,
+    getCategories,
+    getMyProjectById,
+    updateProject,
+    type UpsertProjectPayload,
+} from "@/services/project.service";
 import { createProjectSchema, projectTitleSchema, projectDescriptionSchema, projectGoalSchema } from "@/lib/validations/project";
 
 import { Button } from "@/components/ui/button";
@@ -18,11 +24,31 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Leaf, UploadCloud } from "lucide-react";
 
+type FormValues = {
+    title: string;
+    description: string;
+    goalAmount: number;
+    categoryId: string;
+};
+
+type MyProjectDetail = {
+    id: string;
+    title: string;
+    description: string;
+    goalAmount: number;
+    status: string;
+    pitchDocUrl?: string | null;
+    images?: string[];
+    categories?: Array<{ id: string; name: string }>;
+};
+
 export default function CreateProjectPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const queryClient = useQueryClient();
+    const projectId = searchParams.get("projectId");
+    const isEditMode = Boolean(projectId);
 
-    // File states
     const [pitchDoc, setPitchDoc] = useState<File | null>(null);
     const [images, setImages] = useState<FileList | null>(null);
     const [submitStatus, setSubmitStatus] = useState<"DRAFT" | "PENDING">("DRAFT");
@@ -32,15 +58,38 @@ export default function CreateProjectPage() {
         queryFn: getCategories,
     });
 
+    const { data: editingProject, isLoading: isLoadingProject } = useQuery<MyProjectDetail>({
+        queryKey: ["myProject", projectId],
+        queryFn: () => getMyProjectById(projectId as string),
+        enabled: isEditMode,
+    });
+
     const hasCategories = Array.isArray(categories) && categories.length > 0;
+    const hasExistingPitchDoc = Boolean(editingProject?.pitchDocUrl);
+    const hasExistingImages = Boolean(editingProject?.images && editingProject.images.length > 0);
+    const isDraftEditable = !isEditMode || editingProject?.status === "DRAFT";
 
     const mutation = useMutation({
-        mutationFn: createProject,
-        onSuccess: () => {
+        mutationFn: async ({ value, status }: { value: FormValues; status: "DRAFT" | "PENDING" }) => {
+            const payload: UpsertProjectPayload = {
+                title: value.title,
+                description: value.description,
+                goalAmount: value.goalAmount,
+                categoryId: value.categoryId || undefined,
+                status,
+            };
+
+            if (isEditMode && projectId) {
+                return updateProject(projectId, payload, { pitchDoc, images });
+            }
+
+            return createProject(payload, { pitchDoc, images });
+        },
+        onSuccess: (_data, variables) => {
             toast.success(
-                submitStatus === "DRAFT"
+                variables.status === "DRAFT"
                     ? "Project saved as draft successfully!"
-                    : "Project submitted for review successfully!"
+                    : "Project submitted for review successfully!",
             );
             queryClient.invalidateQueries({ queryKey: ["myProjects"] });
             router.push("/dashboard/my-projects");
@@ -48,8 +97,8 @@ export default function CreateProjectPage() {
         onError: (error: unknown) => {
             const errorMessage = isAxiosError(error)
                 ? error.response?.data?.message
-                : "Failed to create project.";
-            toast.error(errorMessage || "Failed to create project.");
+                : "Failed to save project.";
+            toast.error(errorMessage || "Failed to save project.");
         },
     });
 
@@ -61,55 +110,63 @@ export default function CreateProjectPage() {
             categoryId: "",
         },
         onSubmit: async ({ value }) => {
-            // 1. Validate Text Data
             const validation = createProjectSchema.safeParse(value);
             if (!validation.success) {
                 toast.error(validation.error.issues[0]?.message || "Please fix the form errors before submitting.");
                 return;
             }
 
-            // 2. Validate Files
-            if (!pitchDoc) {
-                toast.error("Please upload a PDF Pitch Document.");
+            if (!isDraftEditable) {
+                toast.error("Only draft projects can be edited or submitted for review.");
                 return;
             }
 
-            // 3. Construct the FormData payload matching our backend requirement
-            const formData = new FormData();
+            const hasPitchDoc = Boolean(pitchDoc || hasExistingPitchDoc);
+            const hasImages = Boolean((images && images.length > 0) || hasExistingImages);
 
-            // The backend expects the JSON stringified inside the 'data' field
-            formData.append("data", JSON.stringify({
-                title: value.title,
-                description: value.description,
-                goalAmount: value.goalAmount,
-                categories: value.categoryId ? [value.categoryId] : [],
-                status: submitStatus,
-            }));
-
-            // Append the actual files
-            formData.append("pitchDoc", pitchDoc);
-
-            if (images) {
-                // Append multiple images under the same key
-                Array.from(images).forEach((file) => {
-                    formData.append("images", file);
-                });
+            if (submitStatus === "PENDING" && !hasPitchDoc) {
+                toast.error("Please upload a PDF pitch document before submitting for review.");
+                return;
             }
 
-            // 4. Fire the mutation
-            mutation.mutate(formData);
+            if (submitStatus === "PENDING" && !hasImages) {
+                toast.error("Please upload at least one prototype image before submitting for review.");
+                return;
+            }
+
+            mutation.mutate({ value, status: submitStatus });
         },
     });
-    // Alias form so we can use `Form.Field` in JSX without parsing issues
+
     const Form = form;
+
+    useEffect(() => {
+        if (!editingProject) {
+            return;
+        }
+
+        form.setFieldValue("title", editingProject.title ?? "");
+        form.setFieldValue("description", editingProject.description ?? "");
+        form.setFieldValue("goalAmount", Number(editingProject.goalAmount) || 0);
+        form.setFieldValue("categoryId", editingProject.categories?.[0]?.id ?? "");
+    }, [editingProject, form]);
+
+    if (isEditMode && isLoadingProject) {
+        return <div className="text-sm text-muted-foreground">Loading project...</div>;
+    }
 
     return (
         <div className="max-w-3xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div>
-                <h1 className="text-3xl font-bold tracking-tight">Create a Project</h1>
+                <h1 className="text-3xl font-bold tracking-tight">{isEditMode ? "Edit Draft Project" : "Create a Project"}</h1>
                 <p className="text-muted-foreground">
                     Save your thesis project as a draft or submit it directly for Admin review.
                 </p>
+                {isEditMode && !isDraftEditable && (
+                    <p className="mt-2 text-sm text-destructive">
+                        This project is no longer editable because it is already in review or beyond.
+                    </p>
+                )}
             </div>
 
             <Card>
@@ -125,11 +182,13 @@ export default function CreateProjectPage() {
                         onSubmit={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
+                            const submitter = (e.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
+                            const targetStatus = submitter?.value === "PENDING" ? "PENDING" : "DRAFT";
+                            setSubmitStatus(targetStatus);
                             form.handleSubmit();
                         }}
                         className="space-y-6"
                     >
-                        {/* TITLE */}
                         <Form.Field
                             name="title"
                             validators={{
@@ -148,21 +207,20 @@ export default function CreateProjectPage() {
                                         value={field.state.value}
                                         onChange={(e) => field.handleChange(e.target.value)}
                                         onBlur={field.handleBlur}
-                                        disabled={mutation.isPending}
+                                        disabled={mutation.isPending || !isDraftEditable}
                                     />
                                     {field.state.meta.errors.length > 0 && <p className="text-sm text-destructive">{field.state.meta.errors[0]}</p>}
                                 </div>
                             )}
                         </Form.Field>
 
-                        {/* CATEGORY & GOAL ROW */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <Form.Field name="categoryId">
                                 {(field) => (
                                     <div className="space-y-2">
                                         <Label htmlFor={field.name}>Primary Category</Label>
                                         <Select
-                                            disabled={isLoadingCategories || mutation.isPending}
+                                            disabled={isLoadingCategories || mutation.isPending || !isDraftEditable}
                                             value={field.state.value}
                                             onValueChange={(value) => field.handleChange(value)}
                                         >
@@ -206,7 +264,7 @@ export default function CreateProjectPage() {
                                                 field.handleChange(nextValue === "" ? 0 : Number(nextValue));
                                             }}
                                             onBlur={field.handleBlur}
-                                            disabled={mutation.isPending}
+                                            disabled={mutation.isPending || !isDraftEditable}
                                         />
                                         {field.state.meta.errors.length > 0 && <p className="text-sm text-destructive">{field.state.meta.errors[0]}</p>}
                                     </div>
@@ -214,7 +272,6 @@ export default function CreateProjectPage() {
                             </Form.Field>
                         </div>
 
-                        {/* DESCRIPTION */}
                         <Form.Field
                             name="description"
                             validators={{
@@ -234,52 +291,60 @@ export default function CreateProjectPage() {
                                         value={field.state.value}
                                         onChange={(e) => field.handleChange(e.target.value)}
                                         onBlur={field.handleBlur}
-                                        disabled={mutation.isPending}
+                                        disabled={mutation.isPending || !isDraftEditable}
                                     />
                                     {field.state.meta.errors.length > 0 && <p className="text-sm text-destructive">{field.state.meta.errors[0]}</p>}
                                 </div>
                             )}
                         </Form.Field>
 
-                        {/* FILE UPLOADS (NATIVE REACT STATE) */}
                         <div className="space-y-4 border-t pt-6">
                             <h3 className="text-lg font-medium flex items-center gap-2">
                                 <UploadCloud className="h-5 w-5 text-muted-foreground" /> Media & Documents
                             </h3>
 
                             <div className="space-y-2">
-                                <Label htmlFor="pitchDoc">Pitch Document (PDF ONLY) <span className="text-destructive">*</span></Label>
+                                <Label htmlFor="pitchDoc">Pitch Document (PDF ONLY)</Label>
                                 <Input
                                     id="pitchDoc"
                                     type="file"
                                     accept="application/pdf"
                                     onChange={(e) => setPitchDoc(e.target.files?.[0] || null)}
-                                    disabled={mutation.isPending}
+                                    disabled={mutation.isPending || !isDraftEditable}
                                     className="cursor-pointer file:text-primary file:font-semibold file:bg-primary/10 file:border-0 file:mr-4 file:px-4 file:py-2 file:rounded-md"
                                 />
+                                {hasExistingPitchDoc && !pitchDoc && (
+                                    <p className="text-xs text-muted-foreground">A pitch PDF is already attached to this draft.</p>
+                                )}
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="images">Prototype Images (PNG, JPG) <span className="text-muted-foreground font-normal">(Optional)</span></Label>
+                                <Label htmlFor="images">Prototype Images (PNG, JPG)</Label>
                                 <Input
                                     id="images"
                                     type="file"
                                     accept="image/png, image/jpeg, image/webp"
                                     multiple
                                     onChange={(e) => setImages(e.target.files)}
-                                    disabled={mutation.isPending}
+                                    disabled={mutation.isPending || !isDraftEditable}
                                     className="cursor-pointer file:text-primary file:font-semibold file:bg-primary/10 file:border-0 file:mr-4 file:px-4 file:py-2 file:rounded-md"
                                 />
+                                {hasExistingImages && (!images || images.length === 0) && (
+                                    <p className="text-xs text-muted-foreground">Prototype images are already attached to this draft.</p>
+                                )}
+                                <p className="text-xs text-muted-foreground">
+                                    Draft can be saved without files. Submitting for review requires a PDF and at least one image.
+                                </p>
                             </div>
                         </div>
 
                         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                             <Button
                                 type="submit"
+                                value="DRAFT"
                                 variant="outline"
                                 className="w-full"
-                                disabled={mutation.isPending}
-                                onClick={() => setSubmitStatus("DRAFT")}
+                                disabled={mutation.isPending || !isDraftEditable}
                             >
                                 {mutation.isPending && submitStatus === "DRAFT"
                                     ? "Saving draft..."
@@ -287,9 +352,9 @@ export default function CreateProjectPage() {
                             </Button>
                             <Button
                                 type="submit"
+                                value="PENDING"
                                 className="w-full"
-                                disabled={mutation.isPending}
-                                onClick={() => setSubmitStatus("PENDING")}
+                                disabled={mutation.isPending || !isDraftEditable}
                             >
                                 {mutation.isPending && submitStatus === "PENDING"
                                     ? "Submitting..."

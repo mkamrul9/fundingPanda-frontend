@@ -1,5 +1,41 @@
 import { apiClient } from "@/lib/axios";
 
+export type UpsertProjectPayload = {
+    title: string;
+    description: string;
+    goalAmount: number;
+    categoryId?: string;
+    status: "DRAFT" | "PENDING";
+};
+
+export type UploadFilesPayload = {
+    pitchDoc?: File | null;
+    images?: FileList | null;
+};
+
+const toProjectFormData = (payload: UpsertProjectPayload, files?: UploadFilesPayload) => {
+    const formData = new FormData();
+    formData.append("data", JSON.stringify({
+        title: payload.title,
+        description: payload.description,
+        goalAmount: payload.goalAmount,
+        categories: payload.categoryId ? [payload.categoryId] : [],
+        status: payload.status,
+    }));
+
+    if (files?.pitchDoc) {
+        formData.append("pitchDoc", files.pitchDoc);
+    }
+
+    if (files?.images) {
+        Array.from(files.images).forEach((file) => {
+            formData.append("images", file);
+        });
+    }
+
+    return formData;
+};
+
 export const getPublicProjects = async () => {
     // We only want to show projects that Admins have approved!
     const response = await apiClient.get('/projects?status=APPROVED&limit=6');
@@ -49,9 +85,19 @@ export const getCategories = async () => {
     return response.data.data;
 };
 
-export const createProject = async (formData: FormData) => {
-    // Use multipart/form-data for file uploads (images, attachments, etc.)
+export const createProject = async (payload: UpsertProjectPayload, files?: UploadFilesPayload) => {
+    const formData = toProjectFormData(payload, files);
     const response = await apiClient.post('/projects/create-project', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
+    return response.data.data;
+};
+
+export const updateProject = async (projectId: string, payload: UpsertProjectPayload, files?: UploadFilesPayload) => {
+    const formData = toProjectFormData(payload, files);
+    const response = await apiClient.patch(`/projects/${projectId}`, formData, {
         headers: {
             'Content-Type': 'multipart/form-data',
         },
@@ -62,6 +108,11 @@ export const createProject = async (formData: FormData) => {
 // Fetch projects belonging to the currently logged-in student
 export const getMyProjects = async () => {
     const response = await apiClient.get('/projects/my-projects');
+    return response.data.data;
+};
+
+export const getMyProjectById = async (projectId: string) => {
+    const response = await apiClient.get(`/projects/my-projects/${projectId}`);
     return response.data.data;
 };
 
