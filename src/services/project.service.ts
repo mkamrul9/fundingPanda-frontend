@@ -58,3 +58,21 @@ export const createProject = async (formData: FormData) => {
     });
     return response.data.data;
 };
+
+// Fetch projects belonging to the currently logged-in student
+export const getMyProjects = async () => {
+    const response = await apiClient.get('/projects/my-projects');
+    return response.data.data;
+};
+
+
+export const submitProjectForReview = async (projectId: string) => {
+    // Since your backend expects form-data for the PATCH route, we wrap the status update in FormData
+    const formData = new FormData();
+    formData.append("data", JSON.stringify({ status: "PENDING" }));
+
+    const response = await apiClient.patch(`/projects/${projectId}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data.data;
+};

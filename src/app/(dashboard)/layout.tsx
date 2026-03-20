@@ -65,12 +65,20 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
                     {/* Dynamic Links based on Role */}
                     {userRole === "STUDENT" && (
-                        <Link href="/dashboard/create-project">
-                            <Button variant="ghost" className="w-full justify-start">
-                                <Leaf className="mr-2 h-4 w-4" />
-                                Create Project
-                            </Button>
-                        </Link>
+                        <>
+                            <Link href="/dashboard/my-projects">
+                                <Button variant="ghost" className="w-full justify-start">
+                                    <Leaf className="mr-2 h-4 w-4" />
+                                    My Projects
+                                </Button>
+                            </Link>
+                            <Link href="/dashboard/create-project">
+                                <Button variant="ghost" className="w-full justify-start">
+                                    <Leaf className="mr-2 h-4 w-4" />
+                                    Create Project
+                                </Button>
+                            </Link>
+                        </>
                     )}
 
                     {userRole === "SPONSOR" && (

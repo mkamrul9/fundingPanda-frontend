@@ -25,6 +25,7 @@ export default function CreateProjectPage() {
     // File states
     const [pitchDoc, setPitchDoc] = useState<File | null>(null);
     const [images, setImages] = useState<FileList | null>(null);
+    const [submitStatus, setSubmitStatus] = useState<"DRAFT" | "PENDING">("DRAFT");
 
     const { data: categories, isLoading: isLoadingCategories } = useQuery({
         queryKey: ["categories"],
@@ -36,9 +37,13 @@ export default function CreateProjectPage() {
     const mutation = useMutation({
         mutationFn: createProject,
         onSuccess: () => {
-            toast.success("Project saved as DRAFT successfully!");
+            toast.success(
+                submitStatus === "DRAFT"
+                    ? "Project saved as draft successfully!"
+                    : "Project submitted for review successfully!"
+            );
             queryClient.invalidateQueries({ queryKey: ["myProjects"] });
-            router.push("/dashboard");
+            router.push("/dashboard/my-projects");
         },
         onError: (error: unknown) => {
             const errorMessage = isAxiosError(error)
@@ -78,7 +83,7 @@ export default function CreateProjectPage() {
                 description: value.description,
                 goalAmount: value.goalAmount,
                 categories: value.categoryId ? [value.categoryId] : [],
-                status: "DRAFT" // Save as draft initially
+                status: submitStatus,
             }));
 
             // Append the actual files
@@ -103,7 +108,7 @@ export default function CreateProjectPage() {
             <div>
                 <h1 className="text-3xl font-bold tracking-tight">Create a Project</h1>
                 <p className="text-muted-foreground">
-                    Draft your thesis project. It will be saved as a draft until you submit it for Admin review.
+                    Save your thesis project as a draft or submit it directly for Admin review.
                 </p>
             </div>
 
@@ -268,9 +273,29 @@ export default function CreateProjectPage() {
                             </div>
                         </div>
 
-                        <Button type="submit" className="w-full" disabled={mutation.isPending}>
-                            {mutation.isPending ? "Uploading to Cloudinary..." : "Save as Draft"}
-                        </Button>
+                        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                            <Button
+                                type="submit"
+                                variant="outline"
+                                className="w-full"
+                                disabled={mutation.isPending}
+                                onClick={() => setSubmitStatus("DRAFT")}
+                            >
+                                {mutation.isPending && submitStatus === "DRAFT"
+                                    ? "Saving draft..."
+                                    : "Save as Draft"}
+                            </Button>
+                            <Button
+                                type="submit"
+                                className="w-full"
+                                disabled={mutation.isPending}
+                                onClick={() => setSubmitStatus("PENDING")}
+                            >
+                                {mutation.isPending && submitStatus === "PENDING"
+                                    ? "Submitting..."
+                                    : "Submit for Review"}
+                            </Button>
+                        </div>
                     </form>
                 </CardContent>
             </Card>
