@@ -1,5 +1,7 @@
 import { apiClient } from "@/lib/axios";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
+
 export type UpsertProjectPayload = {
     title: string;
     description: string;
@@ -79,6 +81,13 @@ export const getAllProjects = async (params: Record<string, string | number> = {
     const response = await apiClient.get(`/projects?${query.toString()}`);
     return response.data.data;
 };
+
+export const getProjectById = async (projectId: string) => {
+    const response = await apiClient.get(`/projects/${projectId}`);
+    return response.data.data;
+};
+
+export const getProjectPitchDocUrl = (projectId: string) => `${API_BASE_URL}/projects/${projectId}/pitch-doc`;
 
 export const getCategories = async () => {
     const response = await apiClient.get('/categories');

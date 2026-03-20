@@ -85,7 +85,15 @@ export default function CreateProjectPage() {
 
             return createProject(payload, { pitchDoc, images });
         },
+        onMutate: (variables) => {
+            if (variables.status === "PENDING") {
+                toast.loading("Your proposal is being submitted to admin for review...", {
+                    id: "create-project-submit",
+                });
+            }
+        },
         onSuccess: (_data, variables) => {
+            toast.dismiss("create-project-submit");
             toast.success(
                 variables.status === "DRAFT"
                     ? "Project saved as draft successfully!"
@@ -95,6 +103,7 @@ export default function CreateProjectPage() {
             router.push("/dashboard/my-projects");
         },
         onError: (error: unknown) => {
+            toast.dismiss("create-project-submit");
             const errorMessage = isAxiosError(error)
                 ? error.response?.data?.message
                 : "Failed to save project.";

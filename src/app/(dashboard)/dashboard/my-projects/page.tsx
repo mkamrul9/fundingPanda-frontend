@@ -62,11 +62,18 @@ export default function MyProjectsPage() {
 
     const submitMutation = useMutation({
         mutationFn: submitProjectForReview,
+        onMutate: () => {
+            toast.loading("Your proposal is being submitted to admin for review...", {
+                id: "submit-project-review",
+            });
+        },
         onSuccess: () => {
+            toast.dismiss("submit-project-review");
             toast.success("Project submitted to Admins for review!");
             queryClient.invalidateQueries({ queryKey: ["myProjects"] });
         },
         onError: (error: unknown) => {
+            toast.dismiss("submit-project-review");
             const errorMessage = isAxiosError(error)
                 ? error.response?.data?.message
                 : "Failed to submit project.";
@@ -152,7 +159,8 @@ export default function MyProjectsPage() {
                                             onClick={() => submitMutation.mutate(project.id)}
                                             disabled={submitMutation.isPending}
                                         >
-                                            <Send className="h-4 w-4" /> Submit for Review
+                                            <Send className="h-4 w-4" />
+                                            {submitMutation.isPending ? "Submitting..." : "Submit for Review"}
                                         </Button>
                                     </>
                                 ) : (
