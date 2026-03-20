@@ -88,6 +88,7 @@ export const getProjectById = async (projectId: string) => {
 };
 
 export const getProjectPitchDocUrl = (projectId: string) => `${API_BASE_URL}/projects/${projectId}/pitch-doc`;
+export const getProjectPitchDocDownloadUrl = (projectId: string) => `${API_BASE_URL}/projects/${projectId}/pitch-doc/download`;
 
 export const getCategories = async () => {
     const response = await apiClient.get('/categories');

@@ -10,7 +10,7 @@ import { isAxiosError } from "axios";
 import { useSession } from "@/lib/auth-client";
 import { User } from "@/types";
 
-import { getProjectById, getProjectPitchDocUrl } from "@/services/project.service";
+import { getProjectById, getProjectPitchDocDownloadUrl } from "@/services/project.service";
 import { createCheckoutSession } from "@/services/payment.service";
 import PublicNavbar from "@/components/ui/layout/PublicNavbar";
 
@@ -179,7 +179,7 @@ export default function ProjectDetailsPage() {
 
                         <Separator />
 
-                        {project.pitchDocUrl && (
+                        {(project.pitchDocUrl || project.pitchDoc) && (
                             <div className="flex items-center justify-between rounded-xl border bg-white p-6 shadow-sm">
                                 <div className="flex items-center gap-4">
                                     <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-red-100 text-red-600">
@@ -192,11 +192,11 @@ export default function ProjectDetailsPage() {
                                 </div>
                                 <Button variant="outline" asChild>
                                     <a
-                                        href={project.pitchDocUrl || project.pitchDoc || getProjectPitchDocUrl(project.id)}
+                                        href={getProjectPitchDocDownloadUrl(project.id)}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                     >
-                                        View PDF
+                                        Download PDF
                                     </a>
                                 </Button>
                             </div>

@@ -6,7 +6,7 @@ import { isAxiosError } from "axios";
 import { toast } from "sonner";
 import { useSession } from "@/lib/auth-client";
 import { getPendingProjects, moderateProject } from "@/services/admin.service";
-import { getProjectPitchDocUrl } from "@/services/project.service";
+import { getProjectPitchDocDownloadUrl } from "@/services/project.service";
 import { User } from "@/types";
 
 import { Button } from "@/components/ui/button";
@@ -135,8 +135,8 @@ export default function AdminDashboardPage() {
                                     {/* File Links */}
                                     <div className="flex flex-wrap gap-4">
                                         {project.pitchDocUrl && (
-                                            <a href={getProjectPitchDocUrl(project.id)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-sm text-blue-600 hover:underline">
-                                                <FileText className="h-4 w-4" /> View Pitch PDF
+                                            <a href={getProjectPitchDocDownloadUrl(project.id)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-sm text-blue-600 hover:underline">
+                                                <FileText className="h-4 w-4" /> Download Pitch PDF
                                             </a>
                                         )}
                                         <Link href={`/projects/${project.id}`} className="flex items-center gap-1 text-sm text-primary hover:underline">
