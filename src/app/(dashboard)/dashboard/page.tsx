@@ -3,6 +3,8 @@
 import { useSession } from "@/lib/auth-client";
 import { User } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export default function DashboardPage() {
     const { data: session } = useSession();
@@ -10,6 +12,7 @@ export default function DashboardPage() {
     if (!session) return null;
 
     const user = session.user as unknown as User;
+    const isStudent = user.role === "STUDENT";
 
     return (
         <div className="space-y-6">
@@ -18,6 +21,13 @@ export default function DashboardPage() {
                 <p className="text-neutral-500">
                     Welcome back, {user.name}. Here is an overview of your activity.
                 </p>
+                {isStudent && (
+                    <div className="mt-4">
+                        <Link href="/dashboard/create-project">
+                            <Button>Create Project</Button>
+                        </Link>
+                    </div>
+                )}
             </div>
 
             <div className="grid gap-4 md:grid-cols-3">

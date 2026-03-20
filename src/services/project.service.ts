@@ -6,16 +6,39 @@ export const getPublicProjects = async () => {
     return response.data.data;
 };
 
-export const getAllProjects = async (params: Record<string, any> = {}) => {
-    // Use native URLSearchParams to safely encode the query string
+export const getAllProjects = async (params: Record<string, string | number> = {}) => {
     const query = new URLSearchParams({ status: "APPROVED" });
 
-    // Dynamically append any filter that actually has a value
-    Object.entries(params).forEach(([key, value]) => {
-        if (value && value !== "ALL") {
-            query.append(key, String(value));
-        }
-    });
+    const sortValue = String(params.sortBy ?? "-createdAt");
+    if (sortValue.startsWith("-")) {
+        query.append("sortBy", sortValue.slice(1));
+        query.append("sortOrder", "desc");
+    } else {
+        query.append("sortBy", sortValue);
+        query.append("sortOrder", "asc");
+    }
+
+    const combinedSearchTerm = [params.searchTerm, params.studentName]
+        .filter((value) => Boolean(value))
+        .map((value) => String(value))
+        .join(" ")
+        .trim();
+
+    if (combinedSearchTerm) {
+        query.append("searchTerm", combinedSearchTerm);
+    }
+
+    if (params.university) {
+        query.append("student.university", String(params.university));
+    }
+
+    if (params.startDate) {
+        query.append("createdAt[gte]", String(params.startDate));
+    }
+
+    if (params.endDate) {
+        query.append("createdAt[lte]", String(params.endDate));
+    }
 
     const response = await apiClient.get(`/projects?${query.toString()}`);
     return response.data.data;
@@ -23,5 +46,15 @@ export const getAllProjects = async (params: Record<string, any> = {}) => {
 
 export const getCategories = async () => {
     const response = await apiClient.get('/categories');
+    return response.data.data;
+};
+
+export const createProject = async (formData: FormData) => {
+    // Use multipart/form-data for file uploads (images, attachments, etc.)
+    const response = await apiClient.post('/projects/create-project', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
     return response.data.data;
 };

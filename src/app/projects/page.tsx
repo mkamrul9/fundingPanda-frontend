@@ -35,7 +35,7 @@ export default function ExploreProjectsPage() {
     });
 
     // Fetch Projects triggers automatically when the `filters` object changes
-    const { data: projects, isLoading } = useQuery({
+    const { data: projects, isLoading, isError } = useQuery({
         queryKey: ["allProjects", filters],
         queryFn: () => getAllProjects(filters),
     });
@@ -172,9 +172,47 @@ export default function ExploreProjectsPage() {
                 </aside>
 
                 {/* MAIN PROJECT GRID */}
-                <div className="flex-1">
+                <div className="flex-1 space-y-6">
+
+                    {/* NEW: Quick Filter Tabs (Industry Standard UX) */}
+                    <div className="flex items-center gap-2 border-b pb-4 overflow-x-auto whitespace-nowrap">
+                        <Button
+                            variant={filters.sortBy === "-createdAt" && filters.fundingStatus === "ALL" ? "default" : "ghost"}
+                            onClick={() => { setFilters(prev => ({ ...prev, sortBy: "-createdAt", fundingStatus: "ALL" })) }}
+                            className="rounded-full"
+                        >
+                            Newest First
+                        </Button>
+                        <Button
+                            variant={filters.sortBy === "-raisedAmount" ? "default" : "ghost"}
+                            onClick={() => { setFilters(prev => ({ ...prev, sortBy: "-raisedAmount", fundingStatus: "ALL" })) }}
+                            className="rounded-full"
+                        >
+                            Top Funded (All Time)
+                        </Button>
+                        <Button
+                            variant={filters.fundingStatus === "NEEDS_FUNDING" ? "default" : "ghost"}
+                            onClick={() => { setFilters(prev => ({ ...prev, fundingStatus: "NEEDS_FUNDING", sortBy: "createdAt" })) }}
+                            className="rounded-full"
+                        >
+                            Closing Soon / Needs Funding
+                        </Button>
+                    </div>
+
+                    {/* Active Filter Indicators (Shows the user what is currently applied) */}
+                    {(filters.searchTerm || filters.studentName || filters.university || filters.category !== "ALL") && (
+                        <div className="flex flex-wrap items-center gap-2 text-sm text-neutral-500">
+                            <span>Active filters:</span>
+                            {filters.searchTerm && <Badge variant="secondary">Keyword: {filters.searchTerm}</Badge>}
+                            {filters.category !== "ALL" && <Badge variant="secondary">Category Filtered</Badge>}
+                            {filters.university && <Badge variant="secondary">Uni: {filters.university}</Badge>}
+                        </div>
+                    )}
+
+                    {/* The Grid */}
                     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
                         {isLoading ? (
+                            // ... Keep your existing skeleton loading state here ...
                             Array.from({ length: 6 }).map((_, i) => (
                                 <Card key={i} className="overflow-hidden">
                                     <Skeleton className="h-48 w-full rounded-none" />
@@ -182,10 +220,15 @@ export default function ExploreProjectsPage() {
                                     <CardContent><Skeleton className="h-16 w-full" /></CardContent>
                                 </Card>
                             ))
+                        ) : isError ? (
+                            <div className="col-span-full py-24 text-center border-2 border-dashed rounded-xl">
+                                <h3 className="text-lg font-semibold text-neutral-900">Could not load projects</h3>
+                                <p className="text-neutral-500">Please make sure backend server is running and try again.</p>
+                            </div>
                         ) : projects && projects.length > 0 ? (
+                            // ... Keep your existing project mapping logic here ...
                             projects.map((project: any) => (
                                 <Card key={project.id} className="flex flex-col overflow-hidden transition-all hover:shadow-lg hover:-translate-y-1 duration-300">
-                                    {/* ... Keep your existing Card design from Phase 53 here ... */}
                                     <div className="aspect-video w-full bg-slate-100 overflow-hidden relative">
                                         {project.images?.[0] ? (
                                             <img src={project.images[0]} alt={project.title} className="object-cover w-full h-full" />
@@ -224,8 +267,8 @@ export default function ExploreProjectsPage() {
                                 <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-neutral-100">
                                     <Search className="h-8 w-8 text-neutral-400" />
                                 </div>
-                                <h3 className="text-lg font-semibold text-neutral-900">No projects match your exact filters</h3>
-                                <p className="text-neutral-500">Try adjusting dates, clearing the university name, or broadening your search.</p>
+                                <h3 className="text-lg font-semibold text-neutral-900">No projects match your criteria</h3>
+                                <p className="text-neutral-500">There are currently no approved projects matching this search.</p>
                                 <Button variant="outline" className="mt-4" onClick={clearFilters}>Clear All Filters</Button>
                             </div>
                         )}

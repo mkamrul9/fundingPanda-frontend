@@ -45,7 +45,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     return (
         <div className="flex min-h-screen flex-col bg-neutral-50 md:flex-row">
             {/* Sidebar Navigation */}
-            <aside className="w-full border-b bg-white md:w-64 md:border-b-0 md:border-r">
+            <aside className="w-full border-b bg-white md:flex md:w-64 md:flex-col md:border-b-0 md:border-r">
                 <div className="flex h-16 items-center border-b px-6">
                     <Link href="/" className="flex items-center gap-2">
                         <Leaf className="h-5 w-5 text-primary" />
@@ -55,7 +55,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                     </Link>
                 </div>
 
-                <nav className="flex flex-col gap-2 p-4">
+                <nav className="flex flex-col gap-2 p-4 md:flex-1">
                     <Link href="/dashboard">
                         <Button variant="ghost" className="w-full justify-start">
                             <LayoutDashboard className="mr-2 h-4 w-4" />
@@ -65,10 +65,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
                     {/* Dynamic Links based on Role */}
                     {userRole === "STUDENT" && (
-                        <Link href="/dashboard/my-projects">
+                        <Link href="/dashboard/create-project">
                             <Button variant="ghost" className="w-full justify-start">
                                 <Leaf className="mr-2 h-4 w-4" />
-                                My Projects
+                                Create Project
                             </Button>
                         </Link>
                     )}
@@ -90,7 +90,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                     </Link>
                 </nav>
 
-                <div className="absolute bottom-4 w-full px-4 md:w-64">
+                <div className="px-4 pb-4 md:mt-auto">
                     <div className="mb-4 flex items-center gap-3 rounded-lg border bg-neutral-50 p-3">
                         <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">
                             {user.name.charAt(0)}
