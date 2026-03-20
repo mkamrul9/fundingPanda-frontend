@@ -3,11 +3,15 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { toast } from "sonner";
+import { isAxiosError } from "axios";
 import { useSession } from "@/lib/auth-client";
 import { User } from "@/types";
 
 import { getProjectById, getProjectPitchDocUrl } from "@/services/project.service";
+import { createCheckoutSession } from "@/services/payment.service";
 import PublicNavbar from "@/components/ui/layout/PublicNavbar";
 
 import { Button } from "@/components/ui/button";
@@ -17,6 +21,9 @@ import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { FileText, Leaf, GraduationCap, Calendar, Share2, Heart, ArrowLeft } from "lucide-react";
 
 type ProjectDetail = {
@@ -26,6 +33,7 @@ type ProjectDetail = {
     goalAmount: number;
     raisedAmount: number;
     pitchDocUrl?: string | null;
+    pitchDoc?: string | null;
     images: string[];
     categories?: Array<{ id: string; name: string }>;
     student?: {
@@ -43,6 +51,25 @@ export default function ProjectDetailsPage() {
     const { data: session } = useSession();
     const currentUser = session?.user as unknown as User | undefined;
     const isSponsor = currentUser?.role === "SPONSOR";
+    const [isDonateModalOpen, setIsDonateModalOpen] = useState(false);
+    const [donationAmount, setDonationAmount] = useState<number>(50);
+
+    const checkoutMutation = useMutation({
+        mutationFn: createCheckoutSession,
+        onSuccess: (data) => {
+            if (data?.url) {
+                window.location.href = data.url;
+            } else {
+                toast.error("Failed to initialize payment gateway.");
+            }
+        },
+        onError: (error: unknown) => {
+            const message = isAxiosError(error)
+                ? error.response?.data?.message
+                : "Payment initialization failed.";
+            toast.error(message || "Payment initialization failed.");
+        },
+    });
 
     const { data: project, isLoading, isError } = useQuery<ProjectDetail>({
         queryKey: ["project", projectId],
@@ -90,6 +117,29 @@ export default function ProjectDetailsPage() {
     const joinedDateLabel = project.student?.createdAt
         ? new Date(project.student.createdAt).toLocaleDateString()
         : "Not available";
+
+    const handleDonateClick = () => {
+        if (!session) {
+            toast.error("Please log in to back this project.");
+            return;
+        }
+
+        if (!isSponsor) {
+            toast.error("Students and admins cannot fund projects. Please use a sponsor account.");
+            return;
+        }
+
+        setIsDonateModalOpen(true);
+    };
+
+    const proceedToCheckout = () => {
+        if (donationAmount < 5) {
+            toast.error("Minimum donation amount is $5.");
+            return;
+        }
+
+        checkoutMutation.mutate({ projectId, amount: donationAmount });
+    };
 
     return (
         <div className="flex min-h-screen flex-col bg-neutral-50">
@@ -140,9 +190,15 @@ export default function ProjectDetailsPage() {
                                         <p className="text-sm text-neutral-500">PDF Format • Full technical specifications</p>
                                     </div>
                                 </div>
-                                <a href={getProjectPitchDocUrl(project.id)} target="_blank" rel="noopener noreferrer">
-                                    <Button variant="outline">View PDF</Button>
-                                </a>
+                                <Button variant="outline" asChild>
+                                    <a
+                                        href={project.pitchDocUrl || project.pitchDoc || getProjectPitchDocUrl(project.id)}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        View PDF
+                                    </a>
+                                </Button>
                             </div>
                         )}
                     </div>
@@ -169,6 +225,7 @@ export default function ProjectDetailsPage() {
                                         size="lg"
                                         className="h-14 w-full bg-primary text-base shadow-md hover:bg-emerald-700"
                                         disabled={project.status === "COMPLETED" || project.status === "FUNDED"}
+                                        onClick={handleDonateClick}
                                     >
                                         <Heart className="mr-2 h-5 w-5" />
                                         {project.status === "COMPLETED" ? "Project Completed" : "Back this Idea"}
@@ -213,6 +270,49 @@ export default function ProjectDetailsPage() {
                     </div>
                 </div>
             </main>
+
+            <Dialog open={isDonateModalOpen} onOpenChange={setIsDonateModalOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Back this Project</DialogTitle>
+                        <DialogDescription>
+                            Your contribution helps bring {project?.student?.name || "this student"}&apos;s research to life.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="flex items-center space-x-2 py-4">
+                        <div className="grid flex-1 gap-2">
+                            <Label htmlFor="amount" className="text-sm font-medium">Donation Amount (USD)</Label>
+                            <div className="relative">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 font-medium text-neutral-500">$</span>
+                                <Input
+                                    id="amount"
+                                    type="number"
+                                    min="5"
+                                    className="pl-8 text-lg font-bold"
+                                    value={donationAmount}
+                                    onChange={(e) => setDonationAmount(Number(e.target.value))}
+                                    disabled={checkoutMutation.isPending}
+                                />
+                            </div>
+                            <p className="text-xs text-neutral-500">Minimum $5.00</p>
+                        </div>
+                    </div>
+                    <DialogFooter className="flex-row items-center sm:justify-between">
+                        <Button variant="ghost" onClick={() => setIsDonateModalOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={proceedToCheckout}
+                            disabled={checkoutMutation.isPending || donationAmount < 5}
+                            className="gap-2 bg-primary hover:bg-emerald-700"
+                        >
+                            {checkoutMutation.isPending
+                                ? "Connecting to Stripe..."
+                                : `Proceed with $${donationAmount}`}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
