@@ -5,7 +5,7 @@ import { User } from "@/types";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession, signOut } from "@/lib/auth-client";
-import { Leaf, LogOut, LayoutDashboard, Settings, Loader2 } from "lucide-react";
+import { Leaf, LogOut, LayoutDashboard, Settings, Loader2, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
@@ -86,6 +86,15 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                             <Button variant="ghost" className="w-full justify-start">
                                 <Leaf className="mr-2 h-4 w-4" />
                                 My Donations
+                            </Button>
+                        </Link>
+                    )}
+
+                    {userRole === "ADMIN" && (
+                        <Link href="/dashboard/admin">
+                            <Button variant="ghost" className="w-full justify-start">
+                                <ShieldCheck className="mr-2 h-4 w-4" />
+                                Moderation Queue
                             </Button>
                         </Link>
                     )}

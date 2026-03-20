@@ -139,16 +139,16 @@ export default function MyProjectsPage() {
                                 </div>
                             </CardContent>
 
-                            <CardFooter className="border-t bg-neutral-50 p-4 flex gap-2">
+                            <CardFooter className="border-t bg-neutral-50 p-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 {project.status === "DRAFT" ? (
                                     <>
                                         <Link href={`/dashboard/create-project?projectId=${project.id}`} className="w-full">
-                                            <Button variant="outline" className="w-full gap-2">
+                                            <Button variant="outline" className="w-full gap-2 whitespace-nowrap">
                                                 <Pencil className="h-4 w-4" /> Edit Draft
                                             </Button>
                                         </Link>
                                         <Button
-                                            className="w-full gap-2"
+                                            className="w-full gap-2 whitespace-nowrap"
                                             onClick={() => submitMutation.mutate(project.id)}
                                             disabled={submitMutation.isPending}
                                         >
