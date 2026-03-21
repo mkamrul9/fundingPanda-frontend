@@ -247,7 +247,7 @@ export default function ExploreProjectsPage() {
                                         <h3 className="line-clamp-2 text-lg font-bold leading-tight">{project.title}</h3>
                                     </CardHeader>
                                     <CardContent className="flex-1 pb-4">
-                                        <p className="line-clamp-3 text-sm text-neutral-500">{project.description}</p>
+                                        <p className="whitespace-pre-wrap wrap-break-word text-sm text-neutral-500">{project.description}</p>
                                     </CardContent>
                                     <CardFooter className="border-t bg-neutral-50/50 p-4">
                                         <div className="flex w-full items-center justify-between">

@@ -130,7 +130,7 @@ export default function AdminDashboardPage() {
                                     </div>
 
                                     <h3 className="text-xl font-bold mb-2">{project.title}</h3>
-                                    <p className="text-neutral-600 text-sm mb-4 line-clamp-3">{project.description}</p>
+                                    <p className="text-neutral-600 text-sm mb-4 whitespace-pre-wrap wrap-break-word">{project.description}</p>
 
                                     {/* File Links */}
                                     <div className="flex flex-wrap gap-4">

@@ -223,7 +223,7 @@ export default function ProjectDetailsPage() {
                             <h1 className="mb-4 text-3xl font-extrabold tracking-tight text-neutral-900 sm:text-4xl">
                                 {project.title}
                             </h1>
-                            <p className="whitespace-pre-wrap text-lg leading-relaxed text-neutral-600">
+                            <p className="whitespace-pre-wrap wrap-break-word text-lg leading-relaxed text-neutral-600">
                                 {project.description}
                             </p>
                         </div>

@@ -5,7 +5,7 @@ import { User } from "@/types";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession, signOut } from "@/lib/auth-client";
-import { Leaf, LogOut, LayoutDashboard, Settings, Loader2, ShieldCheck, House, MessageSquare } from "lucide-react";
+import { Leaf, LogOut, LayoutDashboard, Settings, Loader2, ShieldCheck, House, MessageSquare, Package, FolderKanban, Rocket, Clock3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
@@ -75,16 +75,34 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                     {/* Dynamic Links based on Role */}
                     {userRole === "STUDENT" && (
                         <>
-                            <Link href="/dashboard/my-projects">
+                            <Link href="/projects">
                                 <Button variant="ghost" className="w-full justify-start">
                                     <Leaf className="mr-2 h-4 w-4" />
+                                    Explore Ideas
+                                </Button>
+                            </Link>
+                            <Link href="/dashboard/my-projects">
+                                <Button variant="ghost" className="w-full justify-start">
+                                    <FolderKanban className="mr-2 h-4 w-4" />
                                     My Projects
                                 </Button>
                             </Link>
                             <Link href="/dashboard/create-project">
                                 <Button variant="ghost" className="w-full justify-start">
-                                    <Leaf className="mr-2 h-4 w-4" />
+                                    <Rocket className="mr-2 h-4 w-4" />
                                     Create Project
+                                </Button>
+                            </Link>
+                            <Link href="/dashboard/my-projects">
+                                <Button variant="ghost" className="w-full justify-start">
+                                    <Clock3 className="mr-2 h-4 w-4" />
+                                    Timeline
+                                </Button>
+                            </Link>
+                            <Link href="/dashboard/resources">
+                                <Button variant="ghost" className="w-full justify-start">
+                                    <Package className="mr-2 h-4 w-4" />
+                                    Resource Hub
                                 </Button>
                             </Link>
                         </>
@@ -108,6 +126,18 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                                 <Button variant="ghost" className="w-full justify-start">
                                     <Leaf className="mr-2 h-4 w-4" />
                                     My Donated Projects
+                                </Button>
+                            </Link>
+                            <Link href="/dashboard/donations">
+                                <Button variant="ghost" className="w-full justify-start">
+                                    <Clock3 className="mr-2 h-4 w-4" />
+                                    Timeline
+                                </Button>
+                            </Link>
+                            <Link href="/dashboard/resources">
+                                <Button variant="ghost" className="w-full justify-start">
+                                    <Package className="mr-2 h-4 w-4" />
+                                    Resource Hub
                                 </Button>
                             </Link>
                             <Link href="/about">

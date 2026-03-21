@@ -91,4 +91,12 @@
     background-color: var(--color-background, var(--background));
     color: var(--color-foreground, var(--foreground));
   }
+
+  p,
+  td,
+  th,
+  .safe-wrap {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
 }
