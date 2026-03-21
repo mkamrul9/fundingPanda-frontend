@@ -93,7 +93,7 @@ export default function MessagesPage() {
             }
 
             // Refresh conversations list so left pane shows latest message
-            queryClient.invalidateQueries(['conversations']);
+            queryClient.invalidateQueries({ queryKey: ['conversations'] });
         };
 
         socket.on("receive_message", receiveHandler);

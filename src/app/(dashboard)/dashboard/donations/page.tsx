@@ -3,24 +3,48 @@
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "@/lib/auth-client";
+import { User } from "@/types";
 import { getMyDonations } from "@/services/donation.service";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardDescription, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Receipt, ArrowRight, ExternalLink, Calendar, DollarSign, ShieldAlert } from "lucide-react";
+import { Receipt, ExternalLink, Calendar, DollarSign, ShieldAlert, Milestone } from "lucide-react";
+
+type DonationRecord = {
+    id: string;
+    amount: number;
+    createdAt: string;
+    transactionId?: string;
+    projectId: string;
+    project?: {
+        id: string;
+        title: string;
+        status?: string;
+    };
+};
+
+type InvestedProjectSummary = {
+    projectId: string;
+    title: string;
+    status: string;
+    investedAmount: number;
+    lastDonationAt: string;
+};
 
 export default function SponsorDonationsPage() {
     const { data: session } = useSession();
+    const currentUser = session?.user as unknown as User | undefined;
+    const userRole = currentUser?.role;
 
-    const { data: donations, isLoading } = useQuery({
+    const { data: donations = [], isLoading } = useQuery<DonationRecord[]>({
         queryKey: ["myDonations"],
         queryFn: getMyDonations,
-        enabled: session?.user?.role === "SPONSOR",
+        enabled: userRole === "SPONSOR",
     });
 
-    if (session?.user?.role === "STUDENT") {
+    if (userRole === "STUDENT") {
         return (
             <div className="flex flex-col items-center justify-center py-24 text-center">
                 <ShieldAlert className="h-16 w-16 text-neutral-300 mb-4" />
@@ -30,13 +54,42 @@ export default function SponsorDonationsPage() {
         );
     }
 
-    const totalFunded = donations?.reduce((sum: number, tx: any) => sum + tx.amount, 0) || 0;
+    const totalFunded = donations.reduce((sum, tx) => sum + tx.amount, 0);
+
+    const investedProjects = Array.from(
+        donations.reduce((map, donation) => {
+            const projectId = donation.projectId;
+            const title = donation.project?.title || "Project Name Unavailable";
+            const status = donation.project?.status || "UNKNOWN";
+            const lastDonationAt = donation.createdAt;
+
+            if (!map.has(projectId)) {
+                map.set(projectId, {
+                    projectId,
+                    title,
+                    status,
+                    investedAmount: donation.amount,
+                    lastDonationAt,
+                });
+                return map;
+            }
+
+            const existing = map.get(projectId) as InvestedProjectSummary;
+            existing.investedAmount += donation.amount;
+            if (new Date(lastDonationAt).getTime() > new Date(existing.lastDonationAt).getTime()) {
+                existing.lastDonationAt = lastDonationAt;
+            }
+
+            map.set(projectId, existing);
+            return map;
+        }, new Map<string, InvestedProjectSummary>()).values()
+    ).sort((a, b) => new Date(b.lastDonationAt).getTime() - new Date(a.lastDonationAt).getTime());
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div>
-                <h1 className="text-3xl font-bold tracking-tight">My Donations</h1>
-                <p className="text-muted-foreground">Track your contributions and the impact you are making on academic research.</p>
+                <h1 className="text-3xl font-bold tracking-tight">My Donated Projects</h1>
+                <p className="text-muted-foreground">Only projects you invested in are shown here. Open any project to view timeline updates.</p>
             </div>
 
             <div className="grid gap-4 md:grid-cols-3">
@@ -49,7 +102,7 @@ export default function SponsorDonationsPage() {
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <p className="text-sm text-primary-foreground/80">Across {donations?.length || 0} supported projects</p>
+                        <p className="text-sm text-primary-foreground/80">Across {investedProjects.length} funded projects</p>
                     </CardContent>
                 </Card>
             </div>
@@ -57,7 +110,7 @@ export default function SponsorDonationsPage() {
             <Card className="shadow-sm">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                        <Receipt className="h-5 w-5 text-primary" /> Transaction History
+                        <Receipt className="h-5 w-5 text-primary" /> Invested Projects
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -69,33 +122,36 @@ export default function SponsorDonationsPage() {
                                     <Skeleton className="h-8 w-16" />
                                 </div>
                             ))
-                        ) : donations && donations.length > 0 ? (
-                            donations.map((donation: any) => (
-                                <div key={donation.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-xl hover:bg-neutral-50 transition-colors gap-4">
+                        ) : investedProjects.length > 0 ? (
+                            investedProjects.map((project) => (
+                                <div key={project.projectId} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-xl hover:bg-neutral-50 transition-colors gap-4">
                                     <div className="flex-1">
                                         <div className="flex items-center gap-2 mb-1">
-                                            <Link href={`/projects/${donation.projectId}`} className="font-semibold text-lg text-neutral-900 hover:text-primary hover:underline line-clamp-1">
-                                                {donation.project?.title || "Project Name Unavailable"}
+                                            <Link href={`/projects/${project.projectId}`} className="font-semibold text-lg text-neutral-900 hover:text-primary hover:underline line-clamp-1">
+                                                {project.title}
                                             </Link>
-                                            {donation.project?.status === "COMPLETED" && (
+                                            {project.status === "COMPLETED" && (
                                                 <Badge variant="secondary" className="bg-purple-100 text-purple-800 text-[10px]">Completed</Badge>
                                             )}
                                         </div>
                                         <div className="flex items-center text-sm text-neutral-500 gap-4">
                                             <span className="flex items-center gap-1">
                                                 <Calendar className="h-3.5 w-3.5" />
-                                                {new Date(donation.createdAt).toLocaleDateString()}
+                                                Last funded: {new Date(project.lastDonationAt).toLocaleDateString()}
                                             </span>
-                                            <span className="font-mono text-xs bg-neutral-100 px-2 py-0.5 rounded text-neutral-400 truncate max-w-[120px]">
-                                                Tx: {donation.transactionId || donation.id.split('-')[0]}
-                                            </span>
+                                            <Badge variant="outline">{project.status}</Badge>
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center justify-between sm:justify-end gap-6 sm:w-48">
-                                        <div className="text-xl font-bold text-emerald-600">+${donation.amount.toLocaleString()}</div>
-                                        <Link href={`/projects/${donation.projectId}`}>
-                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-primary">
+                                    <div className="flex items-center justify-between sm:justify-end gap-3 sm:w-auto">
+                                        <div className="text-xl font-bold text-emerald-600">${project.investedAmount.toLocaleString()}</div>
+                                        <Link href={`/projects/${project.projectId}`}>
+                                            <Button variant="outline" className="gap-2">
+                                                <Milestone className="h-4 w-4" /> View Timeline
+                                            </Button>
+                                        </Link>
+                                        <Link href={`/projects/${project.projectId}`}>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-primary" title="Open project details">
                                                 <ExternalLink className="h-4 w-4" />
                                             </Button>
                                         </Link>

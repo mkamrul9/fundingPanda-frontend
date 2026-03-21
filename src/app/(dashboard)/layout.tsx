@@ -63,12 +63,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                         </Button>
                     </Link>
 
-                    <Link href="/dashboard">
-                        <Button variant="ghost" className="w-full justify-start">
-                            <LayoutDashboard className="mr-2 h-4 w-4" />
-                            Overview
-                        </Button>
-                    </Link>
+                    {userRole !== "SPONSOR" && (
+                        <Link href="/dashboard">
+                            <Button variant="ghost" className="w-full justify-start">
+                                <LayoutDashboard className="mr-2 h-4 w-4" />
+                                Overview
+                            </Button>
+                        </Link>
+                    )}
 
                     {/* Dynamic Links based on Role */}
                     {userRole === "STUDENT" && (
@@ -90,10 +92,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
                     {userRole === "SPONSOR" && (
                         <>
-                            <Link href="/dashboard/donations">
+                            <Link href="/projects">
                                 <Button variant="ghost" className="w-full justify-start">
                                     <Leaf className="mr-2 h-4 w-4" />
-                                    My Donations
+                                    Explore Ideas
                                 </Button>
                             </Link>
                             <Link href="/dashboard/messages">
@@ -102,10 +104,16 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                                     Inbox
                                 </Button>
                             </Link>
-                            <Link href="/projects">
+                            <Link href="/dashboard/donations">
                                 <Button variant="ghost" className="w-full justify-start">
                                     <Leaf className="mr-2 h-4 w-4" />
-                                    Browse Projects
+                                    My Donated Projects
+                                </Button>
+                            </Link>
+                            <Link href="/about">
+                                <Button variant="ghost" className="w-full justify-start">
+                                    <Leaf className="mr-2 h-4 w-4" />
+                                    About Us
                                 </Button>
                             </Link>
                         </>

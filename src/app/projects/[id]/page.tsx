@@ -10,8 +10,10 @@ import { isAxiosError } from "axios";
 import { useSession } from "@/lib/auth-client";
 import { User } from "@/types";
 
-import { getProjectById, getProjectPitchDocDownloadUrl } from "@/services/project.service";
+import { getProjectById, getProjectPitchDocDownloadUrl, markProjectAsCompleted } from "@/services/project.service";
 import { createCheckoutSession } from "@/services/payment.service";
+import { getMyDonations } from "@/services/donation.service";
+import ProjectTimeline from "@/components/projects/ProjectTimeline";
 import PublicNavbar from "@/components/ui/layout/PublicNavbar";
 
 import { Button } from "@/components/ui/button";
@@ -73,10 +75,30 @@ export default function ProjectDetailsPage() {
         },
     });
 
+    const { data: myDonations = [] } = useQuery<any[]>({
+        queryKey: ["myDonations"],
+        queryFn: getMyDonations,
+        enabled: isSponsor,
+    });
+
     const { data: project, isLoading, isError } = useQuery<ProjectDetail>({
         queryKey: ["project", projectId],
         queryFn: () => getProjectById(projectId),
         enabled: !!projectId,
+    });
+
+    const completeProjectMutation = useMutation({
+        mutationFn: () => markProjectAsCompleted(projectId),
+        onSuccess: () => {
+            toast.success("Project marked as completed.");
+            window.location.reload();
+        },
+        onError: (error: unknown) => {
+            const message = isAxiosError(error)
+                ? error.response?.data?.message
+                : "Failed to mark project as completed.";
+            toast.error(message || "Failed to mark project as completed.");
+        },
     });
 
     if (isLoading) {
@@ -119,6 +141,7 @@ export default function ProjectDetailsPage() {
     const joinedDateLabel = project.student?.createdAt
         ? new Date(project.student.createdAt).toLocaleDateString()
         : "Not available";
+    const hasInvestedInProject = isSponsor && myDonations.some((donation) => donation.projectId === project.id);
 
     const handleDonateClick = () => {
         if (!session) {
@@ -128,6 +151,16 @@ export default function ProjectDetailsPage() {
 
         if (!isSponsor) {
             toast.error("Students and admins cannot fund projects. Please use a sponsor account.");
+            return;
+        }
+
+        if (project.status === "FUNDED") {
+            toast.info("This project is already fully funded.");
+            return;
+        }
+
+        if (project.status === "COMPLETED") {
+            toast.info("This project has already been marked as completed.");
             return;
         }
 
@@ -219,6 +252,8 @@ export default function ProjectDetailsPage() {
                                 </Button>
                             </div>
                         )}
+
+                        <ProjectTimeline projectId={project.id} studentId={project.studentId || ""} />
                     </div>
 
                     <div className="space-y-6 lg:sticky lg:top-24">
@@ -239,15 +274,32 @@ export default function ProjectDetailsPage() {
                                 </div>
 
                                 {isSponsor ? (
-                                    <Button
-                                        size="lg"
-                                        className="h-14 w-full bg-primary text-base shadow-md hover:bg-emerald-700"
-                                        disabled={project.status === "COMPLETED" || project.status === "FUNDED"}
-                                        onClick={handleDonateClick}
-                                    >
-                                        <Heart className="mr-2 h-5 w-5" />
-                                        {project.status === "COMPLETED" ? "Project Completed" : "Back this Idea"}
-                                    </Button>
+                                    <div className="space-y-2">
+                                        <Button
+                                            size="lg"
+                                            className="h-14 w-full bg-primary text-base shadow-md hover:bg-emerald-700"
+                                            disabled={checkoutMutation.isPending}
+                                            onClick={handleDonateClick}
+                                        >
+                                            <Heart className="mr-2 h-5 w-5" />
+                                            {project.status === "COMPLETED"
+                                                ? "Project Completed"
+                                                : project.status === "FUNDED"
+                                                    ? "Funding Closed"
+                                                    : "Back this Idea"}
+                                        </Button>
+
+                                        {hasInvestedInProject && project.status !== "COMPLETED" && (
+                                            <Button
+                                                variant="outline"
+                                                className="w-full"
+                                                disabled={completeProjectMutation.isPending}
+                                                onClick={() => completeProjectMutation.mutate()}
+                                            >
+                                                {completeProjectMutation.isPending ? "Marking..." : "Mark as Completed"}
+                                            </Button>
+                                        )}
+                                    </div>
                                 ) : (
                                     <p className="rounded-md border bg-neutral-50 px-4 py-3 text-sm text-neutral-600">
                                         Only sponsors can back this idea.

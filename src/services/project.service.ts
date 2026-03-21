@@ -137,3 +137,8 @@ export const submitProjectForReview = async (projectId: string) => {
     });
     return response.data.data;
 };
+
+export const markProjectAsCompleted = async (projectId: string) => {
+    const response = await apiClient.patch(`/projects/${projectId}/complete`);
+    return response.data.data;
+};

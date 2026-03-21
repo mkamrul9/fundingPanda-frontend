@@ -3,12 +3,15 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
+import { User } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Leaf, Menu, MessageSquare } from "lucide-react";
 
 export default function PublicNavbar() {
     const { data: session, isPending } = useSession();
     const pathname = usePathname();
+    const currentUser = session?.user as unknown as User | undefined;
+    const isSponsor = currentUser?.role === "SPONSOR";
 
     const isActive = (path: string) => pathname === path;
 
@@ -38,12 +41,6 @@ export default function PublicNavbar() {
                     >
                         Explore Ideas
                     </Link>
-                    <Link
-                        href="/about"
-                        className={`text-sm font-medium transition-colors hover:text-primary ${isActive("/about") ? "text-primary border-b-2 border-primary py-5" : "text-neutral-600"}`}
-                    >
-                        About Us
-                    </Link>
                     {session && (
                         <Link
                             href="/dashboard/messages"
@@ -52,6 +49,20 @@ export default function PublicNavbar() {
                             <div className="flex items-center gap-2"><MessageSquare className="h-4 w-4" /> Inbox</div>
                         </Link>
                     )}
+                    {session && isSponsor && (
+                        <Link
+                            href="/dashboard/donations"
+                            className={`text-sm font-medium transition-colors hover:text-primary ${isActive("/dashboard/donations") ? "text-primary border-b-2 border-primary py-5" : "text-neutral-600"}`}
+                        >
+                            My Donated Projects
+                        </Link>
+                    )}
+                    <Link
+                        href="/about"
+                        className={`text-sm font-medium transition-colors hover:text-primary ${isActive("/about") ? "text-primary border-b-2 border-primary py-5" : "text-neutral-600"}`}
+                    >
+                        About Us
+                    </Link>
                 </nav>
 
                 <div className="hidden md:flex items-center gap-4">
