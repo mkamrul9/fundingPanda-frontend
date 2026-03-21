@@ -20,3 +20,21 @@ export const moderateProject = async ({
     });
     return response.data.data;
 };
+
+export const createCategory = async (data: { name: string; description?: string }) => {
+    const response = await apiClient.post('/categories', data);
+    return response.data.data;
+};
+
+export const deleteCategory = async (categoryId: string) => {
+    const response = await apiClient.delete(`/categories/${categoryId}`);
+    return response.data.data;
+};
+
+export const updateCategory = async (
+    categoryId: string,
+    data: { name: string; description?: string }
+) => {
+    const response = await apiClient.patch(`/categories/${categoryId}`, data);
+    return response.data.data;
+};

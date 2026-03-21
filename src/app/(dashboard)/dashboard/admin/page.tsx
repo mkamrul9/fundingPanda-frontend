@@ -117,7 +117,7 @@ export default function AdminDashboardPage() {
                     ))
                 ) : pendingProjects && pendingProjects.length > 0 ? (
                     (pendingProjects as PendingProject[]).map((project) => (
-                        <Card key={project.id} className="overflow-hidden border-l-4 border-l-yellow-400 shadow-sm">
+                        <Card key={project.id} className="overflow-hidden shadow-sm">
                             <div className="flex flex-col md:flex-row">
                                 <div className="flex-1 p-6">
                                     <div className="flex items-center justify-between mb-2">
@@ -134,18 +134,20 @@ export default function AdminDashboardPage() {
 
                                     {/* File Links */}
                                     <div className="flex flex-wrap gap-4">
-                                        {project.pitchDocUrl && (
-                                            <a href={getProjectPitchDocDownloadUrl(project.id)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-sm text-blue-600 hover:underline">
-                                                <FileText className="h-4 w-4" /> Download Pitch PDF
-                                            </a>
-                                        )}
                                         <Link href={`/projects/${project.id}`} className="flex items-center gap-1 text-sm text-primary hover:underline">
                                             <Eye className="h-4 w-4" /> View Project
                                         </Link>
                                     </div>
 
                                     <div className="mt-4 space-y-2">
-                                        <h4 className="text-sm font-medium text-neutral-700">Project Images</h4>
+                                        <div className="flex flex-wrap items-center justify-between gap-2">
+                                            <h4 className="text-sm font-medium text-neutral-700">Project Images and PDF</h4>
+                                            {project.pitchDocUrl && (
+                                                <a href={getProjectPitchDocDownloadUrl(project.id)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs text-blue-600 hover:bg-blue-50">
+                                                    <FileText className="h-3.5 w-3.5" /> Download Pitch PDF
+                                                </a>
+                                            )}
+                                        </div>
                                         {project.images?.length ? (
                                             <div className="flex flex-wrap gap-2">
                                                 {project.images.map((imageUrl, index) => (
