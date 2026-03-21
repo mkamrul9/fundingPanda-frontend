@@ -5,20 +5,22 @@ import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "@/lib/auth-client";
 import { socket } from "@/lib/socket";
-import { getConversations, getChatHistory } from "@/services/message.service";
+import { getConversations, getChatHistory, uploadChatImage } from "@/services/message.service";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, MessageSquare } from "lucide-react";
+import { Send, MessageSquare, Paperclip, Loader2 } from "lucide-react";
 
 interface Message {
     id: string;
     senderId: string;
     receiverId: string;
     content: string;
+    imageUrl?: string | null;
     createdAt: string;
     clientTempId?: string | null;
 }
@@ -32,6 +34,9 @@ export default function MessagesPage() {
     const [activePane, setActivePane] = useState<"conversations" | "chat">("conversations");
     const [messages, setMessages] = useState<Message[]>([]);
     const [newMessage, setNewMessage] = useState("");
+    const [isUploading, setIsUploading] = useState(false);
+    const [uploadStatusText, setUploadStatusText] = useState("");
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
 
     const { data: contacts, isLoading: loadingContacts } = useQuery({
@@ -160,6 +165,38 @@ export default function MessagesPage() {
         setNewMessage("");
     };
 
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !activeContact) return;
+
+        try {
+            setIsUploading(true);
+            setUploadStatusText("Uploading image...");
+            const uploaded = await uploadChatImage(file, activeContact.id);
+            setUploadStatusText("Sending image...");
+
+            setMessages((prev) => [
+                ...prev,
+                {
+                    id: uploaded.id ?? Date.now().toString(),
+                    senderId: uploaded.senderId ?? currentUserId!,
+                    receiverId: uploaded.receiverId ?? activeContact.id,
+                    content: uploaded.content ?? "",
+                    imageUrl: uploaded.imageUrl ?? null,
+                    createdAt: uploaded.createdAt ?? new Date().toISOString(),
+                },
+            ]);
+
+            queryClient.invalidateQueries({ queryKey: ["conversations"] });
+        } catch {
+            toast.error("Failed to upload image.");
+        } finally {
+            setIsUploading(false);
+            setUploadStatusText("");
+            if (fileInputRef.current) fileInputRef.current.value = "";
+        }
+    };
+
     return (
         <div className="flex h-[calc(100vh-6rem)] flex-col gap-4 animate-in fade-in duration-500">
 
@@ -250,7 +287,19 @@ export default function MessagesPage() {
                                                             : "bg-white border text-neutral-900 rounded-bl-sm shadow-sm"
                                                             }`}
                                                     >
-                                                        <p className="text-sm">{msg.content}</p>
+                                                        <div className="text-sm">
+                                                            {msg.imageUrl || msg.content.includes("res.cloudinary.com") ? (
+                                                                <a href={msg.imageUrl || msg.content} target="_blank" rel="noopener noreferrer">
+                                                                    <img
+                                                                        src={msg.imageUrl || msg.content}
+                                                                        alt="Chat attachment"
+                                                                        className="mt-1 max-w-50 rounded-md transition-opacity hover:opacity-90"
+                                                                    />
+                                                                </a>
+                                                            ) : (
+                                                                msg.content
+                                                            )}
+                                                        </div>
                                                         <span className={`text-[10px] block mt-1 ${isMe ? "text-primary-foreground/70 text-right" : "text-neutral-400"}`}>
                                                             {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                         </span>
@@ -264,14 +313,38 @@ export default function MessagesPage() {
                             </ScrollArea>
 
                             <div className="p-4 bg-white border-t">
-                                <form onSubmit={handleSendMessage} className="flex gap-2">
+                                {isUploading && (
+                                    <div className="mb-2 flex items-center gap-2 text-sm text-neutral-500">
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                        {uploadStatusText || "Uploading image..."}
+                                    </div>
+                                )}
+                                <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+                                    <input
+                                        type="file"
+                                        accept="image/png, image/jpeg, image/webp"
+                                        className="hidden"
+                                        ref={fileInputRef}
+                                        onChange={handleImageUpload}
+                                    />
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        className="shrink-0 text-neutral-500 hover:text-primary"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        disabled={isUploading}
+                                    >
+                                        <Paperclip className="h-5 w-5" />
+                                    </Button>
                                     <Input
-                                        placeholder={`Message ${activeContact.name}...`}
+                                        placeholder={isUploading ? "Uploading image..." : `Message ${activeContact.name}...`}
                                         value={newMessage}
                                         onChange={(e) => setNewMessage(e.target.value)}
+                                        disabled={isUploading}
                                         className="flex-1 rounded-full bg-neutral-100 border-transparent focus-visible:ring-primary focus-visible:bg-white"
                                     />
-                                    <Button type="submit" size="icon" className="rounded-full shrink-0" disabled={!newMessage.trim()}>
+                                    <Button type="submit" size="icon" className="rounded-full shrink-0" disabled={!newMessage.trim() || isUploading}>
                                         <Send className="h-4 w-4" />
                                     </Button>
                                 </form>

@@ -106,6 +106,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                                     Resource Hub
                                 </Button>
                             </Link>
+                            <Link href="/dashboard/my-items">
+                                <Button variant="ghost" className="w-full justify-start">
+                                    <Package className="mr-2 h-4 w-4" />
+                                    My Claimed Items
+                                </Button>
+                            </Link>
                             <Link href="/about">
                                 <Button variant="ghost" className="w-full justify-start">
                                     <CircleHelp className="mr-2 h-4 w-4" />
@@ -139,6 +145,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                                 <Button variant="ghost" className="w-full justify-start">
                                     <Package className="mr-2 h-4 w-4" />
                                     Resource Hub
+                                </Button>
+                            </Link>
+                            <Link href="/dashboard/my-items">
+                                <Button variant="ghost" className="w-full justify-start">
+                                    <Package className="mr-2 h-4 w-4" />
+                                    My Listed Items
                                 </Button>
                             </Link>
                             <Link href="/about">

@@ -131,7 +131,13 @@ export default function LeaderboardPage() {
                     </p>
                 </div>
 
-                <div className="space-y-4 animate-in slide-in-from-bottom-8 fade-in duration-700">
+                <section className="space-y-4 animate-in slide-in-from-bottom-8 fade-in duration-700">
+                    <div className="mb-2 flex items-center justify-between">
+                        <h2 className="flex items-center gap-2 text-2xl font-extrabold text-neutral-900">
+                            <Trophy className="h-6 w-6 text-amber-500" /> Top Sponsors
+                        </h2>
+                        <p className="text-sm text-neutral-500">Most impactful contributors by total funding</p>
+                    </div>
                     {isLoading ? (
                         Array.from({ length: 5 }).map((_, i) => (
                             <Card key={i}>
@@ -188,7 +194,7 @@ export default function LeaderboardPage() {
                             No sponsor data available yet.
                         </div>
                     )}
-                </div>
+                </section>
 
                 <section className="mt-14 space-y-4">
                     <div className="mb-2 flex items-center justify-between">

@@ -1,14 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
 import { toast } from "sonner";
-import { Package, Plus, Cpu, HardDrive } from "lucide-react";
+import { Package, Plus, Cpu, HardDrive, Trash2 } from "lucide-react";
 
 import { useSession } from "@/lib/auth-client";
 import { User } from "@/types";
-import { getAllResources, createResource, claimResource, getMyResourceClaims, ResourceType } from "@/services/resource.service";
+import { getAllResources, createResource, claimResource, deleteResource, ResourceType } from "@/services/resource.service";
 import { getMyProjects } from "@/services/project.service";
 
 import { Button } from "@/components/ui/button";
@@ -28,17 +28,6 @@ type ResourceItem = {
     lenderId?: string;
     availableQuantity?: number;
     lender?: { name?: string; email?: string };
-};
-
-type ResourceClaim = {
-    id: string;
-    createdAt: string;
-    resource?: {
-        id: string;
-        name: string;
-        type: ResourceType;
-        lender?: { name?: string };
-    };
 };
 
 type StudentProject = {
@@ -71,28 +60,7 @@ export default function ResourcesMarketplacePage() {
         enabled: userRole === "STUDENT",
     });
 
-    const { data: myClaims = [] } = useQuery<ResourceClaim[]>({
-        queryKey: ["myResourceClaims", currentUser?.id],
-        queryFn: getMyResourceClaims,
-        enabled: userRole === "STUDENT",
-    });
-
-    const selectableProjects = useMemo(
-        () => myProjects.filter((project) => project.status !== "COMPLETED"),
-        [myProjects]
-    );
-
-    const myListedResources = useMemo(() => {
-        if (userRole !== "SPONSOR" || !currentUser) return [];
-
-        return resources.filter((resource) => {
-            if (resource.lenderId && resource.lenderId === currentUser.id) {
-                return true;
-            }
-
-            return Boolean(resource.lender?.email && resource.lender.email === currentUser.email);
-        });
-    }, [resources, userRole, currentUser]);
+    const selectableProjects = myProjects.filter((project) => project.status !== "COMPLETED");
 
     const createMutation = useMutation({
         mutationFn: createResource,
@@ -109,6 +77,26 @@ export default function ResourcesMarketplacePage() {
             toast.error(message || "Failed to create resource.");
         },
     });
+
+    const deleteMutation = useMutation({
+        mutationFn: deleteResource,
+        onSuccess: () => {
+            toast.success("Resource deleted successfully.");
+            queryClient.invalidateQueries({ queryKey: ["resources"] });
+        },
+        onError: (error: unknown) => {
+            const message = isAxiosError(error)
+                ? error.response?.data?.message
+                : "Failed to delete resource.";
+            toast.error(message || "Failed to delete resource.");
+        },
+    });
+
+    const isMyResource = (resource: ResourceItem) => {
+        if (!currentUser) return false;
+        if (resource.lenderId && resource.lenderId === currentUser.id) return true;
+        return Boolean(resource.lender?.email && resource.lender.email === currentUser.email);
+    };
 
     const claimMutation = useMutation({
         mutationFn: () => {
@@ -177,6 +165,8 @@ export default function ResourcesMarketplacePage() {
                     resources.map((resource) => {
                         const available = resource.availableQuantity ?? 0;
                         const isOut = available < 1;
+                        const mine = isMyResource(resource);
+
                         return (
                             <Card key={resource.id} className="relative flex flex-col overflow-hidden">
                                 <CardHeader className="pb-3">
@@ -199,9 +189,24 @@ export default function ResourcesMarketplacePage() {
                                         <Button className="w-full" disabled={isOut} onClick={() => handleClaimClick(resource)}>
                                             {isOut ? "Out of Stock" : "Claim for Project"}
                                         </Button>
+                                    ) : userRole === "SPONSOR" ? (
+                                        mine ? (
+                                            <Button
+                                                variant="destructive"
+                                                className="w-full gap-2"
+                                                onClick={() => deleteMutation.mutate(resource.id)}
+                                                disabled={deleteMutation.isPending}
+                                            >
+                                                <Trash2 className="h-4 w-4" /> Delete Listing
+                                            </Button>
+                                        ) : (
+                                            <Button variant="outline" className="w-full" disabled>
+                                                Listed by another Sponsor
+                                            </Button>
+                                        )
                                     ) : (
                                         <Button variant="outline" className="w-full" disabled>
-                                            Log in as Student to Claim
+                                            Admin view only
                                         </Button>
                                     )}
                                 </CardFooter>
@@ -216,58 +221,6 @@ export default function ResourcesMarketplacePage() {
                     </div>
                 )}
             </div>
-
-            {userRole === "SPONSOR" && (
-                <Card className="shadow-sm">
-                    <CardHeader>
-                        <CardTitle>My Listed Resources</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        {myListedResources.length > 0 ? (
-                            <div className="space-y-3">
-                                {myListedResources.map((resource) => (
-                                    <div key={resource.id} className="flex items-center justify-between rounded-lg border p-3">
-                                        <div>
-                                            <p className="font-medium text-neutral-900">{resource.name}</p>
-                                            <p className="text-xs text-neutral-500">{resource.type === "SOFTWARE" ? "Software" : "Hardware"}</p>
-                                        </div>
-                                        <Badge variant="outline">{resource.availableQuantity ?? 0} Available</Badge>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <p className="text-sm text-neutral-500">You have not listed any resources yet.</p>
-                        )}
-                    </CardContent>
-                </Card>
-            )}
-
-            {userRole === "STUDENT" && (
-                <Card className="shadow-sm">
-                    <CardHeader>
-                        <CardTitle>Rented Resources</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        {myClaims.length > 0 ? (
-                            <div className="space-y-3">
-                                {myClaims.map((claim) => (
-                                    <div key={claim.id} className="flex items-center justify-between rounded-lg border p-3">
-                                        <div>
-                                            <p className="font-medium text-neutral-900">{claim.resource?.name || "Unknown Resource"}</p>
-                                            <p className="text-xs text-neutral-500">
-                                                Claimed on {new Date(claim.createdAt).toLocaleDateString()} from {claim.resource?.lender?.name || "Sponsor"}
-                                            </p>
-                                        </div>
-                                        <Badge variant="secondary">In Use</Badge>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <p className="text-sm text-neutral-500">You have not claimed any resources yet.</p>
-                        )}
-                    </CardContent>
-                </Card>
-            )}
 
             <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
                 <DialogContent>

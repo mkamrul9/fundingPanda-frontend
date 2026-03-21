@@ -38,3 +38,13 @@ export const getMyResourceClaims = async () => {
     const response = await apiClient.get('/resources/my-claims');
     return response.data.data;
 };
+
+export const getMyClaims = async () => {
+    const response = await apiClient.get('/resources/my-claims');
+    return response.data.data;
+};
+
+export const deleteResource = async (resourceId: string) => {
+    const response = await apiClient.delete(`/resources/${resourceId}`);
+    return response.data.data;
+};

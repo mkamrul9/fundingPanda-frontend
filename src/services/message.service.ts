@@ -12,7 +12,19 @@ export const getConversations = async () => {
     return response.data.data;
 };
 
+export const uploadChatImage = async (file: File, receiverId: string) => {
+    const formData = new FormData();
+    formData.append("image", file);
+    formData.append("receiverId", receiverId);
+
+    const response = await apiClient.post('/messages/upload-image', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data.data;
+};
+
 export default {
     getChatHistory,
     getConversations,
+    uploadChatImage,
 };
