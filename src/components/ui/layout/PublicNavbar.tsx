@@ -39,27 +39,29 @@ export default function PublicNavbar() {
                         Explore Ideas
                     </Link>
                     <Link
+                        href="/resources"
+                        className={`text-sm font-medium transition-colors hover:text-primary ${isActive("/resources") ? "text-primary border-b-2 border-primary py-5" : "text-neutral-600"}`}
+                    >
+                        Resource Hub
+                    </Link>
+                    <Link
                         href="/leaderboard"
                         className={`text-sm font-medium transition-colors hover:text-primary ${isActive("/leaderboard") ? "text-primary border-b-2 border-primary py-5" : "text-neutral-600"}`}
                     >
                         Leaderboard
                     </Link>
-                    {session && (
-                        <Link
-                            href="/dashboard/resources"
-                            className={`text-sm font-medium transition-colors hover:text-primary ${isActive("/dashboard/resources") ? "text-primary border-b-2 border-primary py-5" : "text-neutral-600"}`}
-                        >
-                            Resource Hub
-                        </Link>
-                    )}
-                    {session && (
-                        <Link
-                            href="/dashboard/messages"
-                            className={`text-sm font-medium transition-colors hover:text-primary ${isActive("/dashboard/messages") ? "text-primary border-b-2 border-primary py-5" : "text-neutral-600"}`}
-                        >
-                            Inbox
-                        </Link>
-                    )}
+                    <Link
+                        href="/newsletter"
+                        className={`text-sm font-medium transition-colors hover:text-primary ${isActive("/newsletter") ? "text-primary border-b-2 border-primary py-5" : "text-neutral-600"}`}
+                    >
+                        Updates and News
+                    </Link>
+                    <Link
+                        href="/faq"
+                        className={`text-sm font-medium transition-colors hover:text-primary ${isActive("/faq") ? "text-primary border-b-2 border-primary py-5" : "text-neutral-600"}`}
+                    >
+                        Help Center / FAQ
+                    </Link>
                     <Link
                         href="/about"
                         className={`text-sm font-medium transition-colors hover:text-primary ${isActive("/about") ? "text-primary border-b-2 border-primary py-5" : "text-neutral-600"}`}
