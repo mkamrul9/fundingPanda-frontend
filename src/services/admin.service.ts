@@ -38,3 +38,13 @@ export const updateCategory = async (
     const response = await apiClient.patch(`/categories/${categoryId}`, data);
     return response.data.data;
 };
+
+export const getAllUsers = async () => {
+    const response = await apiClient.get('/users');
+    return response.data.data;
+};
+
+export const getAllDonations = async () => {
+    const response = await apiClient.get('/donations');
+    return response.data.data;
+};

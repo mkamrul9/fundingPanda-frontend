@@ -7,13 +7,16 @@ import { isAxiosError } from "axios";
 import { toast } from "sonner";
 
 import { useSession } from "@/lib/auth-client";
-import { completeProject, getMyProjects, submitProjectForReview } from "@/services/project.service";
+import { deleteProject, getMyProjects, submitProjectForReview, updateProject } from "@/services/project.service";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FileText, Send, Clock, CheckCircle, Plus, LayoutList, Pencil, CheckSquare } from "lucide-react";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { FileText, Send, Clock, CheckCircle, Plus, LayoutList, Trash2, Edit3 } from "lucide-react";
 
 type MyProject = {
     id: string;
@@ -24,6 +27,13 @@ type MyProject = {
     raisedAmount: number;
     goalAmount: number;
     createdAt: string;
+};
+
+type EditingProject = {
+    id: string;
+    title: string;
+    description: string;
+    goalAmount: number;
 };
 
 type MyProjectTab = "ALL" | "DRAFT" | "PENDING" | "APPROVED" | "FUNDED" | "COMPLETED";
@@ -53,6 +63,8 @@ export default function MyProjectsPage() {
     const { data: session } = useSession();
     const queryClient = useQueryClient();
     const [activeTab, setActiveTab] = useState<MyProjectTab>("ALL");
+    const [isEditOpen, setIsEditOpen] = useState(false);
+    const [editingProject, setEditingProject] = useState<EditingProject | null>(null);
 
     const { data: projects, isLoading } = useQuery({
         queryKey: ["myProjects"],
@@ -81,19 +93,45 @@ export default function MyProjectsPage() {
         },
     });
 
-    const completeMutation = useMutation({
-        mutationFn: completeProject,
+    const deleteMutation = useMutation({
+        mutationFn: deleteProject,
         onSuccess: () => {
-            toast.success("Project marked as COMPLETED! Sponsors can now leave reviews.");
+            toast.success("Project deleted successfully.");
             queryClient.invalidateQueries({ queryKey: ["myProjects"] });
         },
         onError: (error: unknown) => {
             const errorMessage = isAxiosError(error)
                 ? error.response?.data?.message
-                : "Failed to complete project.";
-            toast.error(errorMessage || "Failed to complete project.");
+                : "Failed to delete project.";
+            toast.error(errorMessage || "Failed to delete project.");
         },
     });
+
+    const updateMutation = useMutation({
+        mutationFn: (data: { id: string; payload: { title: string; description: string; goalAmount: number } }) =>
+            updateProject(data.id, { ...data.payload, status: "DRAFT" }),
+        onSuccess: () => {
+            toast.success("Project updated successfully.");
+            queryClient.invalidateQueries({ queryKey: ["myProjects"] });
+            setIsEditOpen(false);
+        },
+        onError: (error: unknown) => {
+            const errorMessage = isAxiosError(error)
+                ? error.response?.data?.message
+                : "Failed to update project.";
+            toast.error(errorMessage || "Failed to update project.");
+        },
+    });
+
+    const openEditModal = (project: MyProject) => {
+        setEditingProject({
+            id: project.id,
+            title: project.title,
+            description: project.description,
+            goalAmount: project.goalAmount,
+        });
+        setIsEditOpen(true);
+    };
 
     if (!session) return null;
 
@@ -160,43 +198,38 @@ export default function MyProjectsPage() {
                                 </div>
                             </CardContent>
 
-                            <CardFooter className="border-t bg-neutral-50 p-4 flex gap-2">
+                            <CardFooter className="border-t bg-neutral-50 p-4 flex flex-col gap-2">
                                 {project.status === "DRAFT" ? (
-                                    <div className="flex w-full gap-2">
-                                        <Link href={`/dashboard/create-project?projectId=${project.id}`} className="w-1/2">
-                                            <Button variant="outline" className="w-full gap-2 whitespace-nowrap">
-                                                <Pencil className="h-4 w-4" /> Edit Draft
-                                            </Button>
-                                        </Link>
+                                    <>
                                         <Button
-                                            className="w-1/2 gap-2 whitespace-nowrap"
+                                            className="w-full gap-2"
                                             onClick={() => submitMutation.mutate(project.id)}
                                             disabled={submitMutation.isPending}
                                         >
-                                            <Send className="h-4 w-4" />
-                                            {submitMutation.isPending ? "Submitting..." : "Submit for Review"}
+                                            <Send className="h-4 w-4" /> Submit for Review
                                         </Button>
-                                    </div>
-                                ) : project.status === "FUNDED" || project.status === "APPROVED" ? (
-                                    <div className="flex w-full gap-2">
-                                        <Link href={`/projects/${project.id}`} className="w-1/2">
-                                            <Button variant="outline" className="w-full">View</Button>
-                                        </Link>
-                                        <Button
-                                            className="w-1/2 bg-purple-600 hover:bg-purple-700 gap-2"
-                                            onClick={() => {
-                                                if (confirm("Are you sure you want to mark this project as completed? This action cannot be undone.")) {
-                                                    completeMutation.mutate(project.id);
-                                                }
-                                            }}
-                                            disabled={completeMutation.isPending}
-                                        >
-                                            <CheckSquare className="h-4 w-4" /> Finish Idea
-                                        </Button>
-                                    </div>
+
+                                        <div className="flex w-full gap-2">
+                                            <Button variant="outline" className="w-1/2 gap-2" onClick={() => openEditModal(project)}>
+                                                <Edit3 className="h-4 w-4" /> Edit
+                                            </Button>
+                                            <Button
+                                                variant="destructive"
+                                                className="w-1/2 gap-2"
+                                                onClick={() => {
+                                                    if (confirm("Permanently delete this draft?")) {
+                                                        deleteMutation.mutate(project.id);
+                                                    }
+                                                }}
+                                                disabled={deleteMutation.isPending}
+                                            >
+                                                <Trash2 className="h-4 w-4" /> Delete
+                                            </Button>
+                                        </div>
+                                    </>
                                 ) : (
                                     <Link href={`/projects/${project.id}`} className="w-full">
-                                        <Button variant="outline" className="w-full">View Public Page</Button>
+                                        <Button className="w-full">View Details</Button>
                                     </Link>
                                 )}
                             </CardFooter>
@@ -215,6 +248,58 @@ export default function MyProjectsPage() {
                     </div>
                 )}
             </div>
+
+            <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Edit Project Draft</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Project Title</label>
+                            <Input
+                                value={editingProject?.title || ""}
+                                onChange={(e) => setEditingProject((prev) => prev ? { ...prev, title: e.target.value } : prev)}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Funding Goal ($)</label>
+                            <Input
+                                type="number"
+                                value={editingProject?.goalAmount || 0}
+                                onChange={(e) => setEditingProject((prev) => prev ? { ...prev, goalAmount: Number(e.target.value) } : prev)}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Description</label>
+                            <Textarea
+                                value={editingProject?.description || ""}
+                                onChange={(e) => setEditingProject((prev) => prev ? { ...prev, description: e.target.value } : prev)}
+                                className="min-h-25"
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsEditOpen(false)}>Cancel</Button>
+                        <Button
+                            onClick={() => {
+                                if (!editingProject) return;
+                                updateMutation.mutate({
+                                    id: editingProject.id,
+                                    payload: {
+                                        title: editingProject.title,
+                                        description: editingProject.description,
+                                        goalAmount: editingProject.goalAmount,
+                                    },
+                                });
+                            }}
+                            disabled={updateMutation.isPending || !editingProject?.title || !editingProject?.description || editingProject.goalAmount <= 0}
+                        >
+                            Save Changes
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

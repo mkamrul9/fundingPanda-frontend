@@ -2,14 +2,15 @@
 
 import { ReactNode, useEffect } from "react";
 import { User } from "@/types";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession, signOut } from "@/lib/auth-client";
-import { Leaf, LogOut, LayoutDashboard, Settings, Loader2, ShieldCheck, House, MessageSquare, Package, FolderKanban, Rocket, HandCoins, CircleHelp, Tags, Trophy } from "lucide-react";
+import { Leaf, LogOut, LayoutDashboard, Settings, Loader2, ShieldCheck, House, MessageSquare, Package, FolderKanban, Rocket, HandCoins, CircleHelp, Tags, Trophy, Archive, Users, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
     const router = useRouter();
+    const pathname = usePathname();
 
     // Fetch session data from BetterAuth
     const { data: session, isPending } = useSession();
@@ -41,6 +42,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     // Cast session user to our application `User` type (we store role there)
     const user = session.user as unknown as User;
     const userRole = (user.role ?? "STUDENT") as string; // STUDENT, SPONSOR, or ADMIN
+
+    const isActivePath = (path: string) => pathname === path;
 
     return (
         <div className="flex min-h-screen flex-col bg-neutral-50 md:flex-row">
@@ -101,14 +104,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                                 </Button>
                             </Link>
                             <Link href="/dashboard/resources">
-                                <Button variant="ghost" className="w-full justify-start">
+                                <Button variant={isActivePath("/dashboard/resources") ? "default" : "ghost"} className="w-full justify-start">
                                     <Package className="mr-2 h-4 w-4" />
                                     Resource Hub
                                 </Button>
                             </Link>
                             <Link href="/dashboard/my-items">
-                                <Button variant="ghost" className="w-full justify-start">
-                                    <Package className="mr-2 h-4 w-4" />
+                                <Button variant={isActivePath("/dashboard/my-items") ? "default" : "ghost"} className="w-full justify-start">
+                                    <Archive className="mr-2 h-4 w-4" />
                                     My Claimed Items
                                 </Button>
                             </Link>
@@ -142,14 +145,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                                 </Button>
                             </Link>
                             <Link href="/dashboard/resources">
-                                <Button variant="ghost" className="w-full justify-start">
+                                <Button variant={isActivePath("/dashboard/resources") ? "default" : "ghost"} className="w-full justify-start">
                                     <Package className="mr-2 h-4 w-4" />
                                     Resource Hub
                                 </Button>
                             </Link>
                             <Link href="/dashboard/my-items">
-                                <Button variant="ghost" className="w-full justify-start">
-                                    <Package className="mr-2 h-4 w-4" />
+                                <Button variant={isActivePath("/dashboard/my-items") ? "default" : "ghost"} className="w-full justify-start">
+                                    <Archive className="mr-2 h-4 w-4" />
                                     My Listed Items
                                 </Button>
                             </Link>
@@ -174,6 +177,16 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                                 <Button variant="ghost" className="w-full justify-start">
                                     <Tags className="mr-2 h-4 w-4" />
                                     Manage Categories
+                                </Button>
+                            </Link>
+                            <Link href="/dashboard/admin/users">
+                                <Button variant="ghost" className="w-full justify-start">
+                                    <Users className="mr-2 h-4 w-4" /> Manage Users
+                                </Button>
+                            </Link>
+                            <Link href="/dashboard/admin/donations">
+                                <Button variant="ghost" className="w-full justify-start">
+                                    <Receipt className="mr-2 h-4 w-4" /> Global Ledger
                                 </Button>
                             </Link>
                             <Link href="/dashboard/messages">
