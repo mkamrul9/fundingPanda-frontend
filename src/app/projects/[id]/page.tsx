@@ -14,6 +14,7 @@ import { getProjectById, getProjectPitchDocDownloadUrl, markProjectAsCompleted }
 import { createCheckoutSession } from "@/services/payment.service";
 import { getMyDonations } from "@/services/donation.service";
 import ProjectTimeline from "@/components/projects/ProjectTimeline";
+import ProjectReviews from "@/components/projects/ProjectReviews";
 import PublicNavbar from "@/components/ui/layout/PublicNavbar";
 
 import { Button } from "@/components/ui/button";
@@ -26,7 +27,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FileText, Leaf, GraduationCap, Calendar, Share2, Heart, ArrowLeft, MessageSquare } from "lucide-react";
+import { FileText, Leaf, GraduationCap, Calendar, Share2, Heart, ArrowLeft, MessageSquare, Download } from "lucide-react";
 
 type ProjectDetail = {
     id: string;
@@ -172,12 +173,10 @@ export default function ProjectDetailsPage() {
             const url = `${window.location.origin}/projects/${project.id}`;
             if (navigator.share) {
                 await navigator.share({ title: project.title, text: project.description, url });
-                toast.success('Shared successfully');
                 return;
             }
 
             await navigator.clipboard.writeText(url);
-            toast.success('Project link copied to clipboard');
         } catch (err) {
             toast.error('Unable to share this project');
         }
@@ -233,20 +232,21 @@ export default function ProjectDetailsPage() {
                         {(project.pitchDocUrl || project.pitchDoc) && (
                             <div className="flex items-center justify-between rounded-xl border bg-white p-6 shadow-sm">
                                 <div className="flex items-center gap-4">
-                                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-red-100 text-red-600">
-                                        <FileText className="h-6 w-6" />
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-100 text-red-600">
+                                        <FileText className="h-4 w-4" />
                                     </div>
                                     <div>
                                         <h3 className="font-semibold text-neutral-900">Thesis Pitch Document</h3>
                                         <p className="text-sm text-neutral-500">PDF Format • Full technical specifications</p>
                                     </div>
                                 </div>
-                                <Button variant="outline" asChild>
+                                <Button className="h-10 gap-2 px-4" asChild>
                                     <a
                                         href={getProjectPitchDocDownloadUrl(project.id)}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                     >
+                                        <Download className="h-4 w-4" />
                                         Download PDF
                                     </a>
                                 </Button>
@@ -254,6 +254,7 @@ export default function ProjectDetailsPage() {
                         )}
 
                         <ProjectTimeline projectId={project.id} studentId={project.studentId || ""} />
+                        <ProjectReviews projectId={project.id} studentId={project.studentId || ""} projectStatus={project.status || "DRAFT"} />
                     </div>
 
                     <div className="space-y-6 lg:sticky lg:top-24">
@@ -307,8 +308,8 @@ export default function ProjectDetailsPage() {
                                 )}
 
                                 <div className="flex gap-2">
-                                    <Button variant="outline" className="w-full bg-neutral-50 text-neutral-600" onClick={handleShare}>
-                                        <Share2 className="mr-2 h-4 w-4" /> Share
+                                    <Button variant="outline" className="w-full border-primary/25 bg-primary/5 text-primary hover:bg-primary/10" onClick={handleShare}>
+                                        <Share2 className="mr-2 h-4 w-4" /> Share Project
                                     </Button>
                                 </div>
                             </CardContent>
@@ -350,17 +351,16 @@ export default function ProjectDetailsPage() {
                                         <Calendar className="h-3 w-3" />
                                         <span>Joined {joinedDateLabel}</span>
                                     </div>
+                                    {session?.user?.id !== project.studentId && project.studentId && (
+                                        <div className="pt-3">
+                                            <Link href={`/dashboard/messages?contact=${project.studentId}`} className="block w-full">
+                                                <Button className="h-10 w-full justify-center gap-2">
+                                                    <MessageSquare className="h-4 w-4" /> Message {project.student?.name?.split(' ')[0] || "Researcher"}
+                                                </Button>
+                                            </Link>
+                                        </div>
+                                    )}
                                 </div>
-                                {/* Message Researcher Button */}
-                                {session?.user?.id !== project.studentId && project.studentId && (
-                                    <div className="mt-4">
-                                        <Link href={`/dashboard/messages?contact=${project.studentId}`} className="block w-full">
-                                            <Button variant="outline" className="w-full gap-2">
-                                                <MessageSquare className="h-4 w-4" /> Message {project.student?.name?.split(' ')[0] || "Researcher"}
-                                            </Button>
-                                        </Link>
-                                    </div>
-                                )}
                             </CardContent>
                         </Card>
                     </div>

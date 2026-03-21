@@ -3,9 +3,11 @@
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
+import { useSession } from "@/lib/auth-client";
 
 import { getUserById } from "@/services/user.service";
 import { getAllProjects } from "@/services/project.service";
+import { getUserReviews } from "@/services/review.service";
 import PublicNavbar from "@/components/ui/layout/PublicNavbar";
 
 import { Button } from "@/components/ui/button";
@@ -13,11 +15,26 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { GraduationCap, Calendar, MapPin, Leaf, BookOpen } from "lucide-react";
+import { GraduationCap, Calendar, Leaf, BookOpen, MessageSquare, Star } from "lucide-react";
+
+type UserReviewItem = {
+    id: string;
+    rating: number;
+    comment?: string;
+    reviewer?: { name?: string };
+    project?: { title?: string };
+};
+
+type UserReviewsResponse = {
+    averageRating: number;
+    totalReviews: number;
+    reviews: UserReviewItem[];
+};
 
 export default function PublicUserProfilePage() {
     const params = useParams();
     const userId = params.id as string;
+    const { data: session } = useSession();
 
     const { data: user, isLoading: isUserLoading, isError } = useQuery({
         queryKey: ["publicUser", userId],
@@ -28,6 +45,12 @@ export default function PublicUserProfilePage() {
     const { data: projects, isLoading: isProjectsLoading } = useQuery({
         queryKey: ["userProjects", userId],
         queryFn: () => getAllProjects({ studentId: userId }),
+        enabled: !!userId,
+    });
+
+    const { data: reviewsData, isLoading: isReviewsLoading } = useQuery<UserReviewsResponse>({
+        queryKey: ["publicUserReviews", userId],
+        queryFn: () => getUserReviews(userId),
         enabled: !!userId,
     });
 
@@ -57,6 +80,9 @@ export default function PublicUserProfilePage() {
         );
     }
 
+    const canMessageUser = Boolean(session?.user?.id && session.user.id !== userId);
+    const userReviews = reviewsData?.reviews || [];
+
     return (
         <div className="flex min-h-screen flex-col bg-neutral-50">
             <PublicNavbar />
@@ -82,8 +108,58 @@ export default function PublicUserProfilePage() {
                         ) : (
                             <p className="text-neutral-400 italic">This user hasn't added a bio yet.</p>
                         )}
+
+                        {canMessageUser && (
+                            <div className="pt-2">
+                                <Link href={`/dashboard/messages?contact=${userId}`}>
+                                    <Button className="h-10 gap-2">
+                                        <MessageSquare className="h-4 w-4" /> Message {user.name?.split(" ")[0] || "User"}
+                                    </Button>
+                                </Link>
+                            </div>
+                        )}
                     </div>
                 </div>
+
+                <Card className="mb-10 shadow-sm">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Star className="h-5 w-5 text-amber-500" /> Received Reviews
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        {isReviewsLoading ? (
+                            <div className="space-y-2 text-neutral-500">
+                                <p>Loading reviews...</p>
+                            </div>
+                        ) : userReviews.length > 0 ? (
+                            <div className="space-y-3">
+                                <div className="rounded-lg bg-neutral-50 p-3 text-sm text-neutral-700">
+                                    Average rating: <span className="font-semibold">{(reviewsData?.averageRating || 0).toFixed(1)}</span> / 5 from <span className="font-semibold">{reviewsData?.totalReviews || 0}</span> review(s)
+                                </div>
+                                {userReviews.map((review) => (
+                                    <div key={review.id} className="rounded-lg border p-3">
+                                        <div className="mb-2 flex items-center justify-between gap-2">
+                                            <p className="text-sm font-semibold text-neutral-900">{review.reviewer?.name || "Anonymous"}</p>
+                                            <div className="flex items-center gap-1">
+                                                {Array.from({ length: 5 }).map((_, idx) => (
+                                                    <Star
+                                                        key={idx}
+                                                        className={`h-4 w-4 ${idx < review.rating ? "fill-amber-400 text-amber-400" : "text-neutral-300"}`}
+                                                    />
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <p className="whitespace-pre-wrap wrap-break-word text-sm text-neutral-600">{review.comment || "No written feedback provided."}</p>
+                                        <p className="mt-1 text-xs text-neutral-400">Project: {review.project?.title || "Unknown"}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-sm text-neutral-500">No reviews received yet.</p>
+                        )}
+                    </CardContent>
+                </Card>
 
                 <div className="space-y-6">
                     <h2 className="text-2xl font-bold flex items-center gap-2"><BookOpen className="h-6 w-6 text-primary" /> {user.role === "STUDENT" ? "Published Research" : "Supported Initiatives"}</h2>
@@ -111,7 +187,7 @@ export default function PublicUserProfilePage() {
                                         <p className="whitespace-pre-wrap wrap-break-word text-sm text-neutral-500">{project.description}</p>
                                     </CardContent>
                                     <CardFooter className="border-t bg-neutral-50/50 p-4">
-                                        <Link href={`/projects/${project.id}`} className="w-full"><Button className="w-full" variant="outline">View Idea</Button></Link>
+                                        <Link href={`/projects/${project.id}`} className="w-full"><Button className="w-full" variant="outline">View Details</Button></Link>
                                     </CardFooter>
                                 </Card>
                             ))
