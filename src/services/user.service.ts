@@ -11,6 +11,11 @@ export const updateUserProfile = async (payload: { name: string; bio?: string; u
     return response.data.data;
 };
 
+export const updateProfile = async (data: { name?: string; bio?: string; university?: string }) => {
+    const response = await apiClient.patch('/users/me', data);
+    return response.data.data;
+};
+
 // Fetch a public user profile by ID
 export const getUserById = async (id: string) => {
     const response = await apiClient.get(`/users/${id}`);

@@ -43,7 +43,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     const user = session.user as unknown as User;
     const userRole = (user.role ?? "STUDENT") as string; // STUDENT, SPONSOR, or ADMIN
 
-    const isActivePath = (path: string) => pathname === path;
+    const isActivePath = (path: string) => pathname === path || pathname.startsWith(`${path}/`);
 
     return (
         <div className="flex min-h-screen flex-col bg-neutral-50 md:flex-row">
@@ -60,14 +60,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
                 <nav className="flex flex-col gap-2 p-4 md:flex-1">
                     <Link href="/">
-                        <Button variant="ghost" className="w-full justify-start">
+                        <Button variant={pathname === "/" ? "default" : "ghost"} className="w-full justify-start">
                             <House className="mr-2 h-4 w-4" />
                             Home
                         </Button>
                     </Link>
 
                     <Link href="/leaderboard">
-                        <Button variant="ghost" className="w-full justify-start">
+                        <Button variant={isActivePath("/leaderboard") ? "default" : "ghost"} className="w-full justify-start">
                             <Trophy className="mr-2 h-4 w-4" />
                             Leaderboard
                         </Button>
@@ -75,7 +75,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
                     {userRole !== "SPONSOR" && (
                         <Link href="/dashboard">
-                            <Button variant="ghost" className="w-full justify-start">
+                            <Button variant={pathname === "/dashboard" ? "default" : "ghost"} className="w-full justify-start">
                                 <LayoutDashboard className="mr-2 h-4 w-4" />
                                 Overview
                             </Button>
@@ -86,19 +86,19 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                     {userRole === "STUDENT" && (
                         <>
                             <Link href="/projects">
-                                <Button variant="ghost" className="w-full justify-start">
+                                <Button variant={isActivePath("/projects") ? "default" : "ghost"} className="w-full justify-start">
                                     <Leaf className="mr-2 h-4 w-4" />
                                     Explore Ideas
                                 </Button>
                             </Link>
                             <Link href="/dashboard/my-projects">
-                                <Button variant="ghost" className="w-full justify-start">
+                                <Button variant={isActivePath("/dashboard/my-projects") ? "default" : "ghost"} className="w-full justify-start">
                                     <FolderKanban className="mr-2 h-4 w-4" />
                                     My Projects
                                 </Button>
                             </Link>
                             <Link href="/dashboard/create-project">
-                                <Button variant="ghost" className="w-full justify-start">
+                                <Button variant={isActivePath("/dashboard/create-project") ? "default" : "ghost"} className="w-full justify-start">
                                     <Rocket className="mr-2 h-4 w-4" />
                                     Create Project
                                 </Button>
@@ -116,7 +116,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                                 </Button>
                             </Link>
                             <Link href="/about">
-                                <Button variant="ghost" className="w-full justify-start">
+                                <Button variant={isActivePath("/about") ? "default" : "ghost"} className="w-full justify-start">
                                     <CircleHelp className="mr-2 h-4 w-4" />
                                     About Us
                                 </Button>
@@ -127,19 +127,19 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                     {userRole === "SPONSOR" && (
                         <>
                             <Link href="/projects">
-                                <Button variant="ghost" className="w-full justify-start">
+                                <Button variant={isActivePath("/projects") ? "default" : "ghost"} className="w-full justify-start">
                                     <Leaf className="mr-2 h-4 w-4" />
                                     Explore Ideas
                                 </Button>
                             </Link>
                             <Link href="/dashboard/messages">
-                                <Button variant="ghost" className="w-full justify-start">
+                                <Button variant={isActivePath("/dashboard/messages") ? "default" : "ghost"} className="w-full justify-start">
                                     <MessageSquare className="mr-2 h-4 w-4" />
                                     Inbox
                                 </Button>
                             </Link>
                             <Link href="/dashboard/donations">
-                                <Button variant="ghost" className="w-full justify-start">
+                                <Button variant={isActivePath("/dashboard/donations") ? "default" : "ghost"} className="w-full justify-start">
                                     <HandCoins className="mr-2 h-4 w-4" />
                                     My Donated Projects
                                 </Button>
@@ -157,7 +157,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                                 </Button>
                             </Link>
                             <Link href="/about">
-                                <Button variant="ghost" className="w-full justify-start">
+                                <Button variant={isActivePath("/about") ? "default" : "ghost"} className="w-full justify-start">
                                     <CircleHelp className="mr-2 h-4 w-4" />
                                     About Us
                                 </Button>
@@ -168,35 +168,35 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                     {userRole === "ADMIN" && (
                         <>
                             <Link href="/dashboard/admin">
-                                <Button variant="ghost" className="w-full justify-start">
+                                <Button variant={pathname === "/dashboard/admin" ? "default" : "ghost"} className="w-full justify-start">
                                     <ShieldCheck className="mr-2 h-4 w-4" />
                                     Moderation Queue
                                 </Button>
                             </Link>
                             <Link href="/dashboard/admin/categories">
-                                <Button variant="ghost" className="w-full justify-start">
+                                <Button variant={isActivePath("/dashboard/admin/categories") ? "default" : "ghost"} className="w-full justify-start">
                                     <Tags className="mr-2 h-4 w-4" />
                                     Manage Categories
                                 </Button>
                             </Link>
                             <Link href="/dashboard/admin/users">
-                                <Button variant="ghost" className="w-full justify-start">
+                                <Button variant={isActivePath("/dashboard/admin/users") ? "default" : "ghost"} className="w-full justify-start">
                                     <Users className="mr-2 h-4 w-4" /> Manage Users
                                 </Button>
                             </Link>
                             <Link href="/dashboard/admin/donations">
-                                <Button variant="ghost" className="w-full justify-start">
+                                <Button variant={isActivePath("/dashboard/admin/donations") ? "default" : "ghost"} className="w-full justify-start">
                                     <Receipt className="mr-2 h-4 w-4" /> Global Ledger
                                 </Button>
                             </Link>
                             <Link href="/dashboard/messages">
-                                <Button variant="ghost" className="w-full justify-start">
+                                <Button variant={isActivePath("/dashboard/messages") ? "default" : "ghost"} className="w-full justify-start">
                                     <MessageSquare className="mr-2 h-4 w-4" />
                                     Inbox
                                 </Button>
                             </Link>
                             <Link href="/projects">
-                                <Button variant="ghost" className="w-full justify-start">
+                                <Button variant={isActivePath("/projects") ? "default" : "ghost"} className="w-full justify-start">
                                     <Leaf className="mr-2 h-4 w-4" />
                                     Explore Ideas
                                 </Button>
@@ -204,8 +204,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                         </>
                     )}
 
-                    <Link href="/settings">
-                        <Button variant="ghost" className="w-full justify-start">
+                    <Link href="/dashboard/settings">
+                        <Button variant={isActivePath("/dashboard/settings") ? "default" : "ghost"} className="w-full justify-start">
                             <Settings className="mr-2 h-4 w-4" />
                             Settings
                         </Button>

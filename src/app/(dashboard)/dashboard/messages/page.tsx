@@ -67,7 +67,7 @@ export default function MessagesPage() {
 
         // Let the server bind this socket to the authenticated user's room
         try {
-            socket.emit("join_own_room");
+            socket.emit("join_own_room", currentUserId);
         } catch (err) {
             // ignore emit errors
         }
@@ -103,9 +103,11 @@ export default function MessagesPage() {
         };
 
         socket.on("receive_message", receiveHandler);
+        socket.on("receiveMessage", receiveHandler);
 
         return () => {
             socket.off("receive_message", receiveHandler);
+            socket.off("receiveMessage", receiveHandler);
             socket.disconnect();
         };
     }, [currentUserId, activeContact]);
