@@ -78,6 +78,23 @@ export const getAllProjects = async (params: Record<string, string | number> = {
         query.append("createdAt[lte]", String(params.endDate));
     }
 
+    // Pass through additional query params for pagination and custom filters.
+    const handledKeys = new Set([
+        "status",
+        "sortBy",
+        "searchTerm",
+        "studentName",
+        "university",
+        "startDate",
+        "endDate",
+    ]);
+
+    Object.entries(params).forEach(([key, value]) => {
+        if (value === undefined || value === null || value === "") return;
+        if (handledKeys.has(key)) return;
+        query.append(key, String(value));
+    });
+
     const response = await apiClient.get(`/projects?${query.toString()}`);
     return response.data.data;
 };
@@ -135,6 +152,11 @@ export const submitProjectForReview = async (projectId: string) => {
     const response = await apiClient.patch(`/projects/${projectId}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
     });
+    return response.data.data;
+};
+
+export const completeProject = async (projectId: string) => {
+    const response = await apiClient.patch(`/projects/${projectId}/complete`);
     return response.data.data;
 };
 

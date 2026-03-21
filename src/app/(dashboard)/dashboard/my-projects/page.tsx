@@ -7,13 +7,13 @@ import { isAxiosError } from "axios";
 import { toast } from "sonner";
 
 import { useSession } from "@/lib/auth-client";
-import { getMyProjects, submitProjectForReview } from "@/services/project.service";
+import { completeProject, getMyProjects, submitProjectForReview } from "@/services/project.service";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FileText, Send, Clock, CheckCircle, Plus, LayoutList, Pencil } from "lucide-react";
+import { FileText, Send, Clock, CheckCircle, Plus, LayoutList, Pencil, CheckSquare } from "lucide-react";
 
 type MyProject = {
     id: string;
@@ -78,6 +78,20 @@ export default function MyProjectsPage() {
                 ? error.response?.data?.message
                 : "Failed to submit project.";
             toast.error(errorMessage || "Failed to submit project.");
+        },
+    });
+
+    const completeMutation = useMutation({
+        mutationFn: completeProject,
+        onSuccess: () => {
+            toast.success("Project marked as COMPLETED! Sponsors can now leave reviews.");
+            queryClient.invalidateQueries({ queryKey: ["myProjects"] });
+        },
+        onError: (error: unknown) => {
+            const errorMessage = isAxiosError(error)
+                ? error.response?.data?.message
+                : "Failed to complete project.";
+            toast.error(errorMessage || "Failed to complete project.");
         },
     });
 
@@ -146,26 +160,43 @@ export default function MyProjectsPage() {
                                 </div>
                             </CardContent>
 
-                            <CardFooter className="border-t bg-neutral-50 p-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <CardFooter className="border-t bg-neutral-50 p-4 flex gap-2">
                                 {project.status === "DRAFT" ? (
-                                    <>
-                                        <Link href={`/dashboard/create-project?projectId=${project.id}`} className="w-full">
+                                    <div className="flex w-full gap-2">
+                                        <Link href={`/dashboard/create-project?projectId=${project.id}`} className="w-1/2">
                                             <Button variant="outline" className="w-full gap-2 whitespace-nowrap">
                                                 <Pencil className="h-4 w-4" /> Edit Draft
                                             </Button>
                                         </Link>
                                         <Button
-                                            className="w-full gap-2 whitespace-nowrap"
+                                            className="w-1/2 gap-2 whitespace-nowrap"
                                             onClick={() => submitMutation.mutate(project.id)}
                                             disabled={submitMutation.isPending}
                                         >
                                             <Send className="h-4 w-4" />
                                             {submitMutation.isPending ? "Submitting..." : "Submit for Review"}
                                         </Button>
-                                    </>
+                                    </div>
+                                ) : project.status === "FUNDED" || project.status === "APPROVED" ? (
+                                    <div className="flex w-full gap-2">
+                                        <Link href={`/projects/${project.id}`} className="w-1/2">
+                                            <Button variant="outline" className="w-full">View</Button>
+                                        </Link>
+                                        <Button
+                                            className="w-1/2 bg-purple-600 hover:bg-purple-700 gap-2"
+                                            onClick={() => {
+                                                if (confirm("Are you sure you want to mark this project as completed? This action cannot be undone.")) {
+                                                    completeMutation.mutate(project.id);
+                                                }
+                                            }}
+                                            disabled={completeMutation.isPending}
+                                        >
+                                            <CheckSquare className="h-4 w-4" /> Finish Idea
+                                        </Button>
+                                    </div>
                                 ) : (
                                     <Link href={`/projects/${project.id}`} className="w-full">
-                                        <Button variant="outline" className="w-full">View Details</Button>
+                                        <Button variant="outline" className="w-full">View Public Page</Button>
                                     </Link>
                                 )}
                             </CardFooter>

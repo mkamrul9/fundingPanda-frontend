@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useSession } from "@/lib/auth-client";
 
 import { getUserById } from "@/services/user.service";
-import { getAllProjects } from "@/services/project.service";
+import { getAllProjects, getProjectById } from "@/services/project.service";
 import { getUserReviews } from "@/services/review.service";
 import PublicNavbar from "@/components/ui/layout/PublicNavbar";
 
@@ -31,6 +31,14 @@ type UserReviewsResponse = {
     reviews: UserReviewItem[];
 };
 
+type ProfileProject = {
+    id: string;
+    title?: string;
+    description?: string;
+    images?: string[];
+    studentId?: string;
+};
+
 export default function PublicUserProfilePage() {
     const params = useParams();
     const userId = params.id as string;
@@ -42,10 +50,37 @@ export default function PublicUserProfilePage() {
         enabled: !!userId,
     });
 
-    const { data: projects, isLoading: isProjectsLoading } = useQuery({
-        queryKey: ["userProjects", userId],
-        queryFn: () => getAllProjects({ studentId: userId }),
-        enabled: !!userId,
+    const { data: projects, isLoading: isProjectsLoading } = useQuery<ProfileProject[]>({
+        queryKey: ["userProjects", userId, user?.role],
+        enabled: !!userId && !!user,
+        queryFn: async () => {
+            if (user?.role === "SPONSOR") {
+                const donations = Array.isArray(user?.donations) ? user.donations : [];
+                const uniqueProjectIds = Array.from(
+                    new Set(
+                        donations
+                            .map((donation: { projectId?: string }) => donation.projectId)
+                            .filter((projectId: string | undefined): projectId is string => Boolean(projectId))
+                    )
+                );
+
+                const donatedProjects = await Promise.all(
+                    uniqueProjectIds.map(async (projectId: string) => {
+                        try {
+                            return await getProjectById(projectId);
+                        } catch {
+                            return null;
+                        }
+                    })
+                );
+
+                return donatedProjects.filter((project): project is ProfileProject => Boolean(project));
+            }
+
+            // Fallback for student/admin profiles: fetch public projects and keep only this user's items.
+            const publicProjects = await getAllProjects({ limit: 200, sortBy: "-createdAt" });
+            return (publicProjects as ProfileProject[]).filter((project) => project.studentId === userId);
+        },
     });
 
     const { data: reviewsData, isLoading: isReviewsLoading } = useQuery<UserReviewsResponse>({
@@ -94,8 +129,19 @@ export default function PublicUserProfilePage() {
                     </Avatar>
 
                     <div className="flex-1 text-center md:text-left space-y-3">
-                        <div>
+                        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                             <h1 className="text-3xl font-extrabold text-neutral-900">{user.name}</h1>
+
+                            {canMessageUser && (
+                                <Link href={`/dashboard/messages?contact=${userId}`}>
+                                    <Button className="h-10 gap-2">
+                                        <MessageSquare className="h-4 w-4" /> Message {user.name?.split(" ")[0] || "User"}
+                                    </Button>
+                                </Link>
+                            )}
+                        </div>
+
+                        <div>
                             <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 mt-2 text-neutral-500 text-sm">
                                 <span className="flex items-center gap-1"><GraduationCap className="h-4 w-4" /> {user.university || "Independent Researcher"}</span>
                                 <span className="flex items-center gap-1"><Calendar className="h-4 w-4" /> Joined {new Date(user.createdAt).getFullYear()}</span>
@@ -109,15 +155,6 @@ export default function PublicUserProfilePage() {
                             <p className="text-neutral-400 italic">This user hasn't added a bio yet.</p>
                         )}
 
-                        {canMessageUser && (
-                            <div className="pt-2">
-                                <Link href={`/dashboard/messages?contact=${userId}`}>
-                                    <Button className="h-10 gap-2">
-                                        <MessageSquare className="h-4 w-4" /> Message {user.name?.split(" ")[0] || "User"}
-                                    </Button>
-                                </Link>
-                            </div>
-                        )}
                     </div>
                 </div>
 
@@ -187,12 +224,16 @@ export default function PublicUserProfilePage() {
                                         <p className="whitespace-pre-wrap wrap-break-word text-sm text-neutral-500">{project.description}</p>
                                     </CardContent>
                                     <CardFooter className="border-t bg-neutral-50/50 p-4">
-                                        <Link href={`/projects/${project.id}`} className="w-full"><Button className="w-full" variant="outline">View Details</Button></Link>
+                                        <Link href={`/projects/${project.id}`} className="w-full"><Button className="w-full">View Details</Button></Link>
                                     </CardFooter>
                                 </Card>
                             ))
                         ) : (
-                            <div className="col-span-full py-12 text-center text-neutral-500 bg-white rounded-xl border border-dashed">This user currently has no public projects.</div>
+                            <div className="col-span-full py-12 text-center text-neutral-500 bg-white rounded-xl border border-dashed">
+                                {user.role === "SPONSOR"
+                                    ? "This sponsor has not funded any public project yet."
+                                    : "This user currently has no public projects."}
+                            </div>
                         )}
                     </div>
                 </div>

@@ -38,6 +38,12 @@ export default function PublicNavbar() {
                     >
                         Explore Ideas
                     </Link>
+                    <Link
+                        href="/leaderboard"
+                        className={`text-sm font-medium transition-colors hover:text-primary ${isActive("/leaderboard") ? "text-primary border-b-2 border-primary py-5" : "text-neutral-600"}`}
+                    >
+                        Leaderboard
+                    </Link>
                     {session && (
                         <Link
                             href="/dashboard/resources"

@@ -5,7 +5,7 @@ import { User } from "@/types";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession, signOut } from "@/lib/auth-client";
-import { Leaf, LogOut, LayoutDashboard, Settings, Loader2, ShieldCheck, House, MessageSquare, Package, FolderKanban, Rocket, HandCoins, CircleHelp, Tags } from "lucide-react";
+import { Leaf, LogOut, LayoutDashboard, Settings, Loader2, ShieldCheck, House, MessageSquare, Package, FolderKanban, Rocket, HandCoins, CircleHelp, Tags, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
@@ -60,6 +60,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                         <Button variant="ghost" className="w-full justify-start">
                             <House className="mr-2 h-4 w-4" />
                             Home
+                        </Button>
+                    </Link>
+
+                    <Link href="/leaderboard">
+                        <Button variant="ghost" className="w-full justify-start">
+                            <Trophy className="mr-2 h-4 w-4" />
+                            Leaderboard
                         </Button>
                     </Link>
 

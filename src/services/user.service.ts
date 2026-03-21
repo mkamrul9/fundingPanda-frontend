@@ -16,3 +16,8 @@ export const getUserById = async (id: string) => {
     const response = await apiClient.get(`/users/${id}`);
     return response.data.data;
 };
+
+export const getTopSponsors = async () => {
+    const response = await apiClient.get('/users/top-sponsors');
+    return response.data.data;
+};
