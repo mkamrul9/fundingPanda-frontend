@@ -42,7 +42,7 @@ export default function AboutPage() {
                     <h2 className="text-3xl font-bold mb-6">Ready to make an impact?</h2>
                     <div className="flex justify-center gap-4">
                         <Link href="/register"><Button size="lg" variant="secondary" className="text-primary font-bold">Join FundingPanda</Button></Link>
-                        <Link href="/projects"><Button size="lg" variant="outline" className="text-primary-foreground border-primary-foreground hover:bg-primary-foreground hover:text-primary">Explore Ideas</Button></Link>
+                        <Link href="/projects"><Button size="lg" variant="outline" className="bg-white text-primary border-white hover:bg-emerald-50 hover:text-primary">Explore Ideas</Button></Link>
                     </div>
                 </div>
             </div>

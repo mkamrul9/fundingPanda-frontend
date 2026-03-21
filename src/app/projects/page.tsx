@@ -256,7 +256,7 @@ export default function ExploreProjectsPage() {
                                                 <span className="font-semibold text-primary">${project.raisedAmount} / ${project.goalAmount}</span>
                                             </div>
                                             <Link href={`/projects/${project.id}`}>
-                                                <Button size="sm">View Idea</Button>
+                                                <Button size="sm">View Details</Button>
                                             </Link>
                                         </div>
                                     </CardFooter>

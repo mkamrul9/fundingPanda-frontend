@@ -165,7 +165,7 @@ export default function MyProjectsPage() {
                                     </>
                                 ) : (
                                     <Link href={`/projects/${project.id}`} className="w-full">
-                                        <Button variant="outline" className="w-full">View Public Page</Button>
+                                        <Button variant="outline" className="w-full">View Details</Button>
                                     </Link>
                                 )}
                             </CardFooter>
