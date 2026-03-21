@@ -74,8 +74,8 @@ export default function RegisterPage() {
                         onRequest: () => setIsLoading(true),
                         onSuccess: () => {
                             setIsLoading(false);
-                            toast.success("Account created successfully!");
-                            router.push("/dashboard");
+                            toast.success("Account created. Check your email to verify your account.");
+                            router.push(`/verify-email?email=${encodeURIComponent(value.email)}`);
                         },
                         onError: (ctx: unknown) => {
                             setIsLoading(false);

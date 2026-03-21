@@ -46,6 +46,13 @@ export default function LoginPage() {
             message.includes("invalid credentials") ||
             message.includes("wrong password");
 
+        const isUnverifiedUser =
+            code.includes("EMAIL_NOT_VERIFIED") ||
+            code.includes("UNVERIFIED") ||
+            message.includes("email not verified") ||
+            message.includes("verify your email") ||
+            message.includes("verification required");
+
         if (err.status === 404 || isUserMissing) {
             return "This email has no account yet. Please register first.";
         }
@@ -55,6 +62,9 @@ export default function LoginPage() {
             isInvalidCredential
         ) {
             return "Incorrect email or password. Please try again.";
+        }
+        if (isUnverifiedUser) {
+            return "Your email is not verified yet. Please verify your email first.";
         }
         return err.message || "Authentication failed. Please try again.";
     };
@@ -89,7 +99,23 @@ export default function LoginPage() {
                         },
                         onError: (ctx: unknown) => {
                             setIsLoading(false);
-                            const errorMessage = parseAuthError((ctx as { error?: unknown })?.error ?? ctx);
+                            const rawError = (ctx as { error?: unknown })?.error ?? ctx;
+                            const errorObj = (rawError ?? {}) as { code?: string; message?: string };
+                            const code = (errorObj.code || '').toUpperCase();
+                            const message = (errorObj.message || '').toLowerCase();
+
+                            if (
+                                code.includes('EMAIL_NOT_VERIFIED') ||
+                                code.includes('UNVERIFIED') ||
+                                message.includes('email not verified') ||
+                                message.includes('verify your email')
+                            ) {
+                                toast.error('Please verify your email before logging in.');
+                                router.push(`/verify-email?email=${encodeURIComponent(value.email)}`);
+                                return;
+                            }
+
+                            const errorMessage = parseAuthError(rawError);
                             toast.error(errorMessage);
                         },
                     }

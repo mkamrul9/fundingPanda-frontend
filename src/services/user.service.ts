@@ -26,3 +26,10 @@ export const getTopSponsors = async () => {
     const response = await apiClient.get('/users/top-sponsors');
     return response.data.data;
 };
+
+export const getEmailVerificationStatus = async (email: string) => {
+    const response = await apiClient.get('/users/email-verification-status', {
+        params: { email },
+    });
+    return response.data.data as { exists: boolean; emailVerified: boolean };
+};
