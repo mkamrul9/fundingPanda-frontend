@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { getTopSponsors } from "@/services/user.service";
@@ -7,6 +8,7 @@ import { getAllProjects } from "@/services/project.service";
 import { getUserReviews } from "@/services/review.service";
 
 import PublicNavbar from "@/components/ui/layout/PublicNavbar";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -16,6 +18,7 @@ type TopSponsor = {
     id: string;
     name: string;
     totalFunded?: number;
+    totalDonated?: number;
     _count?: {
         donations?: number;
     };
@@ -43,6 +46,10 @@ type RankedStudent = {
 };
 
 export default function LeaderboardPage() {
+    const [sponsorPage, setSponsorPage] = useState(1);
+    const [studentPage, setStudentPage] = useState(1);
+    const PAGE_SIZE = 5;
+
     const { data: topSponsors, isLoading } = useQuery({
         queryKey: ["topSponsors"],
         queryFn: getTopSponsors,
@@ -113,6 +120,12 @@ export default function LeaderboardPage() {
     };
 
     const sponsorList = (topSponsors ?? []) as TopSponsor[];
+    const pagedSponsors = sponsorList.slice((sponsorPage - 1) * PAGE_SIZE, sponsorPage * PAGE_SIZE);
+    const sponsorPages = Math.max(1, Math.ceil(sponsorList.length / PAGE_SIZE));
+
+    const studentList = topStudents ?? [];
+    const pagedStudents = studentList.slice((studentPage - 1) * PAGE_SIZE, studentPage * PAGE_SIZE);
+    const studentPages = Math.max(1, Math.ceil(studentList.length / PAGE_SIZE));
 
     return (
         <div className="flex min-h-screen flex-col bg-neutral-50">
@@ -152,19 +165,19 @@ export default function LeaderboardPage() {
                             </Card>
                         ))
                     ) : sponsorList.length > 0 ? (
-                        sponsorList.map((sponsor, index) => (
+                        pagedSponsors.map((sponsor, index) => (
                             <Card
                                 key={sponsor.id}
-                                className={`overflow-hidden transition-all hover:-translate-y-1 hover:shadow-md ${index === 0 ? "border-amber-300 ring-1 ring-amber-300 shadow-amber-100" : ""}`}
+                                className={`overflow-hidden transition-all hover:-translate-y-1 hover:shadow-md ${((sponsorPage - 1) * PAGE_SIZE + index) === 0 ? "border-amber-300 ring-1 ring-amber-300 shadow-amber-100" : ""}`}
                             >
                                 <CardContent className="flex items-center p-0">
-                                    <div className={`flex w-16 items-center justify-center self-stretch sm:w-24 ${index === 0 ? "bg-amber-50" : index === 1 ? "bg-slate-50" : index === 2 ? "bg-orange-50" : "border-r bg-neutral-50"}`}>
-                                        {getRankBadge(index)}
+                                    <div className={`flex w-16 items-center justify-center self-stretch sm:w-24 ${((sponsorPage - 1) * PAGE_SIZE + index) === 0 ? "bg-amber-50" : ((sponsorPage - 1) * PAGE_SIZE + index) === 1 ? "bg-slate-50" : ((sponsorPage - 1) * PAGE_SIZE + index) === 2 ? "bg-orange-50" : "border-r bg-neutral-50"}`}>
+                                        {getRankBadge((sponsorPage - 1) * PAGE_SIZE + index)}
                                     </div>
 
                                     <div className="flex flex-1 items-center gap-4 p-4 sm:p-6">
                                         <Link href={`/users/${sponsor.id}`} className="rounded-full">
-                                            <Avatar className={`h-12 w-12 border-2 transition-all hover:scale-105 sm:h-16 sm:w-16 ${index < 3 ? "border-primary" : "border-transparent"}`}>
+                                            <Avatar className={`h-12 w-12 border-2 transition-all hover:scale-105 sm:h-16 sm:w-16 ${((sponsorPage - 1) * PAGE_SIZE + index) < 3 ? "border-primary" : "border-transparent"}`}>
                                                 <AvatarFallback className="bg-primary/10 text-lg font-bold text-primary">
                                                     {sponsor.name?.charAt(0) || "S"}
                                                 </AvatarFallback>
@@ -183,7 +196,7 @@ export default function LeaderboardPage() {
                                     <div className="border-l bg-white p-4 text-right sm:p-6">
                                         <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-neutral-500">Total Funded</p>
                                         <p className="text-xl font-black text-primary sm:text-2xl">
-                                            ${(sponsor.totalFunded || 0).toLocaleString()}
+                                            ${Number(sponsor.totalFunded ?? sponsor.totalDonated ?? 0).toLocaleString()}
                                         </p>
                                     </div>
                                 </CardContent>
@@ -192,6 +205,14 @@ export default function LeaderboardPage() {
                     ) : (
                         <div className="py-12 text-center text-neutral-500">
                             No sponsor data available yet.
+                        </div>
+                    )}
+
+                    {!isLoading && sponsorList.length > 0 && (
+                        <div className="flex items-center justify-end gap-2 pt-2">
+                            <Button variant="outline" onClick={() => setSponsorPage((prev) => Math.max(1, prev - 1))} disabled={sponsorPage <= 1}>Previous</Button>
+                            <p className="text-sm text-neutral-500">Page {sponsorPage} of {sponsorPages}</p>
+                            <Button onClick={() => setSponsorPage((prev) => Math.min(sponsorPages, prev + 1))} disabled={sponsorPage >= sponsorPages}>Next</Button>
                         </div>
                     )}
                 </section>
@@ -218,16 +239,16 @@ export default function LeaderboardPage() {
                             </Card>
                         ))
                     ) : topStudents && topStudents.length > 0 ? (
-                        topStudents.map((student, index) => (
+                        pagedStudents.map((student, index) => (
                             <Card key={student.id} className="overflow-hidden transition-all hover:-translate-y-1 hover:shadow-md">
                                 <CardContent className="flex items-center p-0">
-                                    <div className={`flex w-16 items-center justify-center self-stretch sm:w-24 ${index === 0 ? "bg-emerald-50" : index === 1 ? "bg-slate-50" : index === 2 ? "bg-lime-50" : "border-r bg-neutral-50"}`}>
-                                        {getRankBadge(index)}
+                                    <div className={`flex w-16 items-center justify-center self-stretch sm:w-24 ${((studentPage - 1) * PAGE_SIZE + index) === 0 ? "bg-emerald-50" : ((studentPage - 1) * PAGE_SIZE + index) === 1 ? "bg-slate-50" : ((studentPage - 1) * PAGE_SIZE + index) === 2 ? "bg-lime-50" : "border-r bg-neutral-50"}`}>
+                                        {getRankBadge((studentPage - 1) * PAGE_SIZE + index)}
                                     </div>
 
                                     <div className="flex flex-1 items-center gap-4 p-4 sm:p-6">
                                         <Link href={`/users/${student.id}`} className="rounded-full">
-                                            <Avatar className={`h-12 w-12 border-2 transition-all hover:scale-105 sm:h-16 sm:w-16 ${index < 3 ? "border-primary" : "border-transparent"}`}>
+                                            <Avatar className={`h-12 w-12 border-2 transition-all hover:scale-105 sm:h-16 sm:w-16 ${((studentPage - 1) * PAGE_SIZE + index) < 3 ? "border-primary" : "border-transparent"}`}>
                                                 <AvatarFallback className="bg-primary/10 text-lg font-bold text-primary">
                                                     {student.name?.charAt(0) || "S"}
                                                 </AvatarFallback>
@@ -254,6 +275,14 @@ export default function LeaderboardPage() {
                         ))
                     ) : (
                         <div className="py-12 text-center text-neutral-500">No student ranking data available yet.</div>
+                    )}
+
+                    {!isStudentsLoading && studentList.length > 0 && (
+                        <div className="flex items-center justify-end gap-2 pt-2">
+                            <Button variant="outline" onClick={() => setStudentPage((prev) => Math.max(1, prev - 1))} disabled={studentPage <= 1}>Previous</Button>
+                            <p className="text-sm text-neutral-500">Page {studentPage} of {studentPages}</p>
+                            <Button onClick={() => setStudentPage((prev) => Math.min(studentPages, prev + 1))} disabled={studentPage >= studentPages}>Next</Button>
+                        </div>
                     )}
                 </section>
             </main>

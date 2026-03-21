@@ -99,6 +99,63 @@ export const getAllProjects = async (params: Record<string, string | number> = {
     return response.data.data;
 };
 
+export const getAllProjectsPaginated = async (params: Record<string, string | number> = {}) => {
+    const query = new URLSearchParams({ status: "APPROVED" });
+
+    const sortValue = String(params.sortBy ?? "-createdAt");
+    if (sortValue.startsWith("-")) {
+        query.append("sortBy", sortValue.slice(1));
+        query.append("sortOrder", "desc");
+    } else {
+        query.append("sortBy", sortValue);
+        query.append("sortOrder", "asc");
+    }
+
+    const combinedSearchTerm = [params.searchTerm, params.studentName]
+        .filter((value) => Boolean(value))
+        .map((value) => String(value))
+        .join(" ")
+        .trim();
+
+    if (combinedSearchTerm) {
+        query.append("searchTerm", combinedSearchTerm);
+    }
+
+    if (params.university) {
+        query.append("student.university", String(params.university));
+    }
+
+    if (params.startDate) {
+        query.append("createdAt[gte]", String(params.startDate));
+    }
+
+    if (params.endDate) {
+        query.append("createdAt[lte]", String(params.endDate));
+    }
+
+    const handledKeys = new Set([
+        "status",
+        "sortBy",
+        "searchTerm",
+        "studentName",
+        "university",
+        "startDate",
+        "endDate",
+    ]);
+
+    Object.entries(params).forEach(([key, value]) => {
+        if (value === undefined || value === null || value === "") return;
+        if (handledKeys.has(key)) return;
+        query.append(key, String(value));
+    });
+
+    const response = await apiClient.get(`/projects?${query.toString()}`);
+    return {
+        data: response.data.data,
+        meta: response.data.meta,
+    };
+};
+
 export const getProjectById = async (projectId: string) => {
     const response = await apiClient.get(`/projects/${projectId}`);
     return response.data.data;

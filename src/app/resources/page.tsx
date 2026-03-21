@@ -4,9 +4,10 @@ import PublicNavbar from "@/components/ui/layout/PublicNavbar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
-import { getAllResources } from "@/services/resource.service";
+import { getAllResourcesPaginated } from "@/services/resource.service";
 import { Box, Cpu, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 
 type ResourceItem = {
     id: string;
@@ -18,10 +19,16 @@ type ResourceItem = {
 };
 
 export default function PublicResourceHubPage() {
-    const { data: resources = [], isLoading } = useQuery({
-        queryKey: ["public-resources"],
-        queryFn: getAllResources,
+    const [currentPage, setCurrentPage] = useState(1);
+    const PAGE_SIZE = 9;
+
+    const { data: resourceResult, isLoading } = useQuery({
+        queryKey: ["public-resources", currentPage],
+        queryFn: () => getAllResourcesPaginated({ page: currentPage, limit: PAGE_SIZE, sortBy: "createdAt", sortOrder: "desc" }),
     });
+
+    const resources = (resourceResult?.data ?? []) as ResourceItem[];
+    const totalPages = Number(resourceResult?.meta?.totalPage || 1);
 
     return (
         <div className="flex min-h-screen flex-col bg-neutral-50">
@@ -47,7 +54,7 @@ export default function PublicResourceHubPage() {
                     </div>
                 ) : (
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                        {(resources as ResourceItem[]).map((resource) => (
+                        {resources.map((resource) => (
                             <Card key={resource.id} className="border-0 shadow-md">
                                 <CardContent className="space-y-3 p-6">
                                     <div className="flex items-center gap-2 text-sm font-medium text-primary">
@@ -62,6 +69,27 @@ export default function PublicResourceHubPage() {
                                 </CardContent>
                             </Card>
                         ))}
+                    </div>
+                )}
+
+                {!isLoading && resources.length > 0 && (
+                    <div className="mt-8 flex flex-col items-center justify-between gap-3 border-t pt-6 sm:flex-row">
+                        <p className="text-sm text-neutral-500">Page {currentPage} of {Math.max(1, totalPages)}</p>
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant="outline"
+                                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                                disabled={currentPage <= 1}
+                            >
+                                Previous
+                            </Button>
+                            <Button
+                                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                                disabled={currentPage >= totalPages}
+                            >
+                                Next
+                            </Button>
+                        </div>
                     </div>
                 )}
 

@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { getAllProjects, getCategories } from "@/services/project.service";
+import { getAllProjectsPaginated, getCategories } from "@/services/project.service";
 
 import PublicNavbar from "@/components/ui/layout/PublicNavbar";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,8 @@ import { Search, Leaf, Filter, X } from "lucide-react";
 
 export default function ExploreProjectsPage() {
     const [showAdvanced, setShowAdvanced] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const PAGE_SIZE = 9;
 
     // Advanced Filter State Object
     const [filters, setFilters] = useState({
@@ -35,10 +37,13 @@ export default function ExploreProjectsPage() {
     });
 
     // Fetch Projects triggers automatically when the `filters` object changes
-    const { data: projects, isLoading, isError } = useQuery({
-        queryKey: ["allProjects", filters],
-        queryFn: () => getAllProjects(filters),
+    const { data: projectResult, isLoading, isError } = useQuery({
+        queryKey: ["allProjects", filters, currentPage],
+        queryFn: () => getAllProjectsPaginated({ ...filters, page: currentPage, limit: PAGE_SIZE }),
     });
+
+    const projects = projectResult?.data ?? [];
+    const totalPages = Number(projectResult?.meta?.totalPage || 1);
 
     const handleFilterChange = (key: string, value: string) => {
         setFilters(prev => ({ ...prev, [key]: value }));
@@ -49,7 +54,12 @@ export default function ExploreProjectsPage() {
             searchTerm: "", studentName: "", university: "",
             category: "ALL", fundingStatus: "ALL", startDate: "", endDate: "", sortBy: "-createdAt"
         });
+        setCurrentPage(1);
     };
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [filters.searchTerm, filters.studentName, filters.university, filters.category, filters.fundingStatus, filters.startDate, filters.endDate, filters.sortBy]);
 
     return (
         <div className="flex min-h-screen flex-col bg-neutral-50">
@@ -273,6 +283,27 @@ export default function ExploreProjectsPage() {
                             </div>
                         )}
                     </div>
+
+                    {!isLoading && !isError && projects.length > 0 && (
+                        <div className="flex flex-col items-center justify-between gap-3 border-t pt-6 sm:flex-row">
+                            <p className="text-sm text-neutral-500">Page {currentPage} of {Math.max(1, totalPages)}</p>
+                            <div className="flex items-center gap-2">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                                    disabled={currentPage <= 1}
+                                >
+                                    Previous
+                                </Button>
+                                <Button
+                                    onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                                    disabled={currentPage >= totalPages}
+                                >
+                                    Next
+                                </Button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </main>
         </div>

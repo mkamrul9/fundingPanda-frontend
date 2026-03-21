@@ -14,6 +14,21 @@ export const getAllResources = async () => {
     return response.data.data;
 };
 
+export const getAllResourcesPaginated = async (params: Record<string, string | number> = {}) => {
+    const query = new URLSearchParams();
+
+    Object.entries(params).forEach(([key, value]) => {
+        if (value === undefined || value === null || value === "") return;
+        query.append(key, String(value));
+    });
+
+    const response = await apiClient.get(`/resources${query.toString() ? `?${query.toString()}` : ""}`);
+    return {
+        data: response.data.data,
+        meta: response.data.meta,
+    };
+};
+
 export const createResource = async (data: CreateResourceInput) => {
     const normalizedType: ResourceType = data.type || "HARDWARE";
     const normalizedCapacity = Number.isFinite(data.capacity) ? Math.max(1, Math.floor(data.capacity)) : 1;
