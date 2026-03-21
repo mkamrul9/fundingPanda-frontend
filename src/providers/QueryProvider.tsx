@@ -22,8 +22,9 @@ export default function QueryProvider({ children }: { children: React.ReactNode 
     return (
         <QueryClientProvider client={queryClient}>
             {children}
-            {/* This adds a floating devtools button in the bottom corner during local dev */}
-            <ReactQueryDevtools initialIsOpen={false} />
+            {process.env.NODE_ENV === 'development' ? (
+                <ReactQueryDevtools initialIsOpen={false} />
+            ) : null}
         </QueryClientProvider>
     );
 }

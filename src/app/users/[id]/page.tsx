@@ -39,6 +39,10 @@ type ProfileProject = {
     studentId?: string;
 };
 
+type SponsorDonation = {
+    projectId?: string;
+};
+
 export default function PublicUserProfilePage() {
     const params = useParams();
     const userId = params.id as string;
@@ -55,17 +59,20 @@ export default function PublicUserProfilePage() {
         enabled: !!userId && !!user,
         queryFn: async () => {
             if (user?.role === "SPONSOR") {
-                const donations = Array.isArray(user?.donations) ? user.donations : [];
-                const uniqueProjectIds = Array.from(
-                    new Set(
+                const donations: SponsorDonation[] = Array.isArray(user?.donations)
+                    ? (user.donations as SponsorDonation[])
+                    : [];
+
+                const uniqueProjectIds: string[] = Array.from(
+                    new Set<string>(
                         donations
-                            .map((donation: { projectId?: string }) => donation.projectId)
-                            .filter((projectId: string | undefined): projectId is string => Boolean(projectId))
+                            .map((donation) => donation.projectId)
+                            .filter((projectId): projectId is string => typeof projectId === "string" && projectId.length > 0)
                     )
                 );
 
                 const donatedProjects = await Promise.all(
-                    uniqueProjectIds.map(async (projectId: string) => {
+                    uniqueProjectIds.map(async (projectId) => {
                         try {
                             return await getProjectById(projectId);
                         } catch {

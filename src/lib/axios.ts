@@ -1,10 +1,12 @@
 import axios from 'axios';
 
-// Use the environment variable, fallback to localhost for development
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+const resolveApiBaseUrl = () => {
+    const raw = process.env.NEXT_PUBLIC_API_URL?.trim() || 'http://localhost:5000/api/v1';
+    return raw.replace(/\/$/, '');
+};
 
 export const apiClient = axios.create({
-    baseURL: BASE_URL,
+    baseURL: resolveApiBaseUrl(),
     withCredentials: true, // This ensures BetterAuth session cookies are sent to the backend
     headers: {
         'Content-Type': 'application/json',
