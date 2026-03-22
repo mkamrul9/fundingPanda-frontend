@@ -27,6 +27,7 @@ interface Message {
     receiver?: { id: string; name: string };
 }
 import { useQueryClient } from '@tanstack/react-query';
+import { usePathname, useRouter } from "next/navigation";
 
 export default function MessagesPage() {
     const { data: session } = useSession();
@@ -39,7 +40,9 @@ export default function MessagesPage() {
     const [isUploading, setIsUploading] = useState(false);
     const [uploadStatusText, setUploadStatusText] = useState("");
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const scrollRef = useRef<HTMLDivElement>(null);
+    const activeContactIdRef = useRef<string | null>(null);
+    const router = useRouter();
+    const pathname = usePathname();
 
     const { data: contacts, isLoading: loadingContacts } = useQuery({
         queryKey: ["conversations"],
@@ -63,6 +66,10 @@ export default function MessagesPage() {
     });
 
     useEffect(() => {
+        activeContactIdRef.current = activeContact?.id ?? null;
+    }, [activeContact?.id]);
+
+    useEffect(() => {
         if (!currentUserId) return;
 
         socket.connect();
@@ -78,6 +85,8 @@ export default function MessagesPage() {
 
         // Listen for incoming messages (server uses snake_case events)
         const receiveHandler = (message: Message) => {
+            const activeId = activeContactIdRef.current;
+
             // If this message corresponds to an optimistic pending message, replace it
             if (message.clientTempId) {
                 setMessages((prev) => {
@@ -88,15 +97,15 @@ export default function MessagesPage() {
                         return copy;
                     }
                     // not found, append if relevant
-                    if (activeContact && (message.senderId === activeContact.id || message.receiverId === activeContact.id)) {
+                    if (activeId && (message.senderId === activeId || message.receiverId === activeId)) {
                         return [...prev, message];
                     }
                     return prev;
                 });
             } else {
                 if (
-                    activeContact &&
-                    (message.senderId === activeContact.id || message.receiverId === activeContact.id)
+                    activeId &&
+                    (message.senderId === activeId || message.receiverId === activeId)
                 ) {
                     setMessages((prev) => [...prev, message]);
                 }
@@ -114,15 +123,15 @@ export default function MessagesPage() {
             socket.off("receiveMessage", receiveHandler);
             socket.disconnect();
         };
-    }, [currentUserId, activeContact]);
+    }, [currentUserId, queryClient]);
 
     // Auto-select contact from ?contact=ID immediately (fallback when conversations empty)
     useEffect(() => {
-        // Only auto-select from the URL `contact` param when we don't already have a manual selection.
-        if (!contactParam) return;
+        const preferredContactId = contactParam || (typeof window !== 'undefined' ? localStorage.getItem('lastMessageContactId') : null);
+        if (!preferredContactId) return;
         if (activeContact) return; // don't override a user-picked contact
 
-        const found = contacts?.find?.((c: any) => c.id === contactParam);
+        const found = contacts?.find?.((c: any) => c.id === preferredContactId);
         if (found) {
             setActiveContact(found);
             setActivePane("chat");
@@ -130,15 +139,16 @@ export default function MessagesPage() {
         }
 
         // If not found in existing conversations, set a minimal placeholder so chat opens
-        setActiveContact({ id: contactParam, name: 'Researcher' });
+        setActiveContact({ id: preferredContactId, name: 'Researcher' });
         setActivePane("chat");
     }, [contactParam, contacts, activeContact]);
 
     useEffect(() => {
-        if (scrollRef.current) {
-            scrollRef.current.scrollIntoView({ behavior: "smooth" });
+        if (!activeContact?.id) return;
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('lastMessageContactId', activeContact.id);
         }
-    }, [messages]);
+    }, [activeContact?.id]);
 
     const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -261,6 +271,7 @@ export default function MessagesPage() {
                                     onClick={() => {
                                         setActiveContact(contact);
                                         setActivePane("chat");
+                                        router.replace(`${pathname}?contact=${contact.id}`, { scroll: false });
                                     }}
                                     className={`flex items-center gap-3 p-4 border-b cursor-pointer transition-colors ${activeContact?.id === contact.id ? "bg-emerald-50 border-l-4 border-l-primary" : "hover:bg-neutral-50"
                                         }`}
@@ -340,7 +351,6 @@ export default function MessagesPage() {
                                                 </div>
                                             );
                                         })}
-                                        <div ref={scrollRef} />
                                     </div>
                                 )}
                             </ScrollArea>

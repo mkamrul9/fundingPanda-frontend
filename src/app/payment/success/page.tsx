@@ -1,12 +1,50 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { CheckCircle2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import PublicNavbar from "@/components/ui/layout/PublicNavbar";
+import { confirmPaymentSession } from "@/services/payment.service";
 
 export default function PaymentSuccessPage() {
+    const [statusText, setStatusText] = useState("Finalizing your donation...");
+
+    useEffect(() => {
+        let cancelled = false;
+
+        const finalize = async () => {
+            const sessionId = new URLSearchParams(window.location.search).get("session_id");
+
+            if (!sessionId) {
+                setStatusText("Payment completed. Donation update may take a few seconds.");
+                return;
+            }
+
+            try {
+                const result = await confirmPaymentSession(sessionId);
+                if (cancelled) return;
+
+                if (result?.alreadyRecorded) {
+                    setStatusText("Payment already recorded in project funding.");
+                    return;
+                }
+
+                setStatusText("Donation recorded successfully.");
+            } catch {
+                if (cancelled) return;
+                setStatusText("Payment completed. Donation update may take a few seconds.");
+            }
+        };
+
+        void finalize();
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
     return (
         <div className="flex min-h-screen flex-col bg-neutral-50">
             <PublicNavbar />
@@ -25,7 +63,7 @@ export default function PaymentSuccessPage() {
                             Thank you for funding academic innovation. Your contribution has been securely processed and applied to the project.
                         </p>
                         <div className="rounded-lg bg-neutral-100 p-4 text-sm text-neutral-500">
-                            A receipt will be sent to your registered email address shortly.
+                            {statusText}
                         </div>
                     </CardContent>
                     <CardFooter className="flex flex-col gap-3 pb-8">

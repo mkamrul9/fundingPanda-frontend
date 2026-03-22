@@ -21,3 +21,8 @@ export const createCheckoutSession = async ({
         url: payload?.url || payload?.paymentUrl,
     };
 };
+
+export const confirmPaymentSession = async (sessionId: string) => {
+    const response = await apiClient.post('/donations/confirm-session', { sessionId });
+    return response.data.data;
+};
