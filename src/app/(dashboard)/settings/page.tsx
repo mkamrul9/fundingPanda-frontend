@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { getUserProfile, updateUserProfile } from "@/services/user.service";
 import { profileSchema, nameSchema, bioSchema, universitySchema } from "@/lib/validations/user";
@@ -14,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function SettingsPage() {
+    const router = useRouter();
     const queryClient = useQueryClient();
 
     // 1. Fetch the user's current profile from the Node.js backend
@@ -29,6 +31,7 @@ export default function SettingsPage() {
             toast.success("Profile updated successfully!");
             // Invalidate the cache so the query refetches fresh data
             queryClient.invalidateQueries({ queryKey: ["userProfile"] });
+            router.replace("/dashboard");
         },
         onError: (error: unknown) => {
             const message =

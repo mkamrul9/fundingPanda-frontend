@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "@tanstack/react-form";
 import Link from "next/link";
 import { toast } from "sonner";
-import { signIn } from "@/lib/auth-client";
+import { signIn, authClient } from "@/lib/auth-client";
 import { loginSchema, emailSchema, passwordSchema } from "@/lib/validations/auth";
 import { Eye, EyeOff } from "lucide-react";
 
@@ -56,15 +56,15 @@ export default function LoginPage() {
         if (err.status === 404 || isUserMissing) {
             return "This email has no account yet. Please register first.";
         }
+        if (isUnverifiedUser) {
+            return "Your email is not verified yet. Please verify your email first.";
+        }
         if (
             err.status === 401 ||
             err.status === 403 ||
             isInvalidCredential
         ) {
             return "Incorrect email or password. Please try again.";
-        }
-        if (isUnverifiedUser) {
-            return "Your email is not verified yet. Please verify your email first.";
         }
         return err.message || "Authentication failed. Please try again.";
     };
@@ -93,9 +93,21 @@ export default function LoginPage() {
                             setIsLoading(true);
                         },
                         onSuccess: () => {
-                            setIsLoading(false);
-                            toast.success("Successfully logged in!");
-                            router.push("/dashboard");
+                            void (async () => {
+                                try {
+                                    const session = await authClient.getSession();
+                                    setIsLoading(false);
+                                    if (session?.data?.user) {
+                                        toast.success("Successfully logged in!");
+                                        router.replace("/dashboard");
+                                        return;
+                                    }
+                                    toast.error("Login succeeded but session was not established. Please try again.");
+                                } catch {
+                                    setIsLoading(false);
+                                    toast.error("Login succeeded but session check failed. Please try again.");
+                                }
+                            })();
                         },
                         onError: (ctx: unknown) => {
                             setIsLoading(false);

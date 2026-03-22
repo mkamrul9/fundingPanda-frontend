@@ -6,13 +6,14 @@ import { useForm } from "@tanstack/react-form";
 import Link from "next/link";
 import { toast } from "sonner";
 import { signUp } from "@/lib/auth-client";
-import { registerSchema, nameSchema, registerEmailSchema, registerPasswordSchema } from "@/lib/validations/auth";
+import { registerSchema, nameSchema, registerEmailSchema, registerPasswordSchema, registerUniversitySchema, registerBioSchema } from "@/lib/validations/auth";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function RegisterPage() {
     const router = useRouter();
@@ -51,6 +52,8 @@ export default function RegisterPage() {
             email: "",
             password: "",
             role: "STUDENT" as "STUDENT" | "SPONSOR",
+            university: "",
+            bio: "",
         },
         onSubmit: async ({ value }) => {
             // Final Zod safety check
@@ -69,6 +72,8 @@ export default function RegisterPage() {
                         password: value.password,
                         // Passing custom data to BetterAuth (it will be saved to your DB if configured)
                         role: value.role,
+                        university: value.university?.trim() || undefined,
+                        bio: value.bio?.trim() || undefined,
                     } as Parameters<typeof signUp.email>[0],
                     {
                         onRequest: () => setIsLoading(true),
@@ -212,6 +217,61 @@ export default function RegisterPage() {
                                             <SelectItem value="SPONSOR">Fund academic projects (Sponsor)</SelectItem>
                                         </SelectContent>
                                     </Select>
+                                </div>
+                            )}
+                        </Form.Field>
+
+                        <Form.Field
+                            name="university"
+                            validators={{
+                                onChange: ({ value }) => {
+                                    const res = registerUniversitySchema.safeParse(value || undefined);
+                                    return res.success ? undefined : res.error.issues[0].message;
+                                },
+                            }}
+                        >
+                            {(field) => (
+                                <div className="space-y-2">
+                                    <Label htmlFor={field.name}>University (optional)</Label>
+                                    <Input
+                                        id={field.name}
+                                        placeholder="e.g., MIT, Stanford, Independent"
+                                        value={field.state.value}
+                                        onChange={(e) => field.handleChange(e.target.value)}
+                                        onBlur={field.handleBlur}
+                                        disabled={isLoading}
+                                    />
+                                    {field.state.meta.errors.length > 0 && (
+                                        <p className="text-sm text-red-500">{field.state.meta.errors[0]}</p>
+                                    )}
+                                </div>
+                            )}
+                        </Form.Field>
+
+                        <Form.Field
+                            name="bio"
+                            validators={{
+                                onChange: ({ value }) => {
+                                    const res = registerBioSchema.safeParse(value || undefined);
+                                    return res.success ? undefined : res.error.issues[0].message;
+                                },
+                            }}
+                        >
+                            {(field) => (
+                                <div className="space-y-2">
+                                    <Label htmlFor={field.name}>Bio (optional)</Label>
+                                    <Textarea
+                                        id={field.name}
+                                        placeholder="Tell us about your research interests or funding focus"
+                                        value={field.state.value}
+                                        onChange={(e) => field.handleChange(e.target.value)}
+                                        onBlur={field.handleBlur}
+                                        disabled={isLoading}
+                                        className="resize-none min-h-24"
+                                    />
+                                    {field.state.meta.errors.length > 0 && (
+                                        <p className="text-sm text-red-500">{field.state.meta.errors[0]}</p>
+                                    )}
                                 </div>
                             )}
                         </Form.Field>

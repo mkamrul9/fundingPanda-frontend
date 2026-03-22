@@ -12,6 +12,8 @@ export const registerSchema = z.object({
     email: z.email({ message: "Please enter a valid email address." }),
     password: z.string().min(6, { message: "Password must be at least 6 characters." }),
     role: z.enum(["STUDENT", "SPONSOR"], { message: "Please select an account type." }),
+    university: z.string().max(100, { message: "University name is too long." }).optional(),
+    bio: z.string().max(500, { message: "Bio cannot exceed 500 characters." }).optional(),
 });
 
 
@@ -19,5 +21,7 @@ export const registerSchema = z.object({
 export const nameSchema = registerSchema.shape.name;
 export const registerEmailSchema = registerSchema.shape.email;
 export const registerPasswordSchema = registerSchema.shape.password;
+export const registerUniversitySchema = registerSchema.shape.university;
+export const registerBioSchema = registerSchema.shape.bio;
 export const emailSchema = loginSchema.shape.email;
 export const passwordSchema = loginSchema.shape.password;

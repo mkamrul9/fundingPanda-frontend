@@ -23,8 +23,14 @@ export const uploadChatImage = async (file: File, receiverId: string) => {
     return response.data.data;
 };
 
+export const sendTextMessage = async (payload: { receiverId: string; content: string }) => {
+    const response = await apiClient.post('/messages', payload);
+    return response.data.data;
+};
+
 export default {
     getChatHistory,
     getConversations,
     uploadChatImage,
+    sendTextMessage,
 };

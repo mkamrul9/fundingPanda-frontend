@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "@/lib/auth-client";
 import { socket } from "@/lib/socket";
-import { getConversations, getChatHistory, uploadChatImage } from "@/services/message.service";
+import { getConversations, getChatHistory, uploadChatImage, sendTextMessage } from "@/services/message.service";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,8 @@ interface Message {
     imageUrl?: string | null;
     createdAt: string;
     clientTempId?: string | null;
+    sender?: { id: string; name: string };
+    receiver?: { id: string; name: string };
 }
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -136,19 +138,20 @@ export default function MessagesPage() {
         }
     }, [messages]);
 
-    const handleSendMessage = (e: React.FormEvent) => {
+    const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!newMessage.trim() || !activeContact) return;
 
         const tempId = `temp-${Date.now().toString()}`;
 
+        const content = newMessage.trim();
         const messagePayload = {
             receiverId: activeContact.id,
-            content: newMessage,
+            content,
             tempId,
         };
 
-        // Emit according to backend contract (includes our tempId)
+        // Emit for real-time experience.
         socket.emit("send_message", messagePayload);
 
         // Optimistic UI: use tempId as the local message id so we can replace it when server responds
@@ -158,13 +161,35 @@ export default function MessagesPage() {
                 id: tempId,
                 senderId: currentUserId!,
                 receiverId: activeContact.id,
-                content: newMessage,
+                content,
                 createdAt: new Date().toISOString(),
                 clientTempId: tempId,
             },
         ]);
 
         setNewMessage("");
+
+        // Also persist via HTTP to guarantee durability when socket is unstable.
+        try {
+            const persisted = await sendTextMessage({
+                receiverId: activeContact.id,
+                content,
+            });
+
+            setMessages((prev) => {
+                const index = prev.findIndex((msg) => msg.id === tempId);
+                if (index === -1) return prev;
+                const copy = [...prev];
+                copy[index] = {
+                    ...copy[index],
+                    ...persisted,
+                };
+                return copy;
+            });
+        } catch {
+            setMessages((prev) => prev.filter((msg) => msg.id !== tempId));
+            toast.error("Failed to send message.");
+        }
     };
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -298,8 +323,11 @@ export default function MessagesPage() {
                                                                         className="mt-1 max-w-50 rounded-md transition-opacity hover:opacity-90"
                                                                     />
                                                                 </a>
-                                                            ) : (
-                                                                msg.content
+                                                            ) : msg.content}
+                                                            {!isMe && (
+                                                                <p className="mt-1 text-[11px] text-neutral-400">
+                                                                    {msg.sender?.name || activeContact.name}
+                                                                </p>
                                                             )}
                                                         </div>
                                                         <span className={`text-[10px] block mt-1 ${isMe ? "text-primary-foreground/70 text-right" : "text-neutral-400"}`}>
