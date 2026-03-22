@@ -26,6 +26,13 @@ interface Message {
     sender?: { id: string; name: string };
     receiver?: { id: string; name: string };
 }
+
+interface ConversationItem {
+    id: string;
+    name: string;
+    role: string;
+    unreadCount?: number;
+}
 import { useQueryClient } from '@tanstack/react-query';
 import { usePathname, useRouter } from "next/navigation";
 
@@ -39,12 +46,13 @@ export default function MessagesPage() {
     const [newMessage, setNewMessage] = useState("");
     const [isUploading, setIsUploading] = useState(false);
     const [uploadStatusText, setUploadStatusText] = useState("");
+    const [hasNewIncomingMessage, setHasNewIncomingMessage] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const activeContactIdRef = useRef<string | null>(null);
     const router = useRouter();
     const pathname = usePathname();
 
-    const { data: contacts, isLoading: loadingContacts } = useQuery({
+    const { data: contacts, isLoading: loadingContacts } = useQuery<ConversationItem[]>({
         queryKey: ["conversations"],
         queryFn: getConversations,
         enabled: !!currentUserId,
@@ -52,18 +60,38 @@ export default function MessagesPage() {
 
     const queryClient = useQueryClient();
 
+    const appendUniqueMessage = (prev: Message[], message: Message) => {
+        const existingIndex = prev.findIndex((m) => m.id === message.id);
+        if (existingIndex !== -1) {
+            const copy = [...prev];
+            copy[existingIndex] = { ...copy[existingIndex], ...message };
+            return copy;
+        }
+        return [...prev, message];
+    };
+
     const searchParams = useSearchParams();
     const contactParam = searchParams?.get?.("contact");
 
-    const { isLoading: loadingHistory } = useQuery({
+    const { data: chatHistory, isLoading: loadingHistory } = useQuery<Message[]>({
         queryKey: ["chatHistory", activeContact?.id],
-        queryFn: async () => {
-            const history = await getChatHistory(activeContact.id);
-            setMessages(history);
-            return history;
-        },
+        queryFn: () => getChatHistory(activeContact.id),
         enabled: !!activeContact?.id,
+        staleTime: 0,
+        gcTime: 0,
+        refetchOnMount: 'always',
+        refetchOnWindowFocus: true,
     });
+
+    useEffect(() => {
+        if (!activeContact?.id) {
+            setMessages([]);
+            return;
+        }
+
+        setMessages(chatHistory || []);
+        setHasNewIncomingMessage(false);
+    }, [activeContact?.id, chatHistory]);
 
     useEffect(() => {
         activeContactIdRef.current = activeContact?.id ?? null;
@@ -98,7 +126,7 @@ export default function MessagesPage() {
                     }
                     // not found, append if relevant
                     if (activeId && (message.senderId === activeId || message.receiverId === activeId)) {
-                        return [...prev, message];
+                        return appendUniqueMessage(prev, message);
                     }
                     return prev;
                 });
@@ -107,7 +135,10 @@ export default function MessagesPage() {
                     activeId &&
                     (message.senderId === activeId || message.receiverId === activeId)
                 ) {
-                    setMessages((prev) => [...prev, message]);
+                    setMessages((prev) => appendUniqueMessage(prev, message));
+                    if (message.senderId !== currentUserId) {
+                        setHasNewIncomingMessage(true);
+                    }
                 }
             }
 
@@ -265,7 +296,7 @@ export default function MessagesPage() {
                         {loadingContacts ? (
                             <div className="p-4 text-center text-neutral-500">Loading contacts...</div>
                         ) : contacts && contacts.length > 0 ? (
-                            contacts.map((contact: any) => (
+                            contacts.map((contact) => (
                                 <div
                                     key={contact.id}
                                     onClick={() => {
@@ -285,6 +316,11 @@ export default function MessagesPage() {
                                         <h4 className="font-semibold text-sm truncate">{contact.name}</h4>
                                         <p className="text-xs text-neutral-500 capitalize">{contact.role.toLowerCase()}</p>
                                     </div>
+                                    {Number(contact.unreadCount || 0) > 0 && (
+                                        <span className="ml-auto rounded-full bg-primary px-2 py-0.5 text-xs font-semibold text-primary-foreground">
+                                            {contact.unreadCount}
+                                        </span>
+                                    )}
                                 </div>
                             ))
                         ) : (
@@ -308,6 +344,15 @@ export default function MessagesPage() {
                                     <h3 className="font-bold">{activeContact.name}</h3>
                                     <p className="text-xs text-neutral-500">Connected</p>
                                 </div>
+                                {hasNewIncomingMessage && (
+                                    <button
+                                        type="button"
+                                        className="ml-3 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary"
+                                        onClick={() => setHasNewIncomingMessage(false)}
+                                    >
+                                        New messages
+                                    </button>
+                                )}
                                 <Button variant="outline" size="sm" className="ml-auto" onClick={() => setActivePane("conversations")}>
                                     Back to conversations
                                 </Button>

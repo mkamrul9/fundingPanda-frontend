@@ -77,7 +77,7 @@ export default function SettingsPage() {
                             />
                         </div>
 
-                        {(currentUser?.role === "STUDENT" || currentUser?.role === "SPONSOR") && (
+                        {(currentUser?.role === "STUDENT" || currentUser?.role === "SPONSOR" || currentUser?.role === "ADMIN") && (
                             <div className="space-y-2">
                                 <label className="text-sm font-medium">University / Institution</label>
                                 <Input

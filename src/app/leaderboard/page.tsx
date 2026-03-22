@@ -19,6 +19,7 @@ type TopSponsor = {
     name: string;
     totalFunded?: number;
     totalDonated?: number;
+    supportCount?: number;
     _count?: {
         donations?: number;
     };
@@ -188,7 +189,7 @@ export default function LeaderboardPage() {
                                                 <h3 className="line-clamp-1 text-lg font-bold text-neutral-900 sm:text-xl">{sponsor.name}</h3>
                                             </Link>
                                             <p className="flex items-center gap-1 text-sm text-neutral-500">
-                                                <Heart className="h-3 w-3 fill-red-400 text-red-400" /> Supported {sponsor._count?.donations || 0} times
+                                                <Heart className="h-3 w-3 fill-red-400 text-red-400" /> Supported {sponsor.supportCount ?? sponsor._count?.donations ?? 0} times
                                             </p>
                                         </div>
                                     </div>

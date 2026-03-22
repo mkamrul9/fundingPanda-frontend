@@ -5,8 +5,10 @@ import { User } from "@/types";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession, signOut } from "@/lib/auth-client";
-import { Leaf, LogOut, LayoutDashboard, Settings, Loader2, ShieldCheck, House, MessageSquare, Package, FolderKanban, Rocket, HandCoins, CircleHelp, Tags, Trophy, Archive, Users, Receipt } from "lucide-react";
+import { Leaf, LogOut, LayoutDashboard, Settings, Loader2, ShieldCheck, House, MessageSquare, Package, FolderKanban, Rocket, HandCoins, CircleHelp, Tags, Trophy, Archive, Users, Receipt, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
+import { getMyNotifications } from "@/services/notification.service";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
     const router = useRouter();
@@ -43,6 +45,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     const user = session.user as unknown as User;
     const userRole = (user.role ?? "STUDENT") as string; // STUDENT, SPONSOR, or ADMIN
 
+    const { data: notifications } = useQuery({
+        queryKey: ["notifications"],
+        queryFn: getMyNotifications,
+        refetchInterval: 15000,
+    });
+
+    const unreadNotificationCount = notifications?.unreadCount ?? 0;
+
     const isActivePath = (path: string) => pathname === path || pathname.startsWith(`${path}/`);
 
     return (
@@ -70,6 +80,18 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                         <Button variant={isActivePath("/dashboard/messages") ? "default" : "ghost"} className="w-full justify-start">
                             <MessageSquare className="mr-2 h-4 w-4" />
                             Inbox
+                        </Button>
+                    </Link>
+
+                    <Link href="/dashboard/notifications">
+                        <Button variant={isActivePath("/dashboard/notifications") ? "default" : "ghost"} className="w-full justify-start">
+                            <Bell className="mr-2 h-4 w-4" />
+                            Notifications
+                            {unreadNotificationCount > 0 && (
+                                <span className="ml-auto rounded-full bg-primary px-2 py-0.5 text-xs font-semibold text-primary-foreground">
+                                    {unreadNotificationCount > 99 ? "99+" : unreadNotificationCount}
+                                </span>
+                            )}
                         </Button>
                     </Link>
 
