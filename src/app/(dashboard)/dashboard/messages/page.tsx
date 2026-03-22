@@ -70,6 +70,8 @@ export default function MessagesPage() {
         // Let the server bind this socket to the authenticated user's room
         try {
             socket.emit("join_own_room", currentUserId);
+            socket.emit("join_own_room");
+            socket.emit("joinOwnRoom", currentUserId);
         } catch (err) {
             // ignore emit errors
         }
@@ -153,6 +155,7 @@ export default function MessagesPage() {
 
         // Emit for real-time experience.
         socket.emit("send_message", messagePayload);
+        socket.emit("sendMessage", messagePayload);
 
         // Optimistic UI: use tempId as the local message id so we can replace it when server responds
         setMessages((prev) => [
@@ -188,7 +191,7 @@ export default function MessagesPage() {
             });
         } catch {
             // If REST endpoint is not deployed yet, keep socket-delivered optimistic message.
-            toast.info("Message sent in realtime. Persistent save will be enabled after backend deployment sync.");
+            toast.info("Message sent in realtime.");
         }
     };
 

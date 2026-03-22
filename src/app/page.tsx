@@ -173,39 +173,39 @@ export default function HomePage() {
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                   {visibleFeatured.map((project: any) => (
                     <div key={project.id} className="transition-all duration-300">
-                    <Card className="flex h-full flex-col overflow-hidden transition-all hover:shadow-lg">
-                      <div className="aspect-video w-full overflow-hidden bg-slate-100 relative">
-                        {project.images?.[0] ? (
-                          <img src={project.images[0]} alt={project.title} className="h-full w-full object-cover" />
-                        ) : (
-                          <div className="flex h-full items-center justify-center bg-emerald-50 text-emerald-200">
-                            <Leaf className="h-16 w-16" />
-                          </div>
-                        )}
-                      </div>
-                      <CardHeader>
-                        <div className="mb-2 flex items-center justify-between">
-                          <Badge variant="secondary" className="bg-primary/10 text-xs font-medium text-primary">
-                            {project.categories?.[0]?.name || "Sustainability"}
-                          </Badge>
+                      <Card className="flex h-full flex-col overflow-hidden transition-all hover:shadow-lg">
+                        <div className="aspect-video w-full overflow-hidden bg-slate-100 relative">
+                          {project.images?.[0] ? (
+                            <img src={project.images[0]} alt={project.title} className="h-full w-full object-cover" />
+                          ) : (
+                            <div className="flex h-full items-center justify-center bg-emerald-50 text-emerald-200">
+                              <Leaf className="h-16 w-16" />
+                            </div>
+                          )}
                         </div>
-                        <h3 className="line-clamp-2 text-xl font-bold">{project.title}</h3>
-                      </CardHeader>
-                      <CardContent className="flex-1">
-                        <p className="whitespace-pre-wrap wrap-break-word text-sm text-neutral-500">{project.description}</p>
-                      </CardContent>
-                      <CardFooter className="border-t bg-neutral-50/50 p-4">
-                        <div className="flex w-full items-center justify-between">
-                          <div className="flex flex-col">
-                            <span className="text-xs text-neutral-500">Raised</span>
-                            <span className="font-semibold text-primary">${project.raisedAmount} / ${project.goalAmount}</span>
+                        <CardHeader>
+                          <div className="mb-2 flex items-center justify-between">
+                            <Badge variant="secondary" className="bg-primary/10 text-xs font-medium text-primary">
+                              {project.categories?.[0]?.name || "Sustainability"}
+                            </Badge>
                           </div>
-                          <Link href={`/projects/${project.id}`}>
-                            <Button size="sm" className="bg-emerald-600 text-white hover:bg-emerald-700">View Details</Button>
-                          </Link>
-                        </div>
-                      </CardFooter>
-                    </Card>
+                          <h3 className="line-clamp-2 text-xl font-bold">{project.title}</h3>
+                        </CardHeader>
+                        <CardContent className="flex-1">
+                          <p className="whitespace-pre-wrap wrap-break-word text-sm text-neutral-500">{project.description}</p>
+                        </CardContent>
+                        <CardFooter className="border-t bg-neutral-50/50 p-4">
+                          <div className="flex w-full items-center justify-between">
+                            <div className="flex flex-col">
+                              <span className="text-xs text-neutral-500">Raised</span>
+                              <span className="font-semibold text-primary">${project.raisedAmount} / ${project.goalAmount}</span>
+                            </div>
+                            <Link href={`/projects/${project.id}`}>
+                              <Button size="sm" className="bg-emerald-600 text-white hover:bg-emerald-700">View Details</Button>
+                            </Link>
+                          </div>
+                        </CardFooter>
+                      </Card>
                     </div>
                   ))}
                 </div>
