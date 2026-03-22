@@ -17,6 +17,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     // Fetch session data from BetterAuth
     const { data: session, isPending } = useSession();
 
+    const { data: notifications } = useQuery({
+        queryKey: ["notifications"],
+        queryFn: getMyNotifications,
+        enabled: !!session,
+        refetchInterval: session ? 15000 : false,
+    });
+
     // Route Protection: If not loading and no session, kick to login
     useEffect(() => {
         if (!isPending && !session) {
@@ -44,12 +51,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     // Cast session user to our application `User` type (we store role there)
     const user = session.user as unknown as User;
     const userRole = (user.role ?? "STUDENT") as string; // STUDENT, SPONSOR, or ADMIN
-
-    const { data: notifications } = useQuery({
-        queryKey: ["notifications"],
-        queryFn: getMyNotifications,
-        refetchInterval: 15000,
-    });
 
     const unreadNotificationCount = notifications?.unreadCount ?? 0;
 
