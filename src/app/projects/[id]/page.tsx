@@ -77,8 +77,8 @@ export default function ProjectDetailsPage() {
     });
 
     const { data: myDonations = [] } = useQuery<any[]>({
-        queryKey: ["myDonations"],
-        queryFn: getMyDonations,
+        queryKey: ["myDonations", currentUser?.id],
+        queryFn: () => getMyDonations(currentUser?.id),
         enabled: isSponsor,
     });
 

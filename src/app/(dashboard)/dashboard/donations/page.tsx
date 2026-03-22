@@ -39,8 +39,8 @@ export default function SponsorDonationsPage() {
     const userRole = currentUser?.role;
 
     const { data: donations = [], isLoading } = useQuery<DonationRecord[]>({
-        queryKey: ["myDonations"],
-        queryFn: getMyDonations,
+        queryKey: ["myDonations", currentUser?.id],
+        queryFn: () => getMyDonations(currentUser?.id),
         enabled: userRole === "SPONSOR",
     });
 

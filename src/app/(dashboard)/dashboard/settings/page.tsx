@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useSession } from "@/lib/auth-client";
 import { updateProfile } from "@/services/user.service";
 import { User } from "@/types";
+import { useRouter } from "next/navigation";
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { UserCircle, Save } from "lucide-react";
 
 export default function SettingsPage() {
+    const router = useRouter();
     const { data: session } = useSession();
     const currentUser = session?.user as unknown as User | undefined;
 
@@ -27,6 +29,7 @@ export default function SettingsPage() {
         mutationFn: updateProfile,
         onSuccess: () => {
             toast.success("Profile updated successfully!");
+            router.replace("/dashboard");
         },
         onError: (error: unknown) => {
             const message =
@@ -74,7 +77,7 @@ export default function SettingsPage() {
                             />
                         </div>
 
-                        {currentUser?.role === "STUDENT" && (
+                        {(currentUser?.role === "STUDENT" || currentUser?.role === "SPONSOR") && (
                             <div className="space-y-2">
                                 <label className="text-sm font-medium">University / Institution</label>
                                 <Input

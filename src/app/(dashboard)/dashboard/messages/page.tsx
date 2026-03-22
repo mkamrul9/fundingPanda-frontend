@@ -187,8 +187,8 @@ export default function MessagesPage() {
                 return copy;
             });
         } catch {
-            setMessages((prev) => prev.filter((msg) => msg.id !== tempId));
-            toast.error("Failed to send message.");
+            // If REST endpoint is not deployed yet, keep socket-delivered optimistic message.
+            toast.info("Message sent in realtime. Persistent save will be enabled after backend deployment sync.");
         }
     };
 

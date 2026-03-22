@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getPublicProjects } from "@/services/project.service";
 import PublicNavbar from "../components/ui/layout/PublicNavbar";
@@ -8,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowRight, Leaf, UserRound, HandCoins, CheckCircle2, ShieldCheck, Zap, Handshake, LineChart } from "lucide-react";
+import { ArrowRight, Leaf, UserRound, HandCoins, CheckCircle2, ShieldCheck, Zap, Handshake, LineChart, ChevronLeft, ChevronRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function HomePage() {
@@ -76,7 +77,25 @@ export default function HomePage() {
   });
 
   const featuredProjects = (projects ?? []).slice(0, FEATURED_PROJECT_LIMIT);
-  const scrollingFeaturedProjects = [...featuredProjects, ...featuredProjects];
+  const [slideIndex, setSlideIndex] = useState(0);
+  const visibleFeatured = useMemo(() => {
+    if (featuredProjects.length <= 3) return featuredProjects;
+    return Array.from({ length: 3 }).map((_, offset) => {
+      const index = (slideIndex + offset) % featuredProjects.length;
+      return featuredProjects[index];
+    });
+  }, [featuredProjects, slideIndex]);
+
+  const showNext = () => {
+    if (featuredProjects.length <= 3) return;
+    setSlideIndex((prev) => (prev + 1) % featuredProjects.length);
+  };
+
+  const showPrev = () => {
+    if (featuredProjects.length <= 3) return;
+    setSlideIndex((prev) => (prev - 1 + featuredProjects.length) % featuredProjects.length);
+  };
+
   const scrollingTestimonials = [...testimonials, ...testimonials];
 
   return (
@@ -128,7 +147,7 @@ export default function HomePage() {
             </Link>
           </div>
 
-          <div className="marquee-shell">
+          <div>
             {isLoading ? (
               // Loading Skeletons
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -141,9 +160,19 @@ export default function HomePage() {
                 ))}
               </div>
             ) : featuredProjects.length > 0 ? (
-              <div className="marquee-track marquee-track-fast">
-                {scrollingFeaturedProjects.map((project: any, index: number) => (
-                  <div key={`${project.id}-${index}`} className="marquee-item">
+              <>
+                <div className="mb-4 flex items-center justify-end gap-2">
+                  <Button variant="outline" size="icon" onClick={showPrev} disabled={featuredProjects.length <= 3}>
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button variant="outline" size="icon" onClick={showNext} disabled={featuredProjects.length <= 3}>
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  {visibleFeatured.map((project: any) => (
+                    <div key={project.id} className="transition-all duration-300">
                     <Card className="flex h-full flex-col overflow-hidden transition-all hover:shadow-lg">
                       <div className="aspect-video w-full overflow-hidden bg-slate-100 relative">
                         {project.images?.[0] ? (
@@ -177,9 +206,10 @@ export default function HomePage() {
                         </div>
                       </CardFooter>
                     </Card>
-                  </div>
-                ))}
-              </div>
+                    </div>
+                  ))}
+                </div>
+              </>
             ) : (
               <div className="py-12 text-center text-neutral-500">
                 No approved projects found. Be the first to submit an idea!
