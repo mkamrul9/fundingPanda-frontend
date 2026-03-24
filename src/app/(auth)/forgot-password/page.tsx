@@ -3,16 +3,17 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 
-const resolveAuthBaseUrl = () => {
-    const explicitAuthUrl = process.env.NEXT_PUBLIC_AUTH_URL?.trim();
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL?.trim();
-    const rawBase = explicitAuthUrl || backendUrl || "http://localhost:5000";
-    return rawBase.replace(/\/api\/auth\/?$/, "").replace(/\/$/, "");
+const resolveFrontendBaseUrl = () => {
+    const explicitFrontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL?.trim();
+    const currentOrigin = typeof window !== "undefined" ? window.location.origin : "";
+    const rawBase = explicitFrontendUrl || currentOrigin || "http://localhost:3000";
+    return rawBase.replace(/\/$/, "");
 };
 
 export default function ForgotPasswordPage() {
@@ -29,27 +30,33 @@ export default function ForgotPasswordPage() {
 
         try {
             setIsLoading(true);
-            const base = resolveAuthBaseUrl();
-            const response = await fetch(`${base}/api/auth/request-password-reset`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                credentials: "include",
-                body: JSON.stringify({
-                    email: email.trim(),
-                    redirectTo: `${window.location.origin}/reset-password`,
-                }),
+            const redirectTo = `${resolveFrontendBaseUrl()}/reset-password`;
+            const { error } = await authClient.requestPasswordReset({
+                email: email.trim(),
+                redirectTo,
             });
 
-            if (!response.ok) {
-                const raw = await response.text();
-                throw new Error(raw || "Failed to request password reset");
+            if (error) {
+                throw new Error(
+                    error.message ||
+                    "Failed to request password reset"
+                );
             }
 
             toast.success("If this email exists, a reset link has been sent.");
-        } catch {
-            toast.error("Could not send reset link. Please try again.");
+        } catch (error) {
+            const message = error instanceof Error ? error.message : "Could not send reset link. Please try again.";
+            if (message.toLowerCase().includes("invalid redirect")) {
+                toast.error("Reset link failed due to invalid redirect URL configuration.");
+            } else {
+                toast.error("Could not send reset link. Please try again.");
+            }
+            if (process.env.NODE_ENV !== "production") {
+                console.error("Request password reset failed:", {
+                    email: email.trim(),
+                    message,
+                });
+            }
         } finally {
             setIsLoading(false);
         }

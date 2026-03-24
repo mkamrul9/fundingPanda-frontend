@@ -4,18 +4,12 @@ import { FormEvent, Suspense, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
+import { authClient } from "@/lib/auth-client";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-
-const resolveAuthBaseUrl = () => {
-    const explicitAuthUrl = process.env.NEXT_PUBLIC_AUTH_URL?.trim();
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL?.trim();
-    const rawBase = explicitAuthUrl || backendUrl || "http://localhost:5000";
-    return rawBase.replace(/\/api\/auth\/?$/, "").replace(/\/$/, "");
-};
 
 function ResetPasswordContent() {
     const router = useRouter();
@@ -46,22 +40,13 @@ function ResetPasswordContent() {
 
         try {
             setIsLoading(true);
-            const base = resolveAuthBaseUrl();
-            const response = await fetch(`${base}/api/auth/reset-password`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                credentials: "include",
-                body: JSON.stringify({
-                    token,
-                    newPassword,
-                }),
+            const { error } = await authClient.resetPassword({
+                token,
+                newPassword,
             });
 
-            if (!response.ok) {
-                const raw = await response.text();
-                throw new Error(raw || "Failed to reset password");
+            if (error) {
+                throw new Error(error.message || "Failed to reset password");
             }
 
             toast.success("Password reset successful. Please login with your new password.");

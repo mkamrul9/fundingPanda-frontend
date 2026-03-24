@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { useSession } from "@/lib/auth-client";
+import { authClient, useSession } from "@/lib/auth-client";
 import { updateProfile } from "@/services/user.service";
 import { User } from "@/types";
 import { useRouter } from "next/navigation";
@@ -30,13 +30,6 @@ export default function SettingsPage() {
         confirmPassword: "",
     });
     const [isChangingPassword, setIsChangingPassword] = useState(false);
-
-    const resolveAuthBaseUrl = () => {
-        const explicitAuthUrl = process.env.NEXT_PUBLIC_AUTH_URL?.trim();
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL?.trim();
-        const rawBase = explicitAuthUrl || backendUrl || "http://localhost:5000";
-        return rawBase.replace(/\/api\/auth\/?$/, "").replace(/\/$/, "");
-    };
 
     const updateMutation = useMutation({
         mutationFn: updateProfile,
@@ -85,23 +78,14 @@ export default function SettingsPage() {
 
         try {
             setIsChangingPassword(true);
-            const base = resolveAuthBaseUrl();
-            const response = await fetch(`${base}/api/auth/change-password`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                credentials: "include",
-                body: JSON.stringify({
-                    currentPassword: passwordData.currentPassword,
-                    newPassword: passwordData.newPassword,
-                    revokeOtherSessions: false,
-                }),
+            const { error } = await authClient.changePassword({
+                currentPassword: passwordData.currentPassword,
+                newPassword: passwordData.newPassword,
+                revokeOtherSessions: false,
             });
 
-            if (!response.ok) {
-                const raw = await response.text();
-                throw new Error(raw || "Failed to change password");
+            if (error) {
+                throw new Error(error.message || "Failed to change password");
             }
 
             toast.success("Password changed successfully.");

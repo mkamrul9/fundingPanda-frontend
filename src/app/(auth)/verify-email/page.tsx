@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { getEmailVerificationStatus } from "@/services/user.service";
+import { authClient } from "@/lib/auth-client";
 
 function VerifyEmailContent() {
     const router = useRouter();
@@ -16,11 +17,11 @@ function VerifyEmailContent() {
     const [isChecking, setIsChecking] = useState(false);
     const [isResending, setIsResending] = useState(false);
 
-    const resolveAuthBaseUrl = () => {
-        const explicitAuthUrl = process.env.NEXT_PUBLIC_AUTH_URL?.trim();
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL?.trim();
-        const rawBase = explicitAuthUrl || backendUrl || "http://localhost:5000";
-        return rawBase.replace(/\/api\/auth\/?$/, "").replace(/\/$/, "");
+    const resolveFrontendBaseUrl = () => {
+        const explicitFrontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL?.trim();
+        const currentOrigin = typeof window !== "undefined" ? window.location.origin : "";
+        const rawBase = explicitFrontendUrl || currentOrigin || "http://localhost:3000";
+        return rawBase.replace(/\/$/, "");
     };
 
     const checkStatus = async (silent = false) => {
@@ -73,22 +74,14 @@ function VerifyEmailContent() {
 
         try {
             setIsResending(true);
-            const base = resolveAuthBaseUrl();
-            const response = await fetch(`${base}/api/auth/send-verification-email`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                credentials: "include",
-                body: JSON.stringify({
-                    email,
-                    callbackURL: `${window.location.origin}/login`,
-                }),
+            const callbackURL = `${resolveFrontendBaseUrl()}/login`;
+            const { error } = await authClient.sendVerificationEmail({
+                email,
+                callbackURL,
             });
 
-            if (!response.ok) {
-                const raw = await response.text();
-                throw new Error(raw || "Failed to resend verification email");
+            if (error) {
+                throw new Error(error.message || "Failed to resend verification email");
             }
 
             toast.success("Verification email sent. Please check your inbox and spam folder.");
