@@ -30,7 +30,7 @@ export default function ForgotPasswordPage() {
         try {
             setIsLoading(true);
             const base = resolveAuthBaseUrl();
-            const response = await fetch(`${base}/api/auth/forget-password`, {
+            const response = await fetch(`${base}/api/auth/request-password-reset`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -38,12 +38,13 @@ export default function ForgotPasswordPage() {
                 credentials: "include",
                 body: JSON.stringify({
                     email: email.trim(),
-                    redirectTo: `${window.location.origin}/login`,
+                    redirectTo: `${window.location.origin}/reset-password`,
                 }),
             });
 
             if (!response.ok) {
-                throw new Error("Failed to request password reset");
+                const raw = await response.text();
+                throw new Error(raw || "Failed to request password reset");
             }
 
             toast.success("If this email exists, a reset link has been sent.");

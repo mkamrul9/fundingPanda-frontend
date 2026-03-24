@@ -14,6 +14,14 @@ function VerifyEmailContent() {
     const email = useMemo(() => searchParams.get("email")?.trim() || "", [searchParams]);
 
     const [isChecking, setIsChecking] = useState(false);
+    const [isResending, setIsResending] = useState(false);
+
+    const resolveAuthBaseUrl = () => {
+        const explicitAuthUrl = process.env.NEXT_PUBLIC_AUTH_URL?.trim();
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL?.trim();
+        const rawBase = explicitAuthUrl || backendUrl || "http://localhost:5000";
+        return rawBase.replace(/\/api\/auth\/?$/, "").replace(/\/$/, "");
+    };
 
     const checkStatus = async (silent = false) => {
         if (!email) return;
@@ -57,6 +65,40 @@ function VerifyEmailContent() {
         return () => clearInterval(interval);
     }, [email]);
 
+    const resendVerification = async () => {
+        if (!email) {
+            toast.error("Missing email. Please sign up again.");
+            return;
+        }
+
+        try {
+            setIsResending(true);
+            const base = resolveAuthBaseUrl();
+            const response = await fetch(`${base}/api/auth/send-verification-email`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+                body: JSON.stringify({
+                    email,
+                    callbackURL: `${window.location.origin}/login`,
+                }),
+            });
+
+            if (!response.ok) {
+                const raw = await response.text();
+                throw new Error(raw || "Failed to resend verification email");
+            }
+
+            toast.success("Verification email sent. Please check your inbox and spam folder.");
+        } catch {
+            toast.error("Could not resend verification email. Please try again.");
+        } finally {
+            setIsResending(false);
+        }
+    };
+
     return (
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <Card className="border-0 shadow-none bg-transparent w-full max-w-md">
@@ -72,6 +114,9 @@ function VerifyEmailContent() {
                     </p>
                     <Button onClick={() => void checkStatus()} disabled={isChecking} className="w-full">
                         {isChecking ? "Checking..." : "I already verified"}
+                    </Button>
+                    <Button variant="outline" onClick={() => void resendVerification()} disabled={isResending} className="w-full">
+                        {isResending ? "Sending..." : "Resend verification email"}
                     </Button>
                 </CardContent>
                 <CardFooter className="flex justify-center border-t border-border/50 p-4">

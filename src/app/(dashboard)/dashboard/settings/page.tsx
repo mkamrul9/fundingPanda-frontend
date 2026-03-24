@@ -24,6 +24,19 @@ export default function SettingsPage() {
         bio: undefined as string | undefined,
         university: undefined as string | undefined,
     });
+    const [passwordData, setPasswordData] = useState({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+    });
+    const [isChangingPassword, setIsChangingPassword] = useState(false);
+
+    const resolveAuthBaseUrl = () => {
+        const explicitAuthUrl = process.env.NEXT_PUBLIC_AUTH_URL?.trim();
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL?.trim();
+        const rawBase = explicitAuthUrl || backendUrl || "http://localhost:5000";
+        return rawBase.replace(/\/api\/auth\/?$/, "").replace(/\/$/, "");
+    };
 
     const updateMutation = useMutation({
         mutationFn: updateProfile,
@@ -50,6 +63,58 @@ export default function SettingsPage() {
             bio: formData.bio ?? ((session?.user as unknown as { bio?: string })?.bio || ""),
             university: formData.university ?? ((session?.user as unknown as { university?: string })?.university || ""),
         });
+    };
+
+    const handleChangePassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+            toast.error("Please fill all password fields.");
+            return;
+        }
+
+        if (passwordData.newPassword.length < 6) {
+            toast.error("New password must be at least 6 characters.");
+            return;
+        }
+
+        if (passwordData.newPassword !== passwordData.confirmPassword) {
+            toast.error("New password and confirm password do not match.");
+            return;
+        }
+
+        try {
+            setIsChangingPassword(true);
+            const base = resolveAuthBaseUrl();
+            const response = await fetch(`${base}/api/auth/change-password`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+                body: JSON.stringify({
+                    currentPassword: passwordData.currentPassword,
+                    newPassword: passwordData.newPassword,
+                    revokeOtherSessions: false,
+                }),
+            });
+
+            if (!response.ok) {
+                const raw = await response.text();
+                throw new Error(raw || "Failed to change password");
+            }
+
+            toast.success("Password changed successfully.");
+            setPasswordData({
+                currentPassword: "",
+                newPassword: "",
+                confirmPassword: "",
+            });
+        } catch {
+            toast.error("Could not change password. Please check your current password.");
+        } finally {
+            setIsChangingPassword(false);
+        }
     };
 
     return (
@@ -103,6 +168,53 @@ export default function SettingsPage() {
                     <CardFooter className="border-t bg-neutral-50 px-6 py-4">
                         <Button type="submit" disabled={updateMutation.isPending} className="gap-2">
                             <Save className="h-4 w-4" /> {updateMutation.isPending ? "Saving..." : "Save Changes"}
+                        </Button>
+                    </CardFooter>
+                </Card>
+            </form>
+
+            <form onSubmit={handleChangePassword}>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Change Password</CardTitle>
+                        <CardDescription>Update your account password for better security.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Current Password</label>
+                            <Input
+                                type="password"
+                                value={passwordData.currentPassword}
+                                onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                                disabled={isChangingPassword}
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">New Password</label>
+                            <Input
+                                type="password"
+                                value={passwordData.newPassword}
+                                onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                                disabled={isChangingPassword}
+                                minLength={6}
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Confirm New Password</label>
+                            <Input
+                                type="password"
+                                value={passwordData.confirmPassword}
+                                onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                                disabled={isChangingPassword}
+                                minLength={6}
+                            />
+                        </div>
+                    </CardContent>
+                    <CardFooter className="border-t bg-neutral-50 px-6 py-4">
+                        <Button type="submit" disabled={isChangingPassword} className="gap-2">
+                            {isChangingPassword ? "Updating..." : "Update Password"}
                         </Button>
                     </CardFooter>
                 </Card>
