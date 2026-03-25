@@ -23,6 +23,8 @@ type MyProject = {
     title: string;
     description: string;
     status: string;
+    pitchDocUrl?: string | null;
+    images?: string[];
     adminFeedback?: string | null;
     raisedAmount: number;
     goalAmount: number;
@@ -59,6 +61,10 @@ const getStatusBadge = (status: string) => {
         case "COMPLETED": return <Badge variant="default" className="bg-purple-600"><CheckCircle className="mr-1 h-3 w-3" /> Completed</Badge>;
         default: return <Badge>{status}</Badge>;
     }
+};
+
+const hasRequiredReviewAssets = (project: MyProject) => {
+    return Boolean(project.pitchDocUrl && (project.images?.length ?? 0) > 0);
 };
 
 export default function MyProjectsPage() {
@@ -213,11 +219,24 @@ export default function MyProjectsPage() {
                                     <>
                                         <Button
                                             className="w-full gap-2"
-                                            onClick={() => submitMutation.mutate(project.id)}
-                                            disabled={submitMutation.isPending}
+                                            onClick={() => {
+                                                if (!hasRequiredReviewAssets(project)) {
+                                                    toast.error("Attach a pitch PDF and at least one image before submitting for review.");
+                                                    openEditModal(project);
+                                                    return;
+                                                }
+                                                submitMutation.mutate(project.id);
+                                            }}
+                                            disabled={submitMutation.isPending || !hasRequiredReviewAssets(project)}
                                         >
                                             <Send className="h-4 w-4" /> Submit for Review
                                         </Button>
+
+                                        {!hasRequiredReviewAssets(project) && (
+                                            <p className="text-center text-xs font-medium text-amber-700">
+                                                Add pitch PDF and project image(s) in Edit before submit.
+                                            </p>
+                                        )}
 
                                         <div className="flex w-full gap-2">
                                             <Button variant="outline" className="w-1/2 gap-2" onClick={() => openEditModal(project)}>

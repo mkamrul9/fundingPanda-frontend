@@ -28,7 +28,7 @@ export default function NotificationsPage() {
     const markAllMutation = useMutation({
         mutationFn: markAllNotificationsRead,
         onSuccess: (result) => {
-            toast.success(`Marked ${result.markedCount} message notifications as read`);
+            toast.success(`Marked ${result.markedCount} notifications as read`);
             queryClient.invalidateQueries({ queryKey: ["notifications"] });
             queryClient.invalidateQueries({ queryKey: ["conversations"] });
         },
@@ -53,7 +53,7 @@ export default function NotificationsPage() {
                     disabled={markAllMutation.isPending}
                 >
                     <CheckCheck className="h-4 w-4" />
-                    {markAllMutation.isPending ? "Marking..." : "Mark all message alerts read"}
+                    {markAllMutation.isPending ? "Marking..." : "Mark all alerts read"}
                 </Button>
             </div>
 

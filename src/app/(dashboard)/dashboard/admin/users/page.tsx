@@ -1,13 +1,15 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "@/lib/auth-client";
-import { getAllUsers } from "@/services/admin.service";
+import { getAllUsers, toggleUserBan } from "@/services/admin.service";
 import { User } from "@/types";
+import { toast } from "sonner";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { ShieldAlert, Users, Mail, Calendar } from "lucide-react";
 
 type PlatformUser = {
@@ -15,6 +17,7 @@ type PlatformUser = {
     name: string;
     email: string;
     role: "ADMIN" | "SPONSOR" | "STUDENT";
+    isBanned?: boolean;
     createdAt: string;
 };
 
@@ -24,6 +27,7 @@ type UsersQueryResponse = {
 
 export default function AdminUsersPage() {
     const { data: session } = useSession();
+    const queryClient = useQueryClient();
     const currentUser = session?.user as unknown as User | undefined;
     const isAdmin = currentUser?.role === "ADMIN";
 
@@ -36,6 +40,17 @@ export default function AdminUsersPage() {
     const users = Array.isArray(usersResponse)
         ? usersResponse
         : (usersResponse?.data ?? []);
+
+    const banMutation = useMutation({
+        mutationFn: ({ userId, isBanned }: { userId: string; isBanned: boolean }) => toggleUserBan(userId, isBanned),
+        onSuccess: (_data, variables) => {
+            toast.success(variables.isBanned ? "User banned successfully." : "User unbanned successfully.");
+            queryClient.invalidateQueries({ queryKey: ["allUsers"] });
+        },
+        onError: () => {
+            toast.error("Failed to update user ban status.");
+        },
+    });
 
     if (!isAdmin) {
         return (
@@ -68,7 +83,9 @@ export default function AdminUsersPage() {
                                     <th className="px-6 py-3">Name</th>
                                     <th className="px-6 py-3">Email</th>
                                     <th className="px-6 py-3">Role</th>
+                                    <th className="px-6 py-3">Status</th>
                                     <th className="px-6 py-3">Joined Date</th>
+                                    <th className="px-6 py-3 text-right">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -78,7 +95,9 @@ export default function AdminUsersPage() {
                                             <td className="px-6 py-4"><Skeleton className="h-4 w-32" /></td>
                                             <td className="px-6 py-4"><Skeleton className="h-4 w-48" /></td>
                                             <td className="px-6 py-4"><Skeleton className="h-6 w-16 rounded-full" /></td>
+                                            <td className="px-6 py-4"><Skeleton className="h-6 w-20 rounded-full" /></td>
                                             <td className="px-6 py-4"><Skeleton className="h-4 w-24" /></td>
+                                            <td className="px-6 py-4"><Skeleton className="ml-auto h-8 w-20" /></td>
                                         </tr>
                                     ))
                                 ) : users.map((user) => (
@@ -90,7 +109,22 @@ export default function AdminUsersPage() {
                                                 {user.role}
                                             </Badge>
                                         </td>
+                                        <td className="px-6 py-4">
+                                            <Badge variant={user.isBanned ? "destructive" : "secondary"}>
+                                                {user.isBanned ? "BANNED" : "ACTIVE"}
+                                            </Badge>
+                                        </td>
                                         <td className="flex items-center gap-2 px-6 py-4"><Calendar className="h-4 w-4 text-neutral-400" /> {new Date(user.createdAt).toLocaleDateString()}</td>
+                                        <td className="px-6 py-4 text-right">
+                                            <Button
+                                                variant={user.isBanned ? "outline" : "destructive"}
+                                                size="sm"
+                                                disabled={banMutation.isPending || user.id === currentUser?.id || user.role === "ADMIN"}
+                                                onClick={() => banMutation.mutate({ userId: user.id, isBanned: !Boolean(user.isBanned) })}
+                                            >
+                                                {user.isBanned ? "Unban" : "Ban"}
+                                            </Button>
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>

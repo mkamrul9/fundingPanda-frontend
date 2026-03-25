@@ -17,7 +17,6 @@ export default function PublicNavbar() {
     const navLinks = [
         { href: "/", label: "Home" },
         { href: "/projects", label: "Explore Ideas" },
-        { href: "/resources", label: "Resource Hub" },
         { href: "/leaderboard", label: "Leaderboard" },
         { href: "/newsletter", label: "Updates and News" },
         { href: "/faq", label: "Help Center / FAQ" },

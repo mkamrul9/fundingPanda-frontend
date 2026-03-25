@@ -44,7 +44,7 @@ export default function HomePage() {
     },
     {
       role: "Sponsor",
-      quote: "Resource Hub made it simple to share lab devices with teams building real prototypes.",
+      quote: "I could quickly support teams building real prototypes and track progress clearly.",
       name: "Karim",
       title: "Tech Sponsor",
       image: "https://i.pravatar.cc/120?img=12",
@@ -257,7 +257,7 @@ export default function HomePage() {
                   <div className="rounded-lg border bg-blue-50 p-3 font-medium text-blue-900">2. Explore approved projects and review student profiles</div>
                   <div className="text-xs text-neutral-500">Assess project quality before donating or offering resources.</div>
                   <div className="text-center text-neutral-400">↓</div>
-                  <div className="rounded-lg border bg-blue-50 p-3 font-medium text-blue-900">3. Fund with Stripe and list equipment/software in Resource Hub</div>
+                  <div className="rounded-lg border bg-blue-50 p-3 font-medium text-blue-900">3. Fund with Stripe and support execution through dashboard tools</div>
                   <div className="text-xs text-neutral-500">Your support is tracked in your dashboard and global ledger.</div>
                   <div className="text-center text-neutral-400">↓</div>
                   <div className="rounded-lg border bg-blue-50 p-3 font-medium text-blue-900">4. Track outcomes and recognition via leaderboard and updates</div>
