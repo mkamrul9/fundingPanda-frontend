@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
@@ -71,8 +71,10 @@ export default function MyProjectsPage() {
     const { data: session } = useSession();
     const queryClient = useQueryClient();
     const [activeTab, setActiveTab] = useState<MyProjectTab>("ALL");
+    const [currentPage, setCurrentPage] = useState(1);
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [editingProject, setEditingProject] = useState<EditingProject | null>(null);
+    const PAGE_SIZE = 10;
 
     const { data: projects, isLoading } = useQuery({
         queryKey: ["myProjects"],
@@ -156,6 +158,17 @@ export default function MyProjectsPage() {
         ? projectList
         : projectList.filter((project) => project.status === activeTab);
 
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [activeTab]);
+
+    const totalPages = Math.max(1, Math.ceil(filteredProjects.length / PAGE_SIZE));
+
+    const paginatedProjects = useMemo(() => {
+        const start = (currentPage - 1) * PAGE_SIZE;
+        return filteredProjects.slice(start, start + PAGE_SIZE);
+    }, [filteredProjects, currentPage]);
+
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -190,7 +203,7 @@ export default function MyProjectsPage() {
                         </Card>
                     ))
                 ) : filteredProjects.length > 0 ? (
-                    filteredProjects.map((project: MyProject) => (
+                    paginatedProjects.map((project: MyProject) => (
                         <Card key={project.id} className="flex flex-col relative overflow-hidden">
                             {/* Optional Admin Feedback Alert */}
                             {project.adminFeedback && project.status === "DRAFT" && (
@@ -277,6 +290,27 @@ export default function MyProjectsPage() {
                     </div>
                 )}
             </div>
+
+            {!isLoading && filteredProjects.length > PAGE_SIZE && (
+                <div className="flex flex-col items-center justify-between gap-3 border-t pt-4 sm:flex-row">
+                    <p className="text-sm text-neutral-500">Page {currentPage} of {totalPages}</p>
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="outline"
+                            onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                            disabled={currentPage <= 1}
+                        >
+                            Previous
+                        </Button>
+                        <Button
+                            onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                            disabled={currentPage >= totalPages}
+                        >
+                            Next
+                        </Button>
+                    </div>
+                </div>
+            )}
 
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
                 <DialogContent className="max-h-[88vh] overflow-y-auto sm:max-w-3xl">

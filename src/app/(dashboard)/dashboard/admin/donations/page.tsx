@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "@/lib/auth-client";
 import { User } from "@/types";
@@ -21,17 +22,25 @@ type DonationTx = {
 };
 
 type DonationsResponse = {
-    data?: DonationTx[];
+    data: DonationTx[];
+    meta?: {
+        page?: number;
+        totalPage?: number;
+        total?: number;
+        limit?: number;
+    };
 };
 
 export default function AdminDonationsPage() {
     const { data: session } = useSession();
+    const [currentPage, setCurrentPage] = useState(1);
+    const PAGE_SIZE = 10;
     const currentUser = session?.user as unknown as User | undefined;
     const isAdmin = currentUser?.role === "ADMIN";
 
-    const { data: donationsResponse, isLoading } = useQuery<DonationsResponse | DonationTx[]>({
-        queryKey: ["allDonations"],
-        queryFn: getAllDonations,
+    const { data: donationsResponse, isLoading } = useQuery<DonationsResponse>({
+        queryKey: ["allDonations", currentPage],
+        queryFn: () => getAllDonations({ page: currentPage, limit: PAGE_SIZE }),
         enabled: isAdmin,
     });
 
@@ -44,9 +53,8 @@ export default function AdminDonationsPage() {
         );
     }
 
-    const donations = Array.isArray(donationsResponse)
-        ? donationsResponse
-        : (donationsResponse?.data ?? []);
+    const donations = donationsResponse?.data ?? [];
+    const totalPages = Math.max(1, Number(donationsResponse?.meta?.totalPage ?? 1));
 
     const totalVolume = donations.reduce((sum, tx) => sum + Number(tx.amount || 0), 0);
     const averageDonation = donations.length ? (totalVolume / donations.length).toFixed(2) : "0.00";
@@ -127,6 +135,28 @@ export default function AdminDonationsPage() {
                         </table>
                         {donations.length === 0 && (
                             <div className="py-8 text-center text-neutral-500">No transactions recorded yet.</div>
+                        )}
+
+                        {!isLoading && totalPages > 1 && (
+                            <div className="mt-4 flex flex-col items-center justify-between gap-3 border-t pt-4 sm:flex-row">
+                                <p className="text-sm text-neutral-500">Page {currentPage} of {totalPages}</p>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        className="rounded-md border px-3 py-1.5 text-sm disabled:opacity-50"
+                                        onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                                        disabled={currentPage <= 1}
+                                    >
+                                        Previous
+                                    </button>
+                                    <button
+                                        className="rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground disabled:opacity-50"
+                                        onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                                        disabled={currentPage >= totalPages}
+                                    >
+                                        Next
+                                    </button>
+                                </div>
+                            </div>
                         )}
                     </div>
                 </CardContent>

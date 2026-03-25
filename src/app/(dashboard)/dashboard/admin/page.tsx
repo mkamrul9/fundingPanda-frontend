@@ -41,6 +41,8 @@ export default function AdminDashboardPage() {
     const [rejectModalOpen, setRejectModalOpen] = useState(false);
     const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
     const [feedback, setFeedback] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+    const PAGE_SIZE = 10;
 
     // Fetch only PENDING projects
     const { data: pendingProjects, isLoading } = useQuery({
@@ -66,6 +68,10 @@ export default function AdminDashboardPage() {
             toast.error(message || "Failed to update project status.");
         },
     });
+
+    const moderationList = (pendingProjects as PendingProject[] | undefined) ?? [];
+    const totalPages = Math.max(1, Math.ceil(moderationList.length / PAGE_SIZE));
+    const paginatedModerationList = moderationList.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
     const handleApprove = (projectId: string) => {
         moderateMutation.mutate({ projectId, status: "APPROVED" });
@@ -115,8 +121,8 @@ export default function AdminDashboardPage() {
                     Array.from({ length: 3 }).map((_, i) => (
                         <Card key={i}><CardHeader><Skeleton className="h-6 w-1/3" /></CardHeader><CardContent><Skeleton className="h-20 w-full" /></CardContent></Card>
                     ))
-                ) : pendingProjects && pendingProjects.length > 0 ? (
-                    (pendingProjects as PendingProject[]).map((project) => (
+                ) : moderationList.length > 0 ? (
+                    paginatedModerationList.map((project) => (
                         <Card key={project.id} className="overflow-hidden shadow-sm">
                             <div className="flex flex-col md:flex-row">
                                 <div className="flex-1 p-6">
@@ -197,6 +203,27 @@ export default function AdminDashboardPage() {
                     </div>
                 )}
             </div>
+
+            {!isLoading && moderationList.length > PAGE_SIZE && (
+                <div className="flex flex-col items-center justify-between gap-3 border-t pt-4 sm:flex-row">
+                    <p className="text-sm text-neutral-500">Page {currentPage} of {totalPages}</p>
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="outline"
+                            onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                            disabled={currentPage <= 1}
+                        >
+                            Previous
+                        </Button>
+                        <Button
+                            onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                            disabled={currentPage >= totalPages}
+                        >
+                            Next
+                        </Button>
+                    </div>
+                </div>
+            )}
 
             {/* Rejection Feedback Dialog */}
             <Dialog open={rejectModalOpen} onOpenChange={setRejectModalOpen}>

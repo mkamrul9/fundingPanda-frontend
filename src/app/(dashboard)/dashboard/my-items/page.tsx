@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
 import { toast } from "sonner";
@@ -41,6 +41,8 @@ export default function MyItemsPage() {
     const currentUser = session?.user as unknown as User | undefined;
     const userRole = currentUser?.role;
     const queryClient = useQueryClient();
+    const [currentPage, setCurrentPage] = useState(1);
+    const PAGE_SIZE = 10;
 
     const { data: resources = [], isLoading: loadingResources } = useQuery<ResourceItem[]>({
         queryKey: ["resources"],
@@ -77,6 +79,11 @@ export default function MyItemsPage() {
         });
     }, [resources, userRole, currentUser]);
 
+    const studentTotalPages = Math.max(1, Math.ceil(myClaims.length / PAGE_SIZE));
+    const sponsorTotalPages = Math.max(1, Math.ceil(myListedResources.length / PAGE_SIZE));
+    const paginatedClaims = myClaims.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+    const paginatedListedResources = myListedResources.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div>
@@ -105,7 +112,7 @@ export default function MyItemsPage() {
                             </Card>
                         ))
                     ) : myClaims.length > 0 ? (
-                        myClaims.map((claim) => (
+                        paginatedClaims.map((claim) => (
                             <Card key={claim.id} className="border-emerald-200 bg-emerald-50/30">
                                 <CardHeader>
                                     <CardTitle className="text-lg">{claim.resource?.name || "Unknown Resource"}</CardTitle>
@@ -141,7 +148,7 @@ export default function MyItemsPage() {
                             </Card>
                         ))
                     ) : myListedResources.length > 0 ? (
-                        myListedResources.map((resource) => (
+                        paginatedListedResources.map((resource) => (
                             <Card key={resource.id}>
                                 <CardHeader>
                                     <CardTitle>{resource.name}</CardTitle>
@@ -173,6 +180,48 @@ export default function MyItemsPage() {
                     </div>
                 )}
             </div>
+
+            {userRole === "STUDENT" && !loadingClaims && myClaims.length > PAGE_SIZE && (
+                <div className="flex flex-col items-center justify-between gap-3 border-t pt-4 sm:flex-row">
+                    <p className="text-sm text-neutral-500">Page {currentPage} of {studentTotalPages}</p>
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="outline"
+                            onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                            disabled={currentPage <= 1}
+                        >
+                            Previous
+                        </Button>
+                        <Button
+                            onClick={() => setCurrentPage((prev) => Math.min(studentTotalPages, prev + 1))}
+                            disabled={currentPage >= studentTotalPages}
+                        >
+                            Next
+                        </Button>
+                    </div>
+                </div>
+            )}
+
+            {userRole === "SPONSOR" && !loadingResources && myListedResources.length > PAGE_SIZE && (
+                <div className="flex flex-col items-center justify-between gap-3 border-t pt-4 sm:flex-row">
+                    <p className="text-sm text-neutral-500">Page {currentPage} of {sponsorTotalPages}</p>
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="outline"
+                            onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                            disabled={currentPage <= 1}
+                        >
+                            Previous
+                        </Button>
+                        <Button
+                            onClick={() => setCurrentPage((prev) => Math.min(sponsorTotalPages, prev + 1))}
+                            disabled={currentPage >= sponsorTotalPages}
+                        >
+                            Next
+                        </Button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

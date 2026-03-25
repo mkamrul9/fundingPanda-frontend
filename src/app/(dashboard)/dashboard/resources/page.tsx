@@ -44,7 +44,9 @@ export default function ResourcesMarketplacePage() {
 
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [isClaimOpen, setIsClaimOpen] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
     const [selectedResource, setSelectedResource] = useState<ResourceItem | null>(null);
+    const PAGE_SIZE = 10;
 
     const [newResource, setNewResource] = useState({ title: "", description: "", capacity: 1, type: "HARDWARE" as ResourceType });
     const [selectedProjectId, setSelectedProjectId] = useState<string>("");
@@ -65,6 +67,8 @@ export default function ResourcesMarketplacePage() {
     });
 
     const selectableProjects = myProjects.filter((project) => project.status !== "COMPLETED");
+    const totalPages = Math.max(1, Math.ceil(resources.length / PAGE_SIZE));
+    const paginatedResources = resources.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
     const createMutation = useMutation({
         mutationFn: createResource,
@@ -172,7 +176,7 @@ export default function ResourcesMarketplacePage() {
                         </Card>
                     ))
                 ) : resources.length > 0 ? (
-                    resources.map((resource) => {
+                    paginatedResources.map((resource) => {
                         const available = resource.availableQuantity ?? 0;
                         const isOut = available < 1;
                         const mine = isMyResource(resource);
@@ -231,6 +235,27 @@ export default function ResourcesMarketplacePage() {
                     </div>
                 )}
             </div>
+
+            {!loadingResources && resources.length > PAGE_SIZE && (
+                <div className="flex flex-col items-center justify-between gap-3 border-t pt-4 sm:flex-row">
+                    <p className="text-sm text-neutral-500">Page {currentPage} of {totalPages}</p>
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="outline"
+                            onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                            disabled={currentPage <= 1}
+                        >
+                            Previous
+                        </Button>
+                        <Button
+                            onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                            disabled={currentPage >= totalPages}
+                        >
+                            Next
+                        </Button>
+                    </div>
+                </div>
+            )}
 
             <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
                 <DialogContent>

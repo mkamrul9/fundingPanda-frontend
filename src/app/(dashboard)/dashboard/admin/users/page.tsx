@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "@/lib/auth-client";
 import { getAllUsers, toggleUserBan } from "@/services/admin.service";
@@ -22,24 +23,31 @@ type PlatformUser = {
 };
 
 type UsersQueryResponse = {
-    data?: PlatformUser[];
+    data: PlatformUser[];
+    meta?: {
+        page?: number;
+        totalPage?: number;
+        total?: number;
+        limit?: number;
+    };
 };
 
 export default function AdminUsersPage() {
     const { data: session } = useSession();
     const queryClient = useQueryClient();
+    const [currentPage, setCurrentPage] = useState(1);
+    const PAGE_SIZE = 10;
     const currentUser = session?.user as unknown as User | undefined;
     const isAdmin = currentUser?.role === "ADMIN";
 
-    const { data: usersResponse, isLoading } = useQuery<UsersQueryResponse | PlatformUser[]>({
-        queryKey: ["allUsers"],
-        queryFn: getAllUsers,
+    const { data: usersResponse, isLoading } = useQuery<UsersQueryResponse>({
+        queryKey: ["allUsers", currentPage],
+        queryFn: () => getAllUsers({ page: currentPage, limit: PAGE_SIZE }),
         enabled: isAdmin,
     });
 
-    const users = Array.isArray(usersResponse)
-        ? usersResponse
-        : (usersResponse?.data ?? []);
+    const users = usersResponse?.data ?? [];
+    const totalPages = Math.max(1, Number(usersResponse?.meta?.totalPage ?? 1));
 
     const banMutation = useMutation({
         mutationFn: ({ userId, isBanned }: { userId: string; isBanned: boolean }) => toggleUserBan(userId, isBanned),
@@ -130,6 +138,29 @@ export default function AdminUsersPage() {
                             </tbody>
                         </table>
                     </div>
+
+                    {!isLoading && totalPages > 1 && (
+                        <div className="mt-4 flex flex-col items-center justify-between gap-3 border-t pt-4 sm:flex-row">
+                            <p className="text-sm text-neutral-500">Page {currentPage} of {totalPages}</p>
+                            <div className="flex items-center gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                                    disabled={currentPage <= 1}
+                                >
+                                    Previous
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                                    disabled={currentPage >= totalPages}
+                                >
+                                    Next
+                                </Button>
+                            </div>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
         </div>

@@ -44,9 +44,14 @@ export const updateCategory = async (
     return response.data.data;
 };
 
-export const getAllUsers = async () => {
-    const response = await apiClient.get('/users');
-    return response.data.data;
+export const getAllUsers = async (params?: { page?: number; limit?: number }) => {
+    const response = await apiClient.get('/users', {
+        params,
+    });
+    return {
+        data: response.data.data?.data ?? response.data.data ?? [],
+        meta: response.data.data?.meta ?? response.data.meta,
+    };
 };
 
 export const toggleUserBan = async (userId: string, isBanned: boolean) => {
@@ -56,7 +61,12 @@ export const toggleUserBan = async (userId: string, isBanned: boolean) => {
     return response.data.data;
 };
 
-export const getAllDonations = async () => {
-    const response = await apiClient.get('/donations');
-    return response.data.data;
+export const getAllDonations = async (params?: { page?: number; limit?: number }) => {
+    const response = await apiClient.get('/donations', {
+        params,
+    });
+    return {
+        data: response.data.data ?? [],
+        meta: response.data.meta,
+    };
 };
