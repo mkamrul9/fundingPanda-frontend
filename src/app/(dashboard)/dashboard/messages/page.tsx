@@ -41,7 +41,7 @@ export default function MessagesPage() {
     const currentUserId = session?.user?.id;
 
     const [activeContact, setActiveContact] = useState<any | null>(null);
-    const [activePane, setActivePane] = useState<"conversations" | "chat">("conversations");
+    const [activePane, setActivePane] = useState<"conversations" | "chat">("chat");
     const [messages, setMessages] = useState<Message[]>([]);
     const [newMessage, setNewMessage] = useState("");
     const [isUploading, setIsUploading] = useState(false);
@@ -52,11 +52,13 @@ export default function MessagesPage() {
     const router = useRouter();
     const pathname = usePathname();
 
-    const { data: contacts, isLoading: loadingContacts } = useQuery<ConversationItem[]>({
+    const { data: contactsRaw, isLoading: loadingContacts } = useQuery<ConversationItem[]>({
         queryKey: ["conversations"],
         queryFn: getConversations,
         enabled: !!currentUserId,
     });
+
+    const contacts = (contactsRaw || []).filter((contact) => contact.id !== currentUserId);
 
     const queryClient = useQueryClient();
 
@@ -105,8 +107,6 @@ export default function MessagesPage() {
         // Let the server bind this socket to the authenticated user's room
         try {
             socket.emit("join_own_room", currentUserId);
-            socket.emit("join_own_room");
-            socket.emit("joinOwnRoom", currentUserId);
         } catch (err) {
             // ignore emit errors
         }
@@ -147,11 +147,9 @@ export default function MessagesPage() {
         };
 
         socket.on("receive_message", receiveHandler);
-        socket.on("receiveMessage", receiveHandler);
 
         return () => {
             socket.off("receive_message", receiveHandler);
-            socket.off("receiveMessage", receiveHandler);
             socket.disconnect();
         };
     }, [currentUserId, queryClient]);
@@ -161,6 +159,7 @@ export default function MessagesPage() {
         const preferredContactId = contactParam || (typeof window !== 'undefined' ? localStorage.getItem('lastMessageContactId') : null);
         if (!preferredContactId) return;
         if (activeContact) return; // don't override a user-picked contact
+        if (preferredContactId === currentUserId) return;
 
         const found = contacts?.find?.((c: any) => c.id === preferredContactId);
         if (found) {
@@ -169,10 +168,14 @@ export default function MessagesPage() {
             return;
         }
 
-        // If not found in existing conversations, set a minimal placeholder so chat opens
-        setActiveContact({ id: preferredContactId, name: 'Researcher' });
-        setActivePane("chat");
+        // If not found in existing conversations, do not create a synthetic self/unknown chat.
     }, [contactParam, contacts, activeContact]);
+
+    useEffect(() => {
+        if (activeContact || !contacts.length) return;
+        setActiveContact(contacts[0]);
+        setActivePane("chat");
+    }, [contacts, activeContact]);
 
     useEffect(() => {
         if (!activeContact?.id) return;
@@ -184,6 +187,10 @@ export default function MessagesPage() {
     const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!newMessage.trim() || !activeContact) return;
+        if (activeContact.id === currentUserId) {
+            toast.error("You cannot send messages to yourself.");
+            return;
+        }
 
         const tempId = `temp-${Date.now().toString()}`;
 
@@ -194,9 +201,8 @@ export default function MessagesPage() {
             tempId,
         };
 
-        // Emit for real-time experience.
+        // Emit once for real-time + persistence handled by socket server.
         socket.emit("send_message", messagePayload);
-        socket.emit("sendMessage", messagePayload);
 
         // Optimistic UI: use tempId as the local message id so we can replace it when server responds
         setMessages((prev) => [
@@ -213,26 +219,26 @@ export default function MessagesPage() {
 
         setNewMessage("");
 
-        // Also persist via HTTP to guarantee durability when socket is unstable.
-        try {
-            const persisted = await sendTextMessage({
-                receiverId: activeContact.id,
-                content,
-            });
+        if (!socket.connected) {
+            try {
+                const persisted = await sendTextMessage({
+                    receiverId: activeContact.id,
+                    content,
+                });
 
-            setMessages((prev) => {
-                const index = prev.findIndex((msg) => msg.id === tempId);
-                if (index === -1) return prev;
-                const copy = [...prev];
-                copy[index] = {
-                    ...copy[index],
-                    ...persisted,
-                };
-                return copy;
-            });
-        } catch {
-            // If REST endpoint is not deployed yet, keep socket-delivered optimistic message.
-            toast.info("Message sent in realtime.");
+                setMessages((prev) => {
+                    const index = prev.findIndex((msg) => msg.id === tempId);
+                    if (index === -1) return prev;
+                    const copy = [...prev];
+                    copy[index] = {
+                        ...copy[index],
+                        ...persisted,
+                    };
+                    return copy;
+                });
+            } catch {
+                toast.error("Message could not be sent. Please try again.");
+            }
         }
     };
 

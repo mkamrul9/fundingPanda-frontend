@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "@tanstack/react-form";
 import Link from "next/link";
 import { toast } from "sonner";
-import { signUp } from "@/lib/auth-client";
+import { signUp, useSession } from "@/lib/auth-client";
 import { registerSchema, nameSchema, registerEmailSchema, registerPasswordSchema, registerUniversitySchema, registerBioSchema } from "@/lib/validations/auth";
 
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,17 @@ import { Textarea } from "@/components/ui/textarea";
 
 export default function RegisterPage() {
     const router = useRouter();
+    const { data: session } = useSession();
+    const alreadySignedToastShownRef = useRef(false);
     const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        if (session?.user && !alreadySignedToastShownRef.current) {
+            alreadySignedToastShownRef.current = true;
+            toast.info("You are already signed in.");
+            router.replace("/dashboard");
+        }
+    }, [session, router]);
 
     const resolveFrontendBaseUrl = () => {
         const explicitFrontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL?.trim();
@@ -108,6 +118,11 @@ export default function RegisterPage() {
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <Card className="border-0 shadow-none bg-transparent">
                 <CardHeader className="space-y-1 text-center">
+                    <div className="flex justify-start">
+                        <Link href="/" className="text-sm font-semibold text-primary hover:underline">
+                            Home
+                        </Link>
+                    </div>
                     <CardTitle className="text-2xl font-bold tracking-tight">Create an account</CardTitle>
                     <CardDescription>Join FundingPanda to fund or showcase research.</CardDescription>
                 </CardHeader>

@@ -28,8 +28,8 @@ function ResetPasswordContent() {
             return;
         }
 
-        if (newPassword.length < 6) {
-            toast.error("New password must be at least 6 characters.");
+        if (newPassword.length < 8) {
+            toast.error("Your password must be 8 characters long.");
             return;
         }
 
@@ -75,7 +75,7 @@ function ResetPasswordContent() {
                                 value={newPassword}
                                 onChange={(e) => setNewPassword(e.target.value)}
                                 disabled={isLoading}
-                                minLength={6}
+                                minLength={8}
                             />
                         </div>
 
@@ -87,7 +87,7 @@ function ResetPasswordContent() {
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
                                 disabled={isLoading}
-                                minLength={6}
+                                minLength={8}
                             />
                         </div>
 

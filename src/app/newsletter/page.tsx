@@ -20,8 +20,7 @@ export default function NewsletterPage() {
             setEmail("");
         },
         onError: () => {
-            toast.success("Subscribed successfully!");
-            setEmail("");
+            toast.error("Subscription failed. Please try again.");
         },
     });
 

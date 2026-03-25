@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "@tanstack/react-form";
 import Link from "next/link";
 import { toast } from "sonner";
-import { signIn, authClient } from "@/lib/auth-client";
+import { signIn, authClient, useSession } from "@/lib/auth-client";
 import { getEmailVerificationStatus } from "@/services/user.service";
 import { loginSchema, emailSchema, passwordSchema } from "@/lib/validations/auth";
 import { Eye, EyeOff } from "lucide-react";
@@ -17,8 +17,18 @@ import { Label } from "@/components/ui/label";
 
 export default function LoginPage() {
     const router = useRouter();
+    const { data: session } = useSession();
+    const alreadySignedToastShownRef = useRef(false);
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+
+    useEffect(() => {
+        if (session?.user && !alreadySignedToastShownRef.current) {
+            alreadySignedToastShownRef.current = true;
+            toast.info("You are already signed in.");
+            router.replace("/dashboard");
+        }
+    }, [session, router]);
 
     const parseAuthError = (raw: unknown) => {
         const err = (raw ?? {}) as {
@@ -169,6 +179,11 @@ export default function LoginPage() {
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <Card className="border-0 shadow-none bg-transparent w-full max-w-md">
                 <CardHeader className="space-y-1 text-center">
+                    <div className="flex justify-start">
+                        <Link href="/" className="text-sm font-semibold text-primary hover:underline">
+                            Home
+                        </Link>
+                    </div>
                     <CardTitle className="text-2xl font-bold tracking-tight">Welcome back</CardTitle>
                     <CardDescription>Enter your email and password to access your account.</CardDescription>
                 </CardHeader>

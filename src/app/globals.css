@@ -126,6 +126,33 @@
   color: color-mix(in srgb, var(--color-foreground, var(--foreground)) 80%, white 20%) !important;
 }
 
+.cn-toast[data-type="success"] {
+  border-color: color-mix(in srgb, hsl(153, 60%, 28%) 65%, white 35%) !important;
+}
+
+.cn-toast[data-type="success"] .cn-toast-title,
+.cn-toast[data-type="success"] .cn-toast-description {
+  color: hsl(153, 60%, 22%) !important;
+}
+
+.cn-toast[data-type="warning"] {
+  border-color: color-mix(in srgb, hsl(22, 90%, 38%) 70%, white 30%) !important;
+}
+
+.cn-toast[data-type="warning"] .cn-toast-title,
+.cn-toast[data-type="warning"] .cn-toast-description {
+  color: hsl(22, 90%, 30%) !important;
+}
+
+.cn-toast[data-type="error"] {
+  border-color: color-mix(in srgb, hsl(0, 72%, 36%) 72%, white 28%) !important;
+}
+
+.cn-toast[data-type="error"] .cn-toast-title,
+.cn-toast[data-type="error"] .cn-toast-description {
+  color: hsl(0, 72%, 28%) !important;
+}
+
 .cn-toast-action,
 .cn-toast-cancel {
   border-radius: 10px !important;

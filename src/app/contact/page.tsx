@@ -23,8 +23,7 @@ export default function ContactPage() {
             setFormData({ name: "", email: "", subject: "", message: "" });
         },
         onError: () => {
-            toast.success("Message sent successfully! Our team will get back to you within 24 hours.");
-            setFormData({ name: "", email: "", subject: "", message: "" });
+            toast.error("Message could not be sent. Please try again in a moment.");
         },
     });
 

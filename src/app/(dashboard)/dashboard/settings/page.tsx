@@ -66,8 +66,8 @@ export default function SettingsPage() {
             return;
         }
 
-        if (passwordData.newPassword.length < 6) {
-            toast.error("New password must be at least 6 characters.");
+        if (passwordData.newPassword.length < 8) {
+            toast.error("Your password must be 8 characters long.");
             return;
         }
 
@@ -181,7 +181,7 @@ export default function SettingsPage() {
                                 value={passwordData.newPassword}
                                 onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
                                 disabled={isChangingPassword}
-                                minLength={6}
+                                minLength={8}
                             />
                         </div>
 
@@ -192,7 +192,7 @@ export default function SettingsPage() {
                                 value={passwordData.confirmPassword}
                                 onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
                                 disabled={isChangingPassword}
-                                minLength={6}
+                                minLength={8}
                             />
                         </div>
                     </CardContent>
