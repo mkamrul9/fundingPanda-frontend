@@ -19,6 +19,13 @@ export default function RegisterPage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
 
+    const resolveFrontendBaseUrl = () => {
+        const explicitFrontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL?.trim();
+        const currentOrigin = typeof window !== "undefined" ? window.location.origin : "";
+        const rawBase = explicitFrontendUrl || currentOrigin || "http://localhost:3000";
+        return rawBase.replace(/\/$/, "");
+    };
+
     const parseSignupError = (raw: unknown) => {
         const err = (raw ?? {}) as {
             status?: number;
@@ -70,6 +77,7 @@ export default function RegisterPage() {
                         name: value.name,
                         email: value.email,
                         password: value.password,
+                        callbackURL: `${resolveFrontendBaseUrl()}/login`,
                         // Passing custom data to BetterAuth (it will be saved to your DB if configured)
                         role: value.role,
                         university: value.university?.trim() || undefined,

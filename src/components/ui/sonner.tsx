@@ -14,6 +14,10 @@ const Toaster = ({ ...props }: ToasterProps) => {
       richColors
       closeButton
       duration={5000}
+      expand
+      visibleToasts={4}
+      offset={20}
+      mobileOffset={12}
       icons={{
         success: (
           <CircleCheckIcon className="size-4" />
@@ -42,6 +46,10 @@ const Toaster = ({ ...props }: ToasterProps) => {
       toastOptions={{
         classNames: {
           toast: "cn-toast",
+          title: "cn-toast-title",
+          description: "cn-toast-description",
+          actionButton: "cn-toast-action",
+          cancelButton: "cn-toast-cancel",
         },
       }}
       {...props}

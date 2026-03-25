@@ -100,3 +100,40 @@
     word-break: break-word;
   }
 }
+
+/* Premium toast visuals for better visibility and message hierarchy */
+.cn-toast {
+  border: 1px solid color-mix(in srgb, var(--color-border, var(--border)) 85%, white 15%) !important;
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--color-primary, var(--primary)) 18%, transparent 82%), transparent 36%),
+    color-mix(in srgb, var(--color-card, var(--card)) 95%, white 5%) !important;
+  box-shadow: 0 12px 32px rgba(12, 18, 28, 0.18) !important;
+  backdrop-filter: blur(8px);
+  border-radius: 14px !important;
+  padding: 14px !important;
+}
+
+.cn-toast-title {
+  font-weight: 700 !important;
+  font-size: 0.95rem !important;
+  letter-spacing: 0.01em;
+}
+
+.cn-toast-description {
+  margin-top: 2px !important;
+  font-size: 0.85rem !important;
+  line-height: 1.3 !important;
+  color: color-mix(in srgb, var(--color-foreground, var(--foreground)) 80%, white 20%) !important;
+}
+
+.cn-toast-action,
+.cn-toast-cancel {
+  border-radius: 10px !important;
+}
+
+@media (max-width: 768px) {
+  .cn-toast {
+    margin-inline: 8px;
+    width: calc(100vw - 16px) !important;
+  }
+}

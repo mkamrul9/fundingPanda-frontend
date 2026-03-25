@@ -1,11 +1,11 @@
 "use client";
 
-import { ReactNode, useEffect } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { User } from "@/types";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession, signOut } from "@/lib/auth-client";
-import { Leaf, LogOut, LayoutDashboard, Settings, Loader2, ShieldCheck, House, MessageSquare, Package, FolderKanban, Rocket, HandCoins, CircleHelp, Tags, Trophy, Archive, Users, Receipt, Bell } from "lucide-react";
+import { Leaf, LogOut, LayoutDashboard, Settings, Loader2, ShieldCheck, House, MessageSquare, Package, FolderKanban, Rocket, HandCoins, CircleHelp, Tags, Trophy, Archive, Users, Receipt, Bell, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { getMyNotifications } from "@/services/notification.service";
@@ -16,6 +16,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
     // Fetch session data from BetterAuth
     const { data: session, isPending } = useSession();
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     const { data: notifications } = useQuery({
         queryKey: ["notifications"],
@@ -57,19 +58,32 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     const isActivePath = (path: string) => pathname === path || pathname.startsWith(`${path}/`);
 
     return (
-        <div className="flex min-h-screen flex-col bg-neutral-50 md:flex-row">
+        <div className="flex min-h-screen flex-col bg-neutral-50 lg:flex-row">
             {/* Sidebar Navigation */}
-            <aside className="w-full border-b bg-white md:flex md:w-64 md:flex-col md:border-b-0 md:border-r">
-                <div className="flex h-16 items-center border-b px-6">
+            <aside className="w-full border-b bg-white lg:flex lg:w-64 lg:flex-col lg:border-b-0 lg:border-r">
+                <div className="flex h-16 items-center justify-between border-b px-6">
                     <Link href="/" className="flex items-center gap-2">
                         <Leaf className="h-5 w-5 text-primary" />
                         <span className="text-lg font-bold tracking-tight">
                             Funding<span className="text-primary">Panda</span>
                         </span>
                     </Link>
+
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="lg:hidden"
+                        onClick={() => setIsSidebarOpen((prev) => !prev)}
+                        aria-label="Toggle dashboard menu"
+                    >
+                        {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                    </Button>
                 </div>
 
-                <nav className="flex flex-col gap-2 p-4 md:flex-1">
+                <nav
+                    className={`${isSidebarOpen ? "flex" : "hidden"} flex-col gap-2 p-4 lg:flex lg:flex-1`}
+                    onClick={() => setIsSidebarOpen(false)}
+                >
                     <Link href="/">
                         <Button variant={pathname === "/" ? "default" : "ghost"} className="w-full justify-start">
                             <House className="mr-2 h-4 w-4" />
@@ -228,7 +242,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                     </Link>
                 </nav>
 
-                <div className="px-4 pb-4 md:mt-auto">
+                <div className={`${isSidebarOpen ? "block" : "hidden"} px-4 pb-4 lg:mt-auto lg:block`}>
                     <div className="mb-4 flex items-center gap-3 rounded-lg border bg-neutral-50 p-3">
                         <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">
                             {user.name.charAt(0)}
@@ -246,7 +260,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             </aside>
 
             {/* Main Content Area */}
-            <main className="flex-1 overflow-y-auto p-4 md:p-8">
+            <main className="flex-1 overflow-y-auto p-4 lg:p-8">
                 {children}
             </main>
         </div>

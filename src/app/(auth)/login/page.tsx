@@ -6,6 +6,7 @@ import { useForm } from "@tanstack/react-form";
 import Link from "next/link";
 import { toast } from "sonner";
 import { signIn, authClient } from "@/lib/auth-client";
+import { getEmailVerificationStatus } from "@/services/user.service";
 import { loginSchema, emailSchema, passwordSchema } from "@/lib/validations/auth";
 import { Eye, EyeOff } from "lucide-react";
 
@@ -69,6 +70,13 @@ export default function LoginPage() {
         return err.message || "Authentication failed. Please try again.";
     };
 
+    const resolveFrontendBaseUrl = () => {
+        const explicitFrontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL?.trim();
+        const currentOrigin = typeof window !== "undefined" ? window.location.origin : "";
+        const rawBase = explicitFrontendUrl || currentOrigin || "http://localhost:3000";
+        return rawBase.replace(/\/$/, "");
+    };
+
     const Form = useForm({
         defaultValues: {
             email: "",
@@ -87,6 +95,7 @@ export default function LoginPage() {
                     {
                         email: value.email,
                         password: value.password,
+                        callbackURL: `${resolveFrontendBaseUrl()}/login`,
                     },
                     {
                         onRequest: () => {
@@ -109,7 +118,7 @@ export default function LoginPage() {
                                 }
                             })();
                         },
-                        onError: (ctx: unknown) => {
+                        onError: async (ctx: unknown) => {
                             setIsLoading(false);
                             const rawError = (ctx as { error?: unknown })?.error ?? ctx;
                             const errorObj = (rawError ?? {}) as { code?: string; message?: string };
@@ -125,6 +134,23 @@ export default function LoginPage() {
                                 toast.error('Please verify your email before logging in.');
                                 router.push(`/verify-email?email=${encodeURIComponent(value.email)}`);
                                 return;
+                            }
+
+                            if (
+                                code.includes('INVALID_EMAIL_OR_PASSWORD') ||
+                                code.includes('INVALID_CREDENTIAL') ||
+                                message.includes('invalid email or password') ||
+                                message.includes('incorrect email or password')
+                            ) {
+                                try {
+                                    const status = await getEmailVerificationStatus(value.email);
+                                    if (!status.exists) {
+                                        toast.error('No account found with this email. Please create an account first.');
+                                        return;
+                                    }
+                                } catch {
+                                    // Keep fallback message below if status lookup fails.
+                                }
                             }
 
                             const errorMessage = parseAuthError(rawError);
