@@ -204,7 +204,7 @@ export default function AdminDashboardPage() {
                 )}
             </div>
 
-            {!isLoading && moderationList.length > PAGE_SIZE && (
+            {!isLoading && moderationList.length > 0 && (
                 <div className="flex flex-col items-center justify-between gap-3 border-t pt-4 sm:flex-row">
                     <p className="text-sm text-neutral-500">Page {currentPage} of {totalPages}</p>
                     <div className="flex items-center gap-2">

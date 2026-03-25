@@ -40,7 +40,7 @@ export default function NotificationsPage() {
         },
     });
 
-    const notifications = data?.notifications ?? [];
+    const notifications = useMemo(() => data?.notifications ?? [], [data?.notifications]);
     const totalPages = Math.max(1, Math.ceil(notifications.length / PAGE_SIZE));
 
     const paginatedNotifications = useMemo(() => {
@@ -99,7 +99,7 @@ export default function NotificationsPage() {
                         <p className="text-sm text-neutral-500">No notifications yet.</p>
                     )}
 
-                    {!isLoading && notifications.length > PAGE_SIZE && (
+                    {!isLoading && notifications.length > 0 && (
                         <div className="mt-4 flex flex-col items-center justify-between gap-3 border-t pt-4 sm:flex-row">
                             <p className="text-sm text-neutral-500">Page {currentPage} of {totalPages}</p>
                             <div className="flex items-center gap-2">

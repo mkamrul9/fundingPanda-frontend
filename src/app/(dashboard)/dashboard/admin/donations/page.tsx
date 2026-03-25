@@ -137,7 +137,7 @@ export default function AdminDonationsPage() {
                             <div className="py-8 text-center text-neutral-500">No transactions recorded yet.</div>
                         )}
 
-                        {!isLoading && totalPages > 1 && (
+                        {!isLoading && donations.length > 0 && (
                             <div className="mt-4 flex flex-col items-center justify-between gap-3 border-t pt-4 sm:flex-row">
                                 <p className="text-sm text-neutral-500">Page {currentPage} of {totalPages}</p>
                                 <div className="flex items-center gap-2">

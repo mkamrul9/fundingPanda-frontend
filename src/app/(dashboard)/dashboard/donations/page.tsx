@@ -177,7 +177,7 @@ export default function SponsorDonationsPage() {
                         )}
                     </div>
 
-                    {!isLoading && investedProjects.length > PAGE_SIZE && (
+                    {!isLoading && investedProjects.length > 0 && (
                         <div className="mt-4 flex flex-col items-center justify-between gap-3 border-t pt-4 sm:flex-row">
                             <p className="text-sm text-neutral-500">Page {currentPage} of {totalPages}</p>
                             <div className="flex items-center gap-2">

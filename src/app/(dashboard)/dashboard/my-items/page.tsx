@@ -181,7 +181,7 @@ export default function MyItemsPage() {
                 )}
             </div>
 
-            {userRole === "STUDENT" && !loadingClaims && myClaims.length > PAGE_SIZE && (
+            {userRole === "STUDENT" && !loadingClaims && myClaims.length > 0 && (
                 <div className="flex flex-col items-center justify-between gap-3 border-t pt-4 sm:flex-row">
                     <p className="text-sm text-neutral-500">Page {currentPage} of {studentTotalPages}</p>
                     <div className="flex items-center gap-2">
@@ -202,7 +202,7 @@ export default function MyItemsPage() {
                 </div>
             )}
 
-            {userRole === "SPONSOR" && !loadingResources && myListedResources.length > PAGE_SIZE && (
+            {userRole === "SPONSOR" && !loadingResources && myListedResources.length > 0 && (
                 <div className="flex flex-col items-center justify-between gap-3 border-t pt-4 sm:flex-row">
                     <p className="text-sm text-neutral-500">Page {currentPage} of {sponsorTotalPages}</p>
                     <div className="flex items-center gap-2">

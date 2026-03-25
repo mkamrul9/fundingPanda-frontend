@@ -168,7 +168,7 @@ export default function AdminUsersPage() {
                         </table>
                     </div>
 
-                    {!isLoading && totalPages > 1 && (
+                    {!isLoading && users.length > 0 && (
                         <div className="mt-4 flex flex-col items-center justify-between gap-3 border-t pt-4 sm:flex-row">
                             <p className="text-sm text-neutral-500">Page {currentPage} of {totalPages}</p>
                             <div className="flex items-center gap-2">

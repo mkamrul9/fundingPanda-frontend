@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
 import { toast } from "sonner";
@@ -46,7 +46,7 @@ export default function ResourcesMarketplacePage() {
     const [isClaimOpen, setIsClaimOpen] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [selectedResource, setSelectedResource] = useState<ResourceItem | null>(null);
-    const PAGE_SIZE = 10;
+    const PAGE_SIZE = 6;
 
     const [newResource, setNewResource] = useState({ title: "", description: "", capacity: 1, type: "HARDWARE" as ResourceType });
     const [selectedProjectId, setSelectedProjectId] = useState<string>("");
@@ -69,6 +69,10 @@ export default function ResourcesMarketplacePage() {
     const selectableProjects = myProjects.filter((project) => project.status !== "COMPLETED");
     const totalPages = Math.max(1, Math.ceil(resources.length / PAGE_SIZE));
     const paginatedResources = resources.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+    useEffect(() => {
+        setCurrentPage((prev) => Math.min(prev, totalPages));
+    }, [totalPages]);
 
     const createMutation = useMutation({
         mutationFn: createResource,
@@ -236,7 +240,7 @@ export default function ResourcesMarketplacePage() {
                 )}
             </div>
 
-            {!loadingResources && resources.length > PAGE_SIZE && (
+            {!loadingResources && resources.length > 0 && (
                 <div className="flex flex-col items-center justify-between gap-3 border-t pt-4 sm:flex-row">
                     <p className="text-sm text-neutral-500">Page {currentPage} of {totalPages}</p>
                     <div className="flex items-center gap-2">
