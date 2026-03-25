@@ -56,14 +56,41 @@ export async function POST(req: Request) {
             });
         }
 
-        const result = await streamText({
-            model: google("gemini-1.5-flash-latest"),
-            system: systemPrompt,
-            messages: await convertToModelMessages(messages),
-            temperature: 0.7,
-        });
+        const modelMessages = await convertToModelMessages(messages);
+        const configuredModel = process.env.GOOGLE_GEMINI_MODEL?.trim();
+        const modelCandidates = [
+            configuredModel,
+            "gemini-2.0-flash",
+            "gemini-1.5-flash",
+            "gemini-1.5-pro",
+        ].filter((model): model is string => Boolean(model));
 
-        return result.toUIMessageStreamResponse();
+        let lastModelError: unknown;
+
+        for (const modelName of modelCandidates) {
+            try {
+                const result = await streamText({
+                    model: google(modelName),
+                    system: systemPrompt,
+                    messages: modelMessages,
+                    temperature: 0.7,
+                });
+
+                return result.toUIMessageStreamResponse();
+            } catch (modelError) {
+                const errorMessage = modelError instanceof Error ? modelError.message : String(modelError);
+                const isUnsupportedModelError = /not found|not supported|listmodels/i.test(errorMessage);
+
+                if (!isUnsupportedModelError) {
+                    throw modelError;
+                }
+
+                lastModelError = modelError;
+                console.warn(`PandaBot model fallback: ${modelName} unavailable, trying next model.`);
+            }
+        }
+
+        throw lastModelError ?? new Error("No compatible Gemini model is available for this API key.");
     } catch (error) {
         const message = error instanceof Error ? error.message : "Failed to generate response";
         console.error("PandaBot API Error:", error);
