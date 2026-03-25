@@ -32,9 +32,11 @@ export default function AdminCategoriesPage() {
 
     const [isAddOpen, setIsAddOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
     const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
     const [newCategory, setNewCategory] = useState({ name: "", description: "" });
     const [editCategory, setEditCategory] = useState({ name: "", description: "" });
+    const PAGE_SIZE = 10;
 
     const { data: categories = [], isLoading } = useQuery<CategoryItem[]>({
         queryKey: ["categories"],
@@ -98,6 +100,9 @@ export default function AdminCategoriesPage() {
             </div>
         );
     }
+
+    const totalPages = Math.max(1, Math.ceil(categories.length / PAGE_SIZE));
+    const paginatedCategories = categories.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
     const handleCreate = () => {
         if (!newCategory.name.trim()) {
@@ -163,7 +168,7 @@ export default function AdminCategoriesPage() {
                         </Card>
                     ))
                 ) : categories.length > 0 ? (
-                    categories.map((category) => (
+                    paginatedCategories.map((category) => (
                         <Card key={category.id} className="group relative overflow-hidden">
                             <CardHeader className="pb-2">
                                 <CardTitle className="text-lg">{category.name}</CardTitle>
@@ -205,6 +210,27 @@ export default function AdminCategoriesPage() {
                     </div>
                 )}
             </div>
+
+            {!isLoading && categories.length > PAGE_SIZE && (
+                <div className="flex flex-col items-center justify-between gap-3 border-t pt-4 sm:flex-row">
+                    <p className="text-sm text-neutral-500">Page {currentPage} of {totalPages}</p>
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="outline"
+                            onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                            disabled={currentPage <= 1}
+                        >
+                            Previous
+                        </Button>
+                        <Button
+                            onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                            disabled={currentPage >= totalPages}
+                        >
+                            Next
+                        </Button>
+                    </div>
+                </div>
+            )}
 
             <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
                 <DialogContent>

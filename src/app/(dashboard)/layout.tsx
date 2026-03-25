@@ -260,23 +260,23 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                             Settings
                         </Button>
                     </Link>
-                </nav>
 
-                <div className={`${isSidebarOpen ? "block" : "hidden"} px-4 pb-4 lg:mt-auto lg:block`}>
-                    <div className="mb-4 flex items-center gap-3 rounded-lg border bg-neutral-50 p-3">
-                        <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">
-                            {user.name.charAt(0)}
+                    <div className="mt-3 rounded-xl border border-primary/20 bg-gradient-to-br from-primary/10 to-emerald-50 p-3">
+                        <div className="mb-3 flex items-center gap-3">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/20 text-sm font-bold text-primary">
+                                {user.name.charAt(0)}
+                            </div>
+                            <div className="min-w-0">
+                                <p className="truncate text-sm font-semibold text-neutral-900">{user.name}</p>
+                                <p className="text-xs uppercase tracking-wide text-neutral-500">{userRole}</p>
+                            </div>
                         </div>
-                        <div className="flex flex-col overflow-hidden">
-                            <span className="truncate text-sm font-medium">{user.name}</span>
-                            <span className="text-xs text-neutral-500 capitalize">{userRole.toLowerCase()}</span>
-                        </div>
+                        <Button variant="destructive" className="w-full justify-start" onClick={handleLogout}>
+                            <LogOut className="mr-2 h-4 w-4" />
+                            Sign out
+                        </Button>
                     </div>
-                    <Button variant="destructive" className="w-full justify-start" onClick={handleLogout}>
-                        <LogOut className="mr-2 h-4 w-4" />
-                        Sign out
-                    </Button>
-                </div>
+                </nav>
             </aside>
 
             {/* Main Content Area */}

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "@/lib/auth-client";
 import { User } from "@/types";
@@ -35,6 +36,8 @@ type InvestedProjectSummary = {
 
 export default function SponsorDonationsPage() {
     const { data: session } = useSession();
+    const [currentPage, setCurrentPage] = useState(1);
+    const PAGE_SIZE = 10;
     const currentUser = session?.user as unknown as User | undefined;
     const userRole = currentUser?.role;
 
@@ -85,6 +88,9 @@ export default function SponsorDonationsPage() {
         }, new Map<string, InvestedProjectSummary>()).values()
     ).sort((a, b) => new Date(b.lastDonationAt).getTime() - new Date(a.lastDonationAt).getTime());
 
+    const totalPages = Math.max(1, Math.ceil(investedProjects.length / PAGE_SIZE));
+    const paginatedProjects = investedProjects.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div>
@@ -123,7 +129,7 @@ export default function SponsorDonationsPage() {
                                 </div>
                             ))
                         ) : investedProjects.length > 0 ? (
-                            investedProjects.map((project) => (
+                            paginatedProjects.map((project) => (
                                 <div key={project.projectId} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-xl hover:bg-neutral-50 transition-colors gap-4">
                                     <div className="flex-1">
                                         <div className="flex items-center gap-2 mb-1">
@@ -170,6 +176,27 @@ export default function SponsorDonationsPage() {
                             </div>
                         )}
                     </div>
+
+                    {!isLoading && investedProjects.length > PAGE_SIZE && (
+                        <div className="mt-4 flex flex-col items-center justify-between gap-3 border-t pt-4 sm:flex-row">
+                            <p className="text-sm text-neutral-500">Page {currentPage} of {totalPages}</p>
+                            <div className="flex items-center gap-2">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                                    disabled={currentPage <= 1}
+                                >
+                                    Previous
+                                </Button>
+                                <Button
+                                    onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                                    disabled={currentPage >= totalPages}
+                                >
+                                    Next
+                                </Button>
+                            </div>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
         </div>

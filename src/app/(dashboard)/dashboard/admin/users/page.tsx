@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "@/lib/auth-client";
-import { getAllUsers, toggleUserBan } from "@/services/admin.service";
+import { getAllUsers, toggleUserBan, verifyUser } from "@/services/admin.service";
 import { User } from "@/types";
 import { toast } from "sonner";
 
@@ -19,6 +19,7 @@ type PlatformUser = {
     email: string;
     role: "ADMIN" | "SPONSOR" | "STUDENT";
     isBanned?: boolean;
+    isVerified?: boolean;
     createdAt: string;
 };
 
@@ -60,6 +61,17 @@ export default function AdminUsersPage() {
         },
     });
 
+    const verifyMutation = useMutation({
+        mutationFn: ({ userId, isVerified }: { userId: string; isVerified: boolean }) => verifyUser(userId, isVerified),
+        onSuccess: (_data, variables) => {
+            toast.success(variables.isVerified ? "User marked as verified." : "User verification removed.");
+            queryClient.invalidateQueries({ queryKey: ["allUsers"] });
+        },
+        onError: () => {
+            toast.error("Failed to update user verification status.");
+        },
+    });
+
     if (!isAdmin) {
         return (
             <div className="flex flex-col items-center justify-center py-24 text-center">
@@ -92,6 +104,7 @@ export default function AdminUsersPage() {
                                     <th className="px-6 py-3">Email</th>
                                     <th className="px-6 py-3">Role</th>
                                     <th className="px-6 py-3">Status</th>
+                                    <th className="px-6 py-3">Trust</th>
                                     <th className="px-6 py-3">Joined Date</th>
                                     <th className="px-6 py-3 text-right">Action</th>
                                 </tr>
@@ -103,6 +116,7 @@ export default function AdminUsersPage() {
                                             <td className="px-6 py-4"><Skeleton className="h-4 w-32" /></td>
                                             <td className="px-6 py-4"><Skeleton className="h-4 w-48" /></td>
                                             <td className="px-6 py-4"><Skeleton className="h-6 w-16 rounded-full" /></td>
+                                            <td className="px-6 py-4"><Skeleton className="h-6 w-20 rounded-full" /></td>
                                             <td className="px-6 py-4"><Skeleton className="h-6 w-20 rounded-full" /></td>
                                             <td className="px-6 py-4"><Skeleton className="h-4 w-24" /></td>
                                             <td className="px-6 py-4"><Skeleton className="ml-auto h-8 w-20" /></td>
@@ -122,16 +136,31 @@ export default function AdminUsersPage() {
                                                 {user.isBanned ? "BANNED" : "ACTIVE"}
                                             </Badge>
                                         </td>
+                                        <td className="px-6 py-4">
+                                            <Badge variant={user.isVerified ? "default" : "outline"}>
+                                                {user.isVerified ? "VERIFIED" : "UNVERIFIED"}
+                                            </Badge>
+                                        </td>
                                         <td className="flex items-center gap-2 px-6 py-4"><Calendar className="h-4 w-4 text-neutral-400" /> {new Date(user.createdAt).toLocaleDateString()}</td>
                                         <td className="px-6 py-4 text-right">
-                                            <Button
-                                                variant={user.isBanned ? "outline" : "destructive"}
-                                                size="sm"
-                                                disabled={banMutation.isPending || user.id === currentUser?.id || user.role === "ADMIN"}
-                                                onClick={() => banMutation.mutate({ userId: user.id, isBanned: !Boolean(user.isBanned) })}
-                                            >
-                                                {user.isBanned ? "Unban" : "Ban"}
-                                            </Button>
+                                            <div className="flex items-center justify-end gap-2">
+                                                <Button
+                                                    variant={user.isVerified ? "outline" : "default"}
+                                                    size="sm"
+                                                    disabled={verifyMutation.isPending || user.id === currentUser?.id}
+                                                    onClick={() => verifyMutation.mutate({ userId: user.id, isVerified: !Boolean(user.isVerified) })}
+                                                >
+                                                    {user.isVerified ? "Unverify" : "Verify"}
+                                                </Button>
+                                                <Button
+                                                    variant={user.isBanned ? "outline" : "destructive"}
+                                                    size="sm"
+                                                    disabled={banMutation.isPending || user.id === currentUser?.id || user.role === "ADMIN"}
+                                                    onClick={() => banMutation.mutate({ userId: user.id, isBanned: !Boolean(user.isBanned) })}
+                                                >
+                                                    {user.isBanned ? "Unban" : "Ban"}
+                                                </Button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}

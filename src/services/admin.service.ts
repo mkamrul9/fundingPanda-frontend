@@ -61,6 +61,13 @@ export const toggleUserBan = async (userId: string, isBanned: boolean) => {
     return response.data.data;
 };
 
+export const verifyUser = async (userId: string, isVerified: boolean) => {
+    const response = await apiClient.patch(`/admin/users/${userId}/verify`, {
+        isVerified,
+    });
+    return response.data.data;
+};
+
 export const getAllDonations = async (params?: { page?: number; limit?: number }) => {
     const response = await apiClient.get('/donations', {
         params,
