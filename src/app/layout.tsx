@@ -4,6 +4,7 @@ import "./globals.css";
 import QueryProvider from "@/providers/QueryProvider";
 import { Toaster } from "@/components/ui/sonner";
 import Footer from "@/components/layout/Footer";
+import ChatBot from "@/components/layout/ChatBot";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,6 +23,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <QueryProvider>
           {children}
+          <ChatBot />
           <Footer />
           <Toaster position="bottom-right" />
         </QueryProvider>
