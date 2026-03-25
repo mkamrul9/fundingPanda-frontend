@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "@tanstack/react-form";
 import Link from "next/link";
@@ -18,13 +18,10 @@ import { Textarea } from "@/components/ui/textarea";
 export default function RegisterPage() {
     const router = useRouter();
     const { data: session } = useSession();
-    const alreadySignedToastShownRef = useRef(false);
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
-        if (session?.user && !alreadySignedToastShownRef.current) {
-            alreadySignedToastShownRef.current = true;
-            toast.info("You are already signed in.");
+        if (session?.user) {
             router.replace("/dashboard");
         }
     }, [session, router]);

@@ -34,6 +34,8 @@ type EditingProject = {
     title: string;
     description: string;
     goalAmount: number;
+    pitchDoc: File | null;
+    images: FileList | null;
 };
 
 type MyProjectTab = "ALL" | "DRAFT" | "PENDING" | "APPROVED" | "FUNDED" | "COMPLETED";
@@ -70,6 +72,8 @@ export default function MyProjectsPage() {
         queryKey: ["myProjects"],
         queryFn: getMyProjects,
         enabled: !!session,
+        refetchOnMount: "always",
+        refetchOnWindowFocus: true,
     });
 
     const submitMutation = useMutation({
@@ -108,8 +112,12 @@ export default function MyProjectsPage() {
     });
 
     const updateMutation = useMutation({
-        mutationFn: (data: { id: string; payload: { title: string; description: string; goalAmount: number } }) =>
-            updateProject(data.id, { ...data.payload, status: "DRAFT" }),
+        mutationFn: (data: {
+            id: string;
+            payload: { title: string; description: string; goalAmount: number };
+            files?: { pitchDoc?: File | null; images?: FileList | null };
+        }) =>
+            updateProject(data.id, { ...data.payload, status: "DRAFT" }, data.files),
         onSuccess: () => {
             toast.success("Project updated successfully.");
             queryClient.invalidateQueries({ queryKey: ["myProjects"] });
@@ -129,6 +137,8 @@ export default function MyProjectsPage() {
             title: project.title,
             description: project.description,
             goalAmount: project.goalAmount,
+            pitchDoc: null,
+            images: null,
         });
         setIsEditOpen(true);
     };
@@ -278,6 +288,23 @@ export default function MyProjectsPage() {
                                 className="min-h-25"
                             />
                         </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Pitch PDF (required before submit for review)</label>
+                            <Input
+                                type="file"
+                                accept="application/pdf"
+                                onChange={(e) => setEditingProject((prev) => prev ? { ...prev, pitchDoc: e.target.files?.[0] ?? null } : prev)}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Project Images (required before submit for review)</label>
+                            <Input
+                                type="file"
+                                accept="image/*"
+                                multiple
+                                onChange={(e) => setEditingProject((prev) => prev ? { ...prev, images: e.target.files } : prev)}
+                            />
+                        </div>
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setIsEditOpen(false)}>Cancel</Button>
@@ -290,6 +317,10 @@ export default function MyProjectsPage() {
                                         title: editingProject.title,
                                         description: editingProject.description,
                                         goalAmount: editingProject.goalAmount,
+                                    },
+                                    files: {
+                                        pitchDoc: editingProject.pitchDoc,
+                                        images: editingProject.images,
                                     },
                                 });
                             }}

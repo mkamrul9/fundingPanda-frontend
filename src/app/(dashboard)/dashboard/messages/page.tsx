@@ -56,6 +56,8 @@ export default function MessagesPage() {
         queryKey: ["conversations"],
         queryFn: getConversations,
         enabled: !!currentUserId,
+        refetchOnMount: 'always',
+        refetchOnWindowFocus: true,
     });
 
     const contacts = (contactsRaw || []).filter((contact) => contact.id !== currentUserId);

@@ -52,12 +52,16 @@ export default function ResourcesMarketplacePage() {
     const { data: resources = [], isLoading: loadingResources } = useQuery<ResourceItem[]>({
         queryKey: ["resources"],
         queryFn: getAllResources,
+        refetchOnMount: "always",
+        refetchOnWindowFocus: true,
     });
 
     const { data: myProjects = [] } = useQuery<StudentProject[]>({
         queryKey: ["myProjects", currentUser?.id],
         queryFn: getMyProjects,
         enabled: userRole === "STUDENT",
+        refetchOnMount: "always",
+        refetchOnWindowFocus: true,
     });
 
     const selectableProjects = myProjects.filter((project) => project.status !== "COMPLETED");
@@ -141,6 +145,12 @@ export default function ResourcesMarketplacePage() {
                         <Package className="h-8 w-8 text-primary" /> Resource Hub
                     </h1>
                     <p className="text-muted-foreground">Donate or claim hardware, software licenses, and testing kits.</p>
+                    {userRole === "SPONSOR" && (
+                        <p className="mt-2 text-sm font-medium text-amber-700">Only student accounts can claim resources. Sponsors can list and manage their own items.</p>
+                    )}
+                    {userRole === "ADMIN" && (
+                        <p className="mt-2 text-sm font-medium text-amber-700">Only student accounts can claim resources. Admins can review listings in read-only mode here.</p>
+                    )}
                 </div>
                 {userRole === "SPONSOR" && (
                     <Button onClick={() => setIsCreateOpen(true)} className="gap-2">

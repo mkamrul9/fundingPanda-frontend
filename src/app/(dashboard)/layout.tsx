@@ -9,6 +9,12 @@ import { Leaf, LogOut, LayoutDashboard, Settings, Loader2, ShieldCheck, House, M
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { getMyNotifications } from "@/services/notification.service";
+import { getConversations } from "@/services/message.service";
+import { toast } from "sonner";
+
+type ConversationSummary = {
+    unreadCount?: number;
+};
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
     const router = useRouter();
@@ -25,6 +31,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         refetchInterval: session ? 15000 : false,
     });
 
+    const { data: conversations } = useQuery<ConversationSummary[]>({
+        queryKey: ["conversations"],
+        queryFn: getConversations,
+        enabled: !!session,
+        refetchInterval: session ? 15000 : false,
+    });
+
     // Route Protection: If not loading and no session, kick to login
     useEffect(() => {
         if (!isPending && !session) {
@@ -34,6 +47,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
     const handleLogout = async () => {
         await signOut();
+        toast.success("Signed out successfully.");
         router.push("/login");
     };
 
@@ -54,6 +68,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     const userRole = (user.role ?? "STUDENT") as string; // STUDENT, SPONSOR, or ADMIN
 
     const unreadNotificationCount = notifications?.unreadCount ?? 0;
+    const unreadInboxCount = conversations?.reduce((sum: number, item: ConversationSummary) => sum + (item.unreadCount || 0), 0) ?? 0;
 
     const isActivePath = (path: string) => pathname === path || pathname.startsWith(`${path}/`);
 
@@ -95,6 +110,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                         <Button variant={isActivePath("/dashboard/messages") ? "default" : "ghost"} className="w-full justify-start">
                             <MessageSquare className="mr-2 h-4 w-4" />
                             Inbox
+                            {unreadInboxCount > 0 && (
+                                <span className="ml-auto rounded-full bg-primary px-2 py-0.5 text-xs font-semibold text-primary-foreground">
+                                    {unreadInboxCount > 99 ? "99+" : unreadInboxCount}
+                                </span>
+                            )}
                         </Button>
                     </Link>
 

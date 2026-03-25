@@ -8,6 +8,7 @@ import { getAllResourcesPaginated } from "@/services/resource.service";
 import { Box, Cpu, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { useSession } from "@/lib/auth-client";
 
 type ResourceItem = {
     id: string;
@@ -21,6 +22,9 @@ type ResourceItem = {
 export default function PublicResourceHubPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const PAGE_SIZE = 9;
+    const { data: session } = useSession();
+    const userRole = ((session?.user as { role?: string } | undefined)?.role ?? "").toUpperCase();
+    const canClaimResources = userRole === "STUDENT";
 
     const { data: resourceResult, isLoading } = useQuery({
         queryKey: ["public-resources", currentPage],
@@ -94,9 +98,23 @@ export default function PublicResourceHubPage() {
                 )}
 
                 <div className="mt-10 text-center">
-                    <Link href="/login">
-                        <Button className="gap-2">Log in to claim resources <ArrowRight className="h-4 w-4" /></Button>
-                    </Link>
+                    {!session?.user && (
+                        <Link href="/login">
+                            <Button className="gap-2">Log in to claim resources <ArrowRight className="h-4 w-4" /></Button>
+                        </Link>
+                    )}
+
+                    {session?.user && canClaimResources && (
+                        <Link href="/dashboard/resources">
+                            <Button className="gap-2">Go to claimable resources <ArrowRight className="h-4 w-4" /></Button>
+                        </Link>
+                    )}
+
+                    {session?.user && !canClaimResources && (
+                        <p className="text-sm font-medium text-amber-700">
+                            Only student accounts can claim resources.
+                        </p>
+                    )}
                 </div>
             </main>
         </div>
