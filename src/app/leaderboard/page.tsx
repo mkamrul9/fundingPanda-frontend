@@ -49,7 +49,7 @@ type RankedStudent = {
 export default function LeaderboardPage() {
     const [sponsorPage, setSponsorPage] = useState(1);
     const [studentPage, setStudentPage] = useState(1);
-    const PAGE_SIZE = 5;
+    const PAGE_SIZE = 6;
 
     const { data: topSponsors, isLoading } = useQuery({
         queryKey: ["topSponsors"],

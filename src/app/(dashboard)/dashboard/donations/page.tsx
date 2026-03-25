@@ -37,7 +37,7 @@ type InvestedProjectSummary = {
 export default function SponsorDonationsPage() {
     const { data: session } = useSession();
     const [currentPage, setCurrentPage] = useState(1);
-    const PAGE_SIZE = 10;
+    const PAGE_SIZE = 6;
     const currentUser = session?.user as unknown as User | undefined;
     const userRole = currentUser?.role;
 

@@ -34,7 +34,7 @@ type DonationsResponse = {
 export default function AdminDonationsPage() {
     const { data: session } = useSession();
     const [currentPage, setCurrentPage] = useState(1);
-    const PAGE_SIZE = 10;
+    const PAGE_SIZE = 6;
     const currentUser = session?.user as unknown as User | undefined;
     const isAdmin = currentUser?.role === "ADMIN";
 
@@ -95,7 +95,33 @@ export default function AdminDonationsPage() {
                     <CardTitle>Recent Transactions</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="overflow-x-auto">
+                    <div className="space-y-3 md:hidden">
+                        {isLoading ? (
+                            Array.from({ length: 4 }).map((_, i) => (
+                                <div key={i} className="rounded-lg border bg-white p-4">
+                                    <Skeleton className="h-4 w-28" />
+                                    <Skeleton className="mt-2 h-4 w-36" />
+                                    <Skeleton className="mt-2 h-4 w-full" />
+                                    <Skeleton className="mt-3 h-5 w-24" />
+                                </div>
+                            ))
+                        ) : donations.map((tx) => (
+                            <div key={tx.id} className="rounded-lg border bg-white p-4">
+                                <p className="text-xs text-neutral-500">{new Date(tx.createdAt).toLocaleDateString()}</p>
+                                <p className="mt-1 text-sm text-neutral-900">Sponsor: {tx.user?.name || "Unknown"}</p>
+                                <Link href={`/projects/${tx.projectId || ""}`} className="mt-1 line-clamp-2 inline-flex items-center gap-1 text-sm text-primary hover:underline">
+                                    {tx.project?.title || "Unknown Project"} <ArrowUpRight className="h-3 w-3" />
+                                </Link>
+                                <p className="mt-2 text-base font-bold text-emerald-600">+${Number(tx.amount || 0).toLocaleString()}</p>
+                            </div>
+                        ))}
+
+                        {!isLoading && donations.length === 0 && (
+                            <div className="py-8 text-center text-neutral-500">No transactions recorded yet.</div>
+                        )}
+                    </div>
+
+                    <div className="hidden overflow-x-auto md:block">
                         <table className="w-full text-left text-sm">
                             <thead className="border-b bg-neutral-50 text-xs uppercase text-neutral-500">
                                 <tr>

@@ -74,7 +74,7 @@ export default function MyProjectsPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [editingProject, setEditingProject] = useState<EditingProject | null>(null);
-    const PAGE_SIZE = 10;
+    const PAGE_SIZE = 6;
 
     const { data: projects, isLoading } = useQuery({
         queryKey: ["myProjects"],

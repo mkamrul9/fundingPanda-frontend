@@ -42,7 +42,7 @@ export default function AdminDashboardPage() {
     const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
     const [feedback, setFeedback] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
-    const PAGE_SIZE = 10;
+    const PAGE_SIZE = 6;
 
     // Fetch only PENDING projects
     const { data: pendingProjects, isLoading } = useQuery({

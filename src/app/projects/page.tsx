@@ -17,7 +17,7 @@ import { Search, Leaf, Filter, X } from "lucide-react";
 export default function ExploreProjectsPage() {
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
-    const PAGE_SIZE = 9;
+    const PAGE_SIZE = 6;
 
     // Advanced Filter State Object
     const [filters, setFilters] = useState({

@@ -21,7 +21,7 @@ const iconForType = (type: NotificationItem["type"]) => {
 export default function NotificationsPage() {
     const queryClient = useQueryClient();
     const [currentPage, setCurrentPage] = useState(1);
-    const PAGE_SIZE = 10;
+    const PAGE_SIZE = 6;
 
     const { data, isLoading } = useQuery({
         queryKey: ["notifications"],

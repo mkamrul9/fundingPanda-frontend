@@ -37,7 +37,7 @@ export default function AdminUsersPage() {
     const { data: session } = useSession();
     const queryClient = useQueryClient();
     const [currentPage, setCurrentPage] = useState(1);
-    const PAGE_SIZE = 10;
+    const PAGE_SIZE = 6;
     const currentUser = session?.user as unknown as User | undefined;
     const isAdmin = currentUser?.role === "ADMIN";
 
@@ -96,7 +96,66 @@ export default function AdminUsersPage() {
                     <CardDescription>A complete list of accounts registered on FundingPanda.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div className="overflow-x-auto">
+                    <div className="space-y-3 md:hidden">
+                        {isLoading ? (
+                            Array.from({ length: 4 }).map((_, i) => (
+                                <div key={i} className="rounded-lg border bg-white p-4">
+                                    <Skeleton className="h-5 w-32" />
+                                    <Skeleton className="mt-2 h-4 w-48" />
+                                    <div className="mt-3 grid grid-cols-2 gap-2">
+                                        <Skeleton className="h-6 w-20 rounded-full" />
+                                        <Skeleton className="h-6 w-20 rounded-full" />
+                                        <Skeleton className="h-6 w-24 rounded-full" />
+                                        <Skeleton className="h-4 w-28" />
+                                    </div>
+                                    <div className="mt-3 flex gap-2">
+                                        <Skeleton className="h-8 w-24" />
+                                        <Skeleton className="h-8 w-24" />
+                                    </div>
+                                </div>
+                            ))
+                        ) : users.map((user) => (
+                            <div key={user.id} className="rounded-lg border bg-white p-4">
+                                <p className="font-semibold text-neutral-900">{user.name}</p>
+                                <p className="mt-1 text-sm text-neutral-600 break-all">{user.email}</p>
+
+                                <div className="mt-3 flex flex-wrap gap-2">
+                                    <Badge variant={user.role === "ADMIN" ? "destructive" : user.role === "SPONSOR" ? "default" : "secondary"}>
+                                        {user.role}
+                                    </Badge>
+                                    <Badge variant={user.isBanned ? "destructive" : "secondary"}>
+                                        {user.isBanned ? "BANNED" : "ACTIVE"}
+                                    </Badge>
+                                    <Badge variant={user.isVerified ? "default" : "outline"}>
+                                        {user.isVerified ? "VERIFIED" : "UNVERIFIED"}
+                                    </Badge>
+                                </div>
+
+                                <p className="mt-3 text-xs text-neutral-500">Joined {new Date(user.createdAt).toLocaleDateString()}</p>
+
+                                <div className="mt-3 flex flex-wrap gap-2">
+                                    <Button
+                                        variant={user.isVerified ? "outline" : "default"}
+                                        size="sm"
+                                        disabled={verifyMutation.isPending || user.id === currentUser?.id}
+                                        onClick={() => verifyMutation.mutate({ userId: user.id, isVerified: !Boolean(user.isVerified) })}
+                                    >
+                                        {user.isVerified ? "Unverify" : "Verify"}
+                                    </Button>
+                                    <Button
+                                        variant={user.isBanned ? "outline" : "destructive"}
+                                        size="sm"
+                                        disabled={banMutation.isPending || user.id === currentUser?.id || user.role === "ADMIN"}
+                                        onClick={() => banMutation.mutate({ userId: user.id, isBanned: !Boolean(user.isBanned) })}
+                                    >
+                                        {user.isBanned ? "Unban" : "Ban"}
+                                    </Button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="hidden overflow-x-auto md:block">
                         <table className="w-full text-left text-sm">
                             <thead className="border-b bg-neutral-50 text-xs uppercase text-neutral-500">
                                 <tr>

@@ -36,7 +36,7 @@ export default function AdminCategoriesPage() {
     const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
     const [newCategory, setNewCategory] = useState({ name: "", description: "" });
     const [editCategory, setEditCategory] = useState({ name: "", description: "" });
-    const PAGE_SIZE = 10;
+    const PAGE_SIZE = 6;
 
     const { data: categories = [], isLoading } = useQuery<CategoryItem[]>({
         queryKey: ["categories"],

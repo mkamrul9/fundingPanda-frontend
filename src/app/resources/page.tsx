@@ -21,7 +21,7 @@ type ResourceItem = {
 
 export default function PublicResourceHubPage() {
     const [currentPage, setCurrentPage] = useState(1);
-    const PAGE_SIZE = 9;
+    const PAGE_SIZE = 6;
     const { data: session } = useSession();
     const userRole = ((session?.user as { role?: string } | undefined)?.role ?? "").toUpperCase();
     const canClaimResources = userRole === "STUDENT";

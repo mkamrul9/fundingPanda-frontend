@@ -42,7 +42,7 @@ export default function MyItemsPage() {
     const userRole = currentUser?.role;
     const queryClient = useQueryClient();
     const [currentPage, setCurrentPage] = useState(1);
-    const PAGE_SIZE = 10;
+    const PAGE_SIZE = 6;
 
     const { data: resources = [], isLoading: loadingResources } = useQuery<ResourceItem[]>({
         queryKey: ["resources"],
