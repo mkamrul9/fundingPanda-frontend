@@ -61,15 +61,24 @@ export default function LoginPage() {
             message.includes("verify your email") ||
             message.includes("verification required");
 
+        const isBannedUser =
+            code.includes("BANNED") ||
+            code.includes("BLOCKED") ||
+            message.includes("banned") ||
+            message.includes("blocked") ||
+            message.includes("suspended");
+
         if (err.status === 404 || isUserMissing) {
             return "This email has no account yet. Please register first.";
         }
         if (isUnverifiedUser) {
             return "Your email is not verified yet. Please verify your email first.";
         }
+        if (err.status === 403 || isBannedUser) {
+            return "You are banned from this platform.";
+        }
         if (
             err.status === 401 ||
-            err.status === 403 ||
             isInvalidCredential
         ) {
             return "Incorrect email or password. Please try again.";
@@ -158,6 +167,17 @@ export default function LoginPage() {
                                 } catch {
                                     // Keep fallback message below if status lookup fails.
                                 }
+                            }
+
+                            if (
+                                code.includes('BANNED') ||
+                                code.includes('BLOCKED') ||
+                                message.includes('banned') ||
+                                message.includes('blocked') ||
+                                message.includes('suspended')
+                            ) {
+                                toast.error('You are banned from this platform.');
+                                return;
                             }
 
                             const errorMessage = parseAuthError(rawError);

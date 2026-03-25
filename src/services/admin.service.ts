@@ -5,6 +5,11 @@ export const getPendingProjects = async () => {
     return response.data.data;
 };
 
+export const getPlatformAnalytics = async () => {
+    const response = await apiClient.get('/admin/analytics');
+    return response.data.data;
+};
+
 export const moderateProject = async ({
     projectId,
     status,

@@ -279,7 +279,7 @@ export default function MyProjectsPage() {
             </div>
 
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-                <DialogContent>
+                <DialogContent className="max-h-[88vh] overflow-y-auto sm:max-w-3xl">
                     <DialogHeader>
                         <DialogTitle>Edit Project Draft</DialogTitle>
                     </DialogHeader>
@@ -289,6 +289,7 @@ export default function MyProjectsPage() {
                             <Input
                                 value={editingProject?.title || ""}
                                 onChange={(e) => setEditingProject((prev) => prev ? { ...prev, title: e.target.value } : prev)}
+                                className="w-full"
                             />
                         </div>
                         <div className="space-y-2">
@@ -297,6 +298,7 @@ export default function MyProjectsPage() {
                                 type="number"
                                 value={editingProject?.goalAmount || 0}
                                 onChange={(e) => setEditingProject((prev) => prev ? { ...prev, goalAmount: Number(e.target.value) } : prev)}
+                                className="w-full"
                             />
                         </div>
                         <div className="space-y-2">
@@ -304,7 +306,7 @@ export default function MyProjectsPage() {
                             <Textarea
                                 value={editingProject?.description || ""}
                                 onChange={(e) => setEditingProject((prev) => prev ? { ...prev, description: e.target.value } : prev)}
-                                className="min-h-25"
+                                className="min-h-[180px] w-full resize-y whitespace-pre-wrap break-all"
                             />
                         </div>
                         <div className="space-y-2">
