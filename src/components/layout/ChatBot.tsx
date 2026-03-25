@@ -53,31 +53,39 @@ export default function ChatBot() {
     }, [messages]);
 
     return (
-        <div className="fixed bottom-6 right-6 z-50">
+        <div className="fixed bottom-4 right-4 z-50 sm:bottom-6 sm:right-6">
             {isOpen && (
-                <Card className="mb-4 flex h-[550px] w-[350px] flex-col border-primary/20 shadow-2xl animate-in slide-in-from-bottom-5 sm:w-[400px]">
-                    <CardHeader className="flex flex-row items-center justify-between rounded-t-xl bg-primary py-3 text-primary-foreground">
-                        <CardTitle className="flex items-center gap-2 text-md">
-                            <Bot className="h-5 w-5" /> PandaBot Guide
+                <Card className="mb-3 flex h-[560px] w-[calc(100vw-2rem)] max-w-[400px] flex-col overflow-hidden rounded-2xl border border-emerald-200/70 bg-white/95 shadow-[0_24px_48px_-20px_rgba(5,150,105,0.45)] backdrop-blur-sm animate-in slide-in-from-bottom-5">
+                    <CardHeader className="relative flex flex-row items-center justify-between border-b border-emerald-300/40 bg-linear-to-br from-emerald-600 via-emerald-500 to-teal-500 py-3 text-white">
+                        <div className="absolute -left-6 -top-10 h-24 w-24 rounded-full bg-white/15 blur-xl" />
+                        <div className="absolute -right-8 -bottom-10 h-24 w-24 rounded-full bg-lime-200/20 blur-xl" />
+                        <CardTitle className="relative z-10 flex items-center gap-2 text-md">
+                            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20">
+                                <Bot className="h-4 w-4" />
+                            </span>
+                            PandaBot Guide
+                            <span className="ml-1 rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-semibold tracking-wide">
+                                ONLINE
+                            </span>
                         </CardTitle>
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-primary-foreground hover:bg-primary/80"
+                            className="relative z-10 h-8 w-8 text-white hover:bg-white/20 hover:text-white"
                             onClick={() => setIsOpen(false)}
                         >
                             <X className="h-5 w-5" />
                         </Button>
                     </CardHeader>
 
-                    <CardContent className="flex-1 overflow-hidden bg-neutral-50/50 p-0">
-                        <ScrollArea className="h-full p-4">
+                    <CardContent className="flex-1 overflow-hidden bg-linear-to-b from-white via-emerald-50/20 to-white p-0">
+                        <ScrollArea className="h-full px-4 py-5">
                             {messages.length === 0 ? (
                                 <div className="mt-6 flex h-full flex-col items-center justify-center space-y-6 text-center">
-                                    <div className="rounded-full bg-emerald-100 p-4">
-                                        <Bot className="h-10 w-10 text-emerald-600" />
+                                    <div className="rounded-full bg-linear-to-br from-emerald-100 to-teal-100 p-4 shadow-sm ring-1 ring-emerald-200/70">
+                                        <Bot className="h-10 w-10 text-emerald-700" />
                                     </div>
-                                    <p className="px-4 text-sm text-neutral-600">
+                                    <p className="px-4 text-sm leading-relaxed text-neutral-600">
                                         Hi! I am your FundingPanda assistant. How can I help you navigate the platform today?
                                     </p>
 
@@ -87,7 +95,7 @@ export default function ChatBot() {
                                                 key={faq}
                                                 variant="outline"
                                                 size="sm"
-                                                className="w-full justify-start border-emerald-200 text-xs text-neutral-600 hover:bg-emerald-50 hover:text-emerald-700"
+                                                className="w-full justify-start rounded-lg border-emerald-200/90 bg-white text-xs text-neutral-700 shadow-xs hover:bg-emerald-50 hover:text-emerald-700"
                                                 onClick={() => handleFaqClick(faq)}
                                             >
                                                 <HelpCircle className="mr-2 h-3 w-3" /> {faq}
@@ -103,17 +111,17 @@ export default function ChatBot() {
                                                 className={`flex max-w-[85%] gap-2 ${m.role === "user" ? "flex-row-reverse" : "flex-row"}`}
                                             >
                                                 <div
-                                                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${m.role === "user"
-                                                        ? "bg-primary text-primary-foreground"
-                                                        : "border bg-white text-emerald-600"
+                                                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full shadow-xs ring-1 ${m.role === "user"
+                                                        ? "bg-linear-to-br from-emerald-600 to-teal-500 text-white ring-emerald-300/60"
+                                                        : "border bg-white text-emerald-600 ring-emerald-200/80"
                                                         }`}
                                                 >
                                                     {m.role === "user" ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
                                                 </div>
                                                 <div
                                                     className={`rounded-xl p-3 text-sm ${m.role === "user"
-                                                        ? "rounded-tr-none bg-primary text-primary-foreground"
-                                                        : "rounded-tl-none border bg-white text-neutral-800 whitespace-pre-wrap"
+                                                        ? "rounded-tr-none bg-linear-to-br from-emerald-600 to-teal-500 text-white shadow-sm"
+                                                        : "rounded-tl-none border border-emerald-100 bg-white text-neutral-800 whitespace-pre-wrap shadow-xs"
                                                         }`}
                                                 >
                                                     {getMessageText(m)}
@@ -124,13 +132,13 @@ export default function ChatBot() {
 
                                     {isLoading && (
                                         <div className="flex justify-start">
-                                            <div className="rounded-xl rounded-tl-none border bg-white p-3 text-sm text-neutral-500 animate-pulse shadow-sm">
+                                            <div className="rounded-xl rounded-tl-none border border-emerald-100 bg-white p-3 text-sm text-neutral-500 animate-pulse shadow-xs">
                                                 Thinking...
                                             </div>
                                         </div>
                                     )}
                                     {error && (
-                                        <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+                                        <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive shadow-xs">
                                             {error.message || "Chat error occurred. Check browser and server logs."}
                                         </div>
                                     )}
@@ -140,16 +148,16 @@ export default function ChatBot() {
                         </ScrollArea>
                     </CardContent>
 
-                    <CardFooter className="rounded-b-xl border-t bg-white p-3">
+                    <CardFooter className="rounded-b-2xl border-t border-emerald-100 bg-white p-3">
                         <form onSubmit={handleSubmit} className="flex w-full gap-2">
                             <Input
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 placeholder="Type your message..."
-                                className="flex-1 border-transparent bg-neutral-100 focus-visible:bg-white focus-visible:ring-primary"
+                                className="flex-1 rounded-xl border-transparent bg-neutral-100 focus-visible:bg-white focus-visible:ring-emerald-500"
                                 disabled={isLoading}
                             />
-                            <Button type="submit" size="icon" className="shrink-0 rounded-full" disabled={isLoading || !input.trim()}>
+                            <Button type="submit" size="icon" className="shrink-0 rounded-full bg-linear-to-br from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-500" disabled={isLoading || !input.trim()}>
                                 <Send className="h-4 w-4" />
                             </Button>
                         </form>
@@ -160,7 +168,7 @@ export default function ChatBot() {
             {!isOpen && (
                 <Button
                     onClick={() => setIsOpen(true)}
-                    className="flex h-14 w-14 items-center justify-center rounded-full bg-primary shadow-xl transition-all duration-300 hover:scale-105 hover:bg-emerald-600"
+                    className="flex h-14 w-14 items-center justify-center rounded-full bg-linear-to-br from-emerald-600 to-teal-500 shadow-[0_14px_28px_-10px_rgba(5,150,105,0.7)] transition-all duration-300 hover:scale-105 hover:from-emerald-500 hover:to-teal-500"
                 >
                     <MessageCircle className="h-6 w-6" />
                 </Button>
