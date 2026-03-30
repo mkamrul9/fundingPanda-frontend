@@ -90,7 +90,9 @@ export default function Footer() {
                 <div className="flex flex-col items-center justify-between border-t border-slate-800 pt-8 text-xs text-slate-500 md:flex-row">
                     <p>© {new Date().getFullYear()} FundingPanda Inc. All rights reserved.</p>
                     <div className="mt-4 flex gap-4 md:mt-0">
-                        <span>Built for academic excellence.</span>
+                        <Link href="/privacy" className="transition-colors hover:text-emerald-400">Privacy</Link>
+                        <Link href="/contact" className="transition-colors hover:text-emerald-400">Contact</Link>
+                        <Link href="/login" className="transition-colors hover:text-emerald-400">Admin Login</Link>
                     </div>
                 </div>
             </div>

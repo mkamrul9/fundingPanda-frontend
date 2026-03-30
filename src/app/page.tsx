@@ -133,12 +133,12 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* FEATURED IDEAS SECTION */}
+        {/* FEATURED TUTORS SECTION */}
         <section className="container mx-auto py-20 px-4 md:px-8">
           <div className="mb-12 flex flex-col items-center justify-between gap-4 md:flex-row">
             <div>
-              <h2 className="text-3xl font-bold tracking-tight text-neutral-900">Featured Ideas</h2>
-              <p className="text-neutral-500 mt-2">Discover groundbreaking sustainability projects waiting for your support. Showing {FEATURED_PROJECT_LIMIT} featured projects.</p>
+              <h2 className="text-3xl font-bold tracking-tight text-neutral-900">Featured Tutors</h2>
+              <p className="text-neutral-500 mt-2">Discover standout mentors and innovators behind active sustainability initiatives. Showing {FEATURED_PROJECT_LIMIT} featured profiles.</p>
             </div>
             <Link href="/projects">
               <Button variant="ghost" className="gap-2 text-primary hover:text-primary/80">
@@ -264,50 +264,50 @@ export default function HomePage() {
                 </CardContent>
               </Card>
             </div>
+
+            <div className="mt-12">
+              <div className="mb-10 text-center">
+                <h3 className="text-2xl font-bold tracking-tight text-neutral-900">Why Choose Us?</h3>
+                <p className="mx-auto mt-2 max-w-2xl text-neutral-500">A focused platform built specifically for research-backed impact projects.</p>
+              </div>
+
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                <Card>
+                  <CardContent className="space-y-3 p-6">
+                    <ShieldCheck className="h-7 w-7 text-emerald-600" />
+                    <h3 className="font-bold text-neutral-900">Verified Workflows</h3>
+                    <p className="text-sm text-neutral-600">Projects pass moderation before becoming publicly fundable.</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="space-y-3 p-6">
+                    <Zap className="h-7 w-7 text-amber-500" />
+                    <h3 className="font-bold text-neutral-900">Fast Sponsorship Match</h3>
+                    <p className="text-sm text-neutral-600">Sponsors quickly discover relevant opportunities through filters and profiles.</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="space-y-3 p-6">
+                    <Handshake className="h-7 w-7 text-blue-600" />
+                    <h3 className="font-bold text-neutral-900">Beyond Funding</h3>
+                    <p className="text-sm text-neutral-600">Resource sharing and messaging help students execute, not just raise money.</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="space-y-3 p-6">
+                    <LineChart className="h-7 w-7 text-primary" />
+                    <h3 className="font-bold text-neutral-900">Transparent Impact</h3>
+                    <p className="text-sm text-neutral-600">Track donations, progress, and completion outcomes from one ecosystem.</p>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
           </div>
         </section>
 
         <section className="container mx-auto px-4 py-20 md:px-8">
           <div className="mb-10 text-center">
-            <h2 className="text-3xl font-bold tracking-tight text-neutral-900">Why Choose Us?</h2>
-            <p className="mx-auto mt-2 max-w-2xl text-neutral-500">A focused platform built specifically for research-backed impact projects.</p>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            <Card>
-              <CardContent className="space-y-3 p-6">
-                <ShieldCheck className="h-7 w-7 text-emerald-600" />
-                <h3 className="font-bold text-neutral-900">Verified Workflows</h3>
-                <p className="text-sm text-neutral-600">Projects pass moderation before becoming publicly fundable.</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="space-y-3 p-6">
-                <Zap className="h-7 w-7 text-amber-500" />
-                <h3 className="font-bold text-neutral-900">Fast Sponsorship Match</h3>
-                <p className="text-sm text-neutral-600">Sponsors quickly discover relevant opportunities through filters and profiles.</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="space-y-3 p-6">
-                <Handshake className="h-7 w-7 text-blue-600" />
-                <h3 className="font-bold text-neutral-900">Beyond Funding</h3>
-                <p className="text-sm text-neutral-600">Resource sharing and messaging help students execute, not just raise money.</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="space-y-3 p-6">
-                <LineChart className="h-7 w-7 text-primary" />
-                <h3 className="font-bold text-neutral-900">Transparent Impact</h3>
-                <p className="text-sm text-neutral-600">Track donations, progress, and completion outcomes from one ecosystem.</p>
-              </CardContent>
-            </Card>
-          </div>
-        </section>
-
-        <section className="container mx-auto px-4 py-20 md:px-8">
-          <div className="mb-10 text-center">
-            <h2 className="text-3xl font-bold tracking-tight text-neutral-900">Voices From Our Community</h2>
+            <h2 className="text-3xl font-bold tracking-tight text-neutral-900">Testimonials</h2>
             <p className="mx-auto mt-2 max-w-2xl text-neutral-500">Feedback from students and sponsors using FundingPanda.</p>
           </div>
 
