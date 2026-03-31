@@ -12,6 +12,16 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ArrowRight, Leaf, UserRound, HandCoins, CheckCircle2, ShieldCheck, Zap, Handshake, LineChart, ChevronLeft, ChevronRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
+type FeaturedProject = {
+  id: string;
+  title: string;
+  description: string;
+  images?: string[];
+  raisedAmount: number;
+  goalAmount: number;
+  categories?: Array<{ id: string; name: string }>;
+};
+
 export default function HomePage() {
   const FEATURED_PROJECT_LIMIT = 6;
   const testimonials = [
@@ -133,12 +143,12 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* FEATURED TUTORS SECTION */}
+        {/* FEATURED IDEAS SECTION */}
         <section className="container mx-auto py-20 px-4 md:px-8">
           <div className="mb-12 flex flex-col items-center justify-between gap-4 md:flex-row">
             <div>
-              <h2 className="text-3xl font-bold tracking-tight text-neutral-900">Featured Tutors</h2>
-              <p className="text-neutral-500 mt-2">Discover standout mentors and innovators behind active sustainability initiatives. Showing {FEATURED_PROJECT_LIMIT} featured profiles.</p>
+              <h2 className="text-3xl font-bold tracking-tight text-neutral-900">Featured Ideas</h2>
+              <p className="text-neutral-500 mt-2">Discover standout sustainability projects from student innovators. Showing {FEATURED_PROJECT_LIMIT} featured ideas.</p>
             </div>
             <Link href="/projects">
               <Button variant="ghost" className="gap-2 text-primary hover:text-primary/80">
@@ -171,7 +181,7 @@ export default function HomePage() {
                 </div>
 
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                  {visibleFeatured.map((project: any) => (
+                  {visibleFeatured.map((project: FeaturedProject) => (
                     <div key={project.id} className="transition-all duration-300">
                       <Card className="flex h-full flex-col overflow-hidden transition-all hover:shadow-lg">
                         <div className="aspect-video w-full overflow-hidden bg-slate-100 relative">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
@@ -151,23 +151,20 @@ export default function MyProjectsPage() {
         setIsEditOpen(true);
     };
 
-    if (!session) return null;
-
     const projectList = (projects ?? []) as MyProject[];
     const filteredProjects = activeTab === "ALL"
         ? projectList
         : projectList.filter((project) => project.status === activeTab);
 
-    useEffect(() => {
-        setCurrentPage(1);
-    }, [activeTab]);
-
     const totalPages = Math.max(1, Math.ceil(filteredProjects.length / PAGE_SIZE));
+    const safeCurrentPage = Math.min(currentPage, totalPages);
 
     const paginatedProjects = useMemo(() => {
-        const start = (currentPage - 1) * PAGE_SIZE;
+        const start = (safeCurrentPage - 1) * PAGE_SIZE;
         return filteredProjects.slice(start, start + PAGE_SIZE);
-    }, [filteredProjects, currentPage]);
+    }, [filteredProjects, safeCurrentPage]);
+
+    if (!session) return null;
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -187,7 +184,10 @@ export default function MyProjectsPage() {
                         key={tab.value}
                         size="sm"
                         variant={activeTab === tab.value ? "default" : "outline"}
-                        onClick={() => setActiveTab(tab.value)}
+                        onClick={() => {
+                            setActiveTab(tab.value);
+                            setCurrentPage(1);
+                        }}
                     >
                         {tab.label}
                     </Button>
@@ -293,18 +293,18 @@ export default function MyProjectsPage() {
 
             {!isLoading && filteredProjects.length > 0 && (
                 <div className="flex flex-col items-center justify-between gap-3 border-t pt-4 sm:flex-row">
-                    <p className="text-sm text-neutral-500">Page {currentPage} of {totalPages}</p>
+                    <p className="text-sm text-neutral-500">Page {safeCurrentPage} of {totalPages}</p>
                     <div className="flex items-center gap-2">
                         <Button
                             variant="outline"
-                            onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                            disabled={currentPage <= 1}
+                            onClick={() => setCurrentPage((prev) => Math.max(1, Math.min(prev, totalPages) - 1))}
+                            disabled={safeCurrentPage <= 1}
                         >
                             Previous
                         </Button>
                         <Button
-                            onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-                            disabled={currentPage >= totalPages}
+                            onClick={() => setCurrentPage((prev) => Math.min(totalPages, Math.min(prev, totalPages) + 1))}
+                            disabled={safeCurrentPage >= totalPages}
                         >
                             Next
                         </Button>

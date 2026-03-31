@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -17,14 +17,14 @@ function VerifyEmailContent() {
     const [isChecking, setIsChecking] = useState(false);
     const [isResending, setIsResending] = useState(false);
 
-    const resolveFrontendBaseUrl = () => {
+    const resolveFrontendBaseUrl = useCallback(() => {
         const explicitFrontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL?.trim();
         const currentOrigin = typeof window !== "undefined" ? window.location.origin : "";
         const rawBase = explicitFrontendUrl || currentOrigin || "http://localhost:3000";
         return rawBase.replace(/\/$/, "");
-    };
+    }, []);
 
-    const checkStatus = async (silent = false) => {
+    const checkStatus = useCallback(async (silent = false) => {
         if (!email) return;
 
         try {
@@ -50,7 +50,7 @@ function VerifyEmailContent() {
         } finally {
             if (!silent) setIsChecking(false);
         }
-    };
+    }, [email, router]);
 
     useEffect(() => {
         if (!email) {
@@ -64,7 +64,7 @@ function VerifyEmailContent() {
         }, 5000);
 
         return () => clearInterval(interval);
-    }, [email]);
+    }, [email, checkStatus, router]);
 
     const resendVerification = async () => {
         if (!email) {

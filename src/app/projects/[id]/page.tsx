@@ -49,13 +49,16 @@ type ProjectDetail = {
     status?: "DRAFT" | "PENDING" | "APPROVED" | "FUNDED" | "COMPLETED";
 };
 
+type DonationSummary = {
+    projectId: string;
+};
+
 export default function ProjectDetailsPage() {
     const params = useParams();
     const projectId = params?.id as string;
     const { data: session } = useSession();
     const currentUser = session?.user as unknown as User | undefined;
     const isSponsor = currentUser?.role === "SPONSOR";
-    const isAdmin = currentUser?.role === "ADMIN";
     const [isDonateModalOpen, setIsDonateModalOpen] = useState(false);
     const [donationAmount, setDonationAmount] = useState<number>(50);
 
@@ -76,7 +79,7 @@ export default function ProjectDetailsPage() {
         },
     });
 
-    const { data: myDonations = [] } = useQuery<any[]>({
+    const { data: myDonations = [] } = useQuery<DonationSummary[]>({
         queryKey: ["myDonations", currentUser?.id],
         queryFn: () => getMyDonations(currentUser?.id),
         enabled: isSponsor,
@@ -177,7 +180,7 @@ export default function ProjectDetailsPage() {
             }
 
             await navigator.clipboard.writeText(url);
-        } catch (err) {
+        } catch {
             toast.error('Unable to share this project');
         }
     };
@@ -230,7 +233,7 @@ export default function ProjectDetailsPage() {
                         <Separator />
 
                         {(project.pitchDocUrl || project.pitchDoc) && (
-                            <div className="flex items-center justify-between rounded-xl border bg-white p-6 shadow-sm">
+                            <div className="flex flex-col gap-4 rounded-xl border bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-6">
                                 <div className="flex items-center gap-4">
                                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-100 text-red-600">
                                         <FileText className="h-4 w-4" />
@@ -240,7 +243,7 @@ export default function ProjectDetailsPage() {
                                         <p className="text-sm text-neutral-500">PDF Format • Full technical specifications</p>
                                     </div>
                                 </div>
-                                <Button className="h-10 gap-2 px-4" asChild>
+                                <Button className="h-10 w-full gap-2 px-4 sm:w-auto" asChild>
                                     <a
                                         href={getProjectPitchDocDownloadUrl(project.id)}
                                         target="_blank"

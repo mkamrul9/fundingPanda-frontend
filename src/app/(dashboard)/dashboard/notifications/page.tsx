@@ -7,6 +7,7 @@ import { Bell, CheckCheck, MessageSquare, HandCoins, BadgeCheck, FileWarning, Mi
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { getMyNotifications, markAllNotificationsRead, NotificationItem } from "@/services/notification.service";
+import { extractApiErrorMessage } from "@/lib/api-error";
 import { toast } from "sonner";
 
 const iconForType = (type: NotificationItem["type"]) => {
@@ -35,8 +36,8 @@ export default function NotificationsPage() {
             queryClient.invalidateQueries({ queryKey: ["notifications"] });
             queryClient.invalidateQueries({ queryKey: ["conversations"] });
         },
-        onError: () => {
-            toast.error("Failed to mark notifications as read");
+        onError: (error: unknown) => {
+            toast.error(extractApiErrorMessage(error, "Failed to mark notifications as read"));
         },
     });
 

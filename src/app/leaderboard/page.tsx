@@ -171,8 +171,8 @@ export default function LeaderboardPage() {
                                 key={sponsor.id}
                                 className={`overflow-hidden transition-all hover:-translate-y-1 hover:shadow-md ${((sponsorPage - 1) * PAGE_SIZE + index) === 0 ? "border-amber-300 ring-1 ring-amber-300 shadow-amber-100" : ""}`}
                             >
-                                <CardContent className="flex items-center p-0">
-                                    <div className={`flex w-16 items-center justify-center self-stretch sm:w-24 ${((sponsorPage - 1) * PAGE_SIZE + index) === 0 ? "bg-amber-50" : ((sponsorPage - 1) * PAGE_SIZE + index) === 1 ? "bg-slate-50" : ((sponsorPage - 1) * PAGE_SIZE + index) === 2 ? "bg-orange-50" : "border-r bg-neutral-50"}`}>
+                                <CardContent className="flex flex-col items-stretch p-0 sm:flex-row sm:items-center">
+                                    <div className={`flex h-14 w-full items-center justify-center sm:h-auto sm:w-24 sm:self-stretch ${((sponsorPage - 1) * PAGE_SIZE + index) === 0 ? "bg-amber-50" : ((sponsorPage - 1) * PAGE_SIZE + index) === 1 ? "bg-slate-50" : ((sponsorPage - 1) * PAGE_SIZE + index) === 2 ? "bg-orange-50" : "border-b bg-neutral-50 sm:border-b-0 sm:border-r"}`}>
                                         {getRankBadge((sponsorPage - 1) * PAGE_SIZE + index)}
                                     </div>
 
@@ -194,7 +194,7 @@ export default function LeaderboardPage() {
                                         </div>
                                     </div>
 
-                                    <div className="border-l bg-white p-4 text-right sm:p-6">
+                                    <div className="w-full border-t bg-white p-4 text-left sm:w-auto sm:border-l sm:border-t-0 sm:p-6 sm:text-right">
                                         <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-neutral-500">Total Funded</p>
                                         <p className="text-xl font-black text-primary sm:text-2xl">
                                             ${Number(sponsor.totalFunded ?? sponsor.totalDonated ?? 0).toLocaleString()}
@@ -210,7 +210,7 @@ export default function LeaderboardPage() {
                     )}
 
                     {!isLoading && sponsorList.length > 0 && (
-                        <div className="flex items-center justify-end gap-2 pt-2">
+                        <div className="flex flex-wrap items-center justify-center gap-2 pt-2 sm:justify-end">
                             <Button variant="outline" onClick={() => setSponsorPage((prev) => Math.max(1, prev - 1))} disabled={sponsorPage <= 1}>Previous</Button>
                             <p className="text-sm text-neutral-500">Page {sponsorPage} of {sponsorPages}</p>
                             <Button onClick={() => setSponsorPage((prev) => Math.min(sponsorPages, prev + 1))} disabled={sponsorPage >= sponsorPages}>Next</Button>
@@ -242,8 +242,8 @@ export default function LeaderboardPage() {
                     ) : topStudents && topStudents.length > 0 ? (
                         pagedStudents.map((student, index) => (
                             <Card key={student.id} className="overflow-hidden transition-all hover:-translate-y-1 hover:shadow-md">
-                                <CardContent className="flex items-center p-0">
-                                    <div className={`flex w-16 items-center justify-center self-stretch sm:w-24 ${((studentPage - 1) * PAGE_SIZE + index) === 0 ? "bg-emerald-50" : ((studentPage - 1) * PAGE_SIZE + index) === 1 ? "bg-slate-50" : ((studentPage - 1) * PAGE_SIZE + index) === 2 ? "bg-lime-50" : "border-r bg-neutral-50"}`}>
+                                <CardContent className="flex flex-col items-stretch p-0 sm:flex-row sm:items-center">
+                                    <div className={`flex h-14 w-full items-center justify-center sm:h-auto sm:w-24 sm:self-stretch ${((studentPage - 1) * PAGE_SIZE + index) === 0 ? "bg-emerald-50" : ((studentPage - 1) * PAGE_SIZE + index) === 1 ? "bg-slate-50" : ((studentPage - 1) * PAGE_SIZE + index) === 2 ? "bg-lime-50" : "border-b bg-neutral-50 sm:border-b-0 sm:border-r"}`}>
                                         {getRankBadge((studentPage - 1) * PAGE_SIZE + index)}
                                     </div>
 
@@ -266,7 +266,7 @@ export default function LeaderboardPage() {
                                         </div>
                                     </div>
 
-                                    <div className="border-l bg-white p-4 text-right sm:p-6">
+                                    <div className="w-full border-t bg-white p-4 text-left sm:w-auto sm:border-l sm:border-t-0 sm:p-6 sm:text-right">
                                         <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-neutral-500">Total Raised</p>
                                         <p className="text-xl font-black text-primary sm:text-2xl">${student.totalRaised.toLocaleString()}</p>
                                         <p className="mt-1 text-xs text-neutral-500">{student.projectCount} project{student.projectCount === 1 ? "" : "s"}</p>
@@ -279,7 +279,7 @@ export default function LeaderboardPage() {
                     )}
 
                     {!isStudentsLoading && studentList.length > 0 && (
-                        <div className="flex items-center justify-end gap-2 pt-2">
+                        <div className="flex flex-wrap items-center justify-center gap-2 pt-2 sm:justify-end">
                             <Button variant="outline" onClick={() => setStudentPage((prev) => Math.max(1, prev - 1))} disabled={studentPage <= 1}>Previous</Button>
                             <p className="text-sm text-neutral-500">Page {studentPage} of {studentPages}</p>
                             <Button onClick={() => setStudentPage((prev) => Math.min(studentPages, prev + 1))} disabled={studentPage >= studentPages}>Next</Button>

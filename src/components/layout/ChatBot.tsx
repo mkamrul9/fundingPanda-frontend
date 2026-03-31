@@ -53,9 +53,9 @@ export default function ChatBot() {
     }, [messages]);
 
     return (
-        <div className="fixed bottom-4 right-4 z-50 sm:bottom-6 sm:right-6">
+        <div className="fixed bottom-3 right-3 z-50 sm:bottom-6 sm:right-6">
             {isOpen && (
-                <Card className="mb-3 flex h-[560px] w-[calc(100vw-2rem)] max-w-[400px] flex-col overflow-hidden rounded-2xl border border-emerald-200/70 bg-white/95 shadow-[0_24px_48px_-20px_rgba(5,150,105,0.45)] backdrop-blur-sm animate-in slide-in-from-bottom-5">
+                <Card className="mb-3 flex h-[min(560px,calc(100dvh-7.5rem))] w-[calc(100vw-1.5rem)] max-w-100 flex-col overflow-hidden rounded-2xl border border-emerald-200/70 bg-white/95 shadow-[0_24px_48px_-20px_rgba(5,150,105,0.45)] backdrop-blur-sm animate-in slide-in-from-bottom-5 sm:w-[calc(100vw-2rem)]">
                     <CardHeader className="relative flex flex-row items-center justify-between border-b border-emerald-300/40 bg-linear-to-br from-emerald-600 via-emerald-500 to-teal-500 py-3 text-white">
                         <div className="absolute -left-6 -top-10 h-24 w-24 rounded-full bg-white/15 blur-xl" />
                         <div className="absolute -right-8 -bottom-10 h-24 w-24 rounded-full bg-lime-200/20 blur-xl" />

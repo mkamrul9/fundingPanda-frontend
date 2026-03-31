@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { getAllProjectsPaginated, getCategories } from "@/services/project.service";
@@ -13,6 +13,21 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Search, Leaf, Filter, X } from "lucide-react";
+
+type CategoryItem = {
+    id: string;
+    name: string;
+};
+
+type ProjectItem = {
+    id: string;
+    title: string;
+    description: string;
+    images?: string[];
+    raisedAmount: number;
+    goalAmount: number;
+    categories?: Array<{ id: string; name: string }>;
+};
 
 export default function ExploreProjectsPage() {
     const [showAdvanced, setShowAdvanced] = useState(false);
@@ -47,6 +62,7 @@ export default function ExploreProjectsPage() {
 
     const handleFilterChange = (key: string, value: string) => {
         setFilters(prev => ({ ...prev, [key]: value }));
+        setCurrentPage(1);
     };
 
     const clearFilters = () => {
@@ -56,10 +72,6 @@ export default function ExploreProjectsPage() {
         });
         setCurrentPage(1);
     };
-
-    useEffect(() => {
-        setCurrentPage(1);
-    }, [filters.searchTerm, filters.studentName, filters.university, filters.category, filters.fundingStatus, filters.startDate, filters.endDate, filters.sortBy]);
 
     return (
         <div className="flex min-h-screen flex-col bg-neutral-50">
@@ -109,7 +121,7 @@ export default function ExploreProjectsPage() {
                             <SelectTrigger><SelectValue placeholder="All Categories" /></SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="ALL">All Categories</SelectItem>
-                                {categories?.map((cat: any) => (
+                                {categories?.map((cat: CategoryItem) => (
                                     <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
                                 ))}
                             </SelectContent>
@@ -188,21 +200,21 @@ export default function ExploreProjectsPage() {
                     <div className="flex items-center gap-2 border-b pb-4 overflow-x-auto whitespace-nowrap">
                         <Button
                             variant={filters.sortBy === "-createdAt" && filters.fundingStatus === "ALL" ? "default" : "ghost"}
-                            onClick={() => { setFilters(prev => ({ ...prev, sortBy: "-createdAt", fundingStatus: "ALL" })) }}
+                            onClick={() => { setFilters(prev => ({ ...prev, sortBy: "-createdAt", fundingStatus: "ALL" })); setCurrentPage(1); }}
                             className="rounded-full"
                         >
                             Newest First
                         </Button>
                         <Button
                             variant={filters.sortBy === "-raisedAmount" ? "default" : "ghost"}
-                            onClick={() => { setFilters(prev => ({ ...prev, sortBy: "-raisedAmount", fundingStatus: "ALL" })) }}
+                            onClick={() => { setFilters(prev => ({ ...prev, sortBy: "-raisedAmount", fundingStatus: "ALL" })); setCurrentPage(1); }}
                             className="rounded-full"
                         >
                             Top Funded (All Time)
                         </Button>
                         <Button
                             variant={filters.fundingStatus === "NEEDS_FUNDING" ? "default" : "ghost"}
-                            onClick={() => { setFilters(prev => ({ ...prev, fundingStatus: "NEEDS_FUNDING", sortBy: "createdAt" })) }}
+                            onClick={() => { setFilters(prev => ({ ...prev, fundingStatus: "NEEDS_FUNDING", sortBy: "createdAt" })); setCurrentPage(1); }}
                             className="rounded-full"
                         >
                             Closing Soon / Needs Funding
@@ -237,7 +249,7 @@ export default function ExploreProjectsPage() {
                             </div>
                         ) : projects && projects.length > 0 ? (
                             // ... Keep your existing project mapping logic here ...
-                            projects.map((project: any) => (
+                            projects.map((project: ProjectItem) => (
                                 <Card key={project.id} className="flex flex-col overflow-hidden transition-all hover:shadow-lg hover:-translate-y-1 duration-300">
                                     <div className="aspect-video w-full bg-slate-100 overflow-hidden relative">
                                         {project.images?.[0] ? (

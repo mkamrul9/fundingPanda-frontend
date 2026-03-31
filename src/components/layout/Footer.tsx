@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { subscribeToNewsletter } from "@/services/marketing.service";
+import { extractApiErrorMessage } from "@/lib/api-error";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Leaf, Twitter, Github, Linkedin, Mail } from "lucide-react";
@@ -18,9 +19,8 @@ export default function Footer() {
             toast.success("Thanks for subscribing! Keep an eye on your inbox.");
             setEmail("");
         },
-        onError: () => {
-            toast.success("Thanks for subscribing! Keep an eye on your inbox.");
-            setEmail("");
+        onError: (error: unknown) => {
+            toast.error(extractApiErrorMessage(error, "Subscription failed. Please try again."));
         },
     });
 

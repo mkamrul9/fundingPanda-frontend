@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "@/lib/auth-client";
 import { getAllUsers, toggleUserBan, verifyUser } from "@/services/admin.service";
+import { extractApiErrorMessage } from "@/lib/api-error";
 import { User } from "@/types";
 import { toast } from "sonner";
 
@@ -56,8 +57,8 @@ export default function AdminUsersPage() {
             toast.success(variables.isBanned ? "User banned successfully." : "User unbanned successfully.");
             queryClient.invalidateQueries({ queryKey: ["allUsers"] });
         },
-        onError: () => {
-            toast.error("Failed to update user ban status.");
+        onError: (error: unknown) => {
+            toast.error(extractApiErrorMessage(error, "Failed to update user ban status."));
         },
     });
 
@@ -67,8 +68,8 @@ export default function AdminUsersPage() {
             toast.success(variables.isVerified ? "User marked as verified." : "User verification removed.");
             queryClient.invalidateQueries({ queryKey: ["allUsers"] });
         },
-        onError: () => {
-            toast.error("Failed to update user verification status.");
+        onError: (error: unknown) => {
+            toast.error(extractApiErrorMessage(error, "Failed to update user verification status."));
         },
     });
 

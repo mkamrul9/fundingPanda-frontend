@@ -27,7 +27,7 @@ export default function AboutPage() {
                     <div className="text-center space-y-4">
                         <div className="h-16 w-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto"><Users className="h-8 w-8" /></div>
                         <h3 className="text-xl font-bold">Empowering Students</h3>
-                        <p className="text-neutral-600">Brilliant ideas shouldn't die in a university library. We give students the platform to pitch directly to those who can fund them.</p>
+                        <p className="text-neutral-600">Brilliant ideas should not die in a university library. We give students the platform to pitch directly to those who can fund them.</p>
                     </div>
                     <div className="text-center space-y-4">
                         <div className="h-16 w-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto"><Zap className="h-8 w-8" /></div>

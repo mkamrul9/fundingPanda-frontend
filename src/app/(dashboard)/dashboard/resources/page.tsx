@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
 import { toast } from "sonner";
@@ -68,11 +68,8 @@ export default function ResourcesMarketplacePage() {
 
     const selectableProjects = myProjects.filter((project) => project.status !== "COMPLETED");
     const totalPages = Math.max(1, Math.ceil(resources.length / PAGE_SIZE));
-    const paginatedResources = resources.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
-
-    useEffect(() => {
-        setCurrentPage((prev) => Math.min(prev, totalPages));
-    }, [totalPages]);
+    const safeCurrentPage = Math.min(currentPage, totalPages);
+    const paginatedResources = resources.slice((safeCurrentPage - 1) * PAGE_SIZE, safeCurrentPage * PAGE_SIZE);
 
     const createMutation = useMutation({
         mutationFn: createResource,
@@ -242,18 +239,18 @@ export default function ResourcesMarketplacePage() {
 
             {!loadingResources && resources.length > 0 && (
                 <div className="flex flex-col items-center justify-between gap-3 border-t pt-4 sm:flex-row">
-                    <p className="text-sm text-neutral-500">Page {currentPage} of {totalPages}</p>
+                    <p className="text-sm text-neutral-500">Page {safeCurrentPage} of {totalPages}</p>
                     <div className="flex items-center gap-2">
                         <Button
                             variant="outline"
-                            onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                            disabled={currentPage <= 1}
+                            onClick={() => setCurrentPage((prev) => Math.max(1, Math.min(prev, totalPages) - 1))}
+                            disabled={safeCurrentPage <= 1}
                         >
                             Previous
                         </Button>
                         <Button
-                            onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-                            disabled={currentPage >= totalPages}
+                            onClick={() => setCurrentPage((prev) => Math.min(totalPages, Math.min(prev, totalPages) + 1))}
+                            disabled={safeCurrentPage >= totalPages}
                         >
                             Next
                         </Button>

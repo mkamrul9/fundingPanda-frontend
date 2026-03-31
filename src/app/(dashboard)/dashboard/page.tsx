@@ -12,7 +12,7 @@ import { getMyDonations } from "@/services/donation.service";
 import { getMyResourceClaims } from "@/services/resource.service";
 import { getMyNotifications } from "@/services/notification.service";
 import { getPlatformAnalytics, getPendingProjects } from "@/services/admin.service";
-import { ArrowUpRight, Bell, DollarSign, FolderKanban, HandCoins, Package, ShieldCheck, Users } from "lucide-react";
+import { ArrowUpRight, Bell, FolderKanban, HandCoins, ShieldCheck, Users } from "lucide-react";
 
 type DashboardProject = {
     id: string;
@@ -48,13 +48,10 @@ const percent = (part: number, total: number) => {
 
 export default function DashboardPage() {
     const { data: session } = useSession();
-
-    if (!session) return null;
-
-    const user = session.user as unknown as User;
-    const isAdmin = user.role === "ADMIN";
-    const isSponsor = user.role === "SPONSOR";
-    const isStudent = user.role === "STUDENT";
+    const user = session?.user as unknown as User | undefined;
+    const isAdmin = user?.role === "ADMIN";
+    const isSponsor = user?.role === "SPONSOR";
+    const isStudent = user?.role === "STUDENT";
 
     const { data: notifications } = useQuery({
         queryKey: ["notifications"],
@@ -72,8 +69,8 @@ export default function DashboardPage() {
     });
 
     const { data: myDonations = [], isLoading: loadingDonations } = useQuery<DonationRow[]>({
-        queryKey: ["myDonations", user.id],
-        queryFn: () => getMyDonations(user.id),
+        queryKey: ["myDonations", user?.id],
+        queryFn: () => getMyDonations(user?.id),
         enabled: isSponsor,
         refetchOnMount: "always",
         refetchOnWindowFocus: true,
@@ -143,6 +140,8 @@ export default function DashboardPage() {
     }, [myDonations]);
 
     const unreadNotifications = notifications?.unreadCount ?? 0;
+
+    if (!session || !user) return null;
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">

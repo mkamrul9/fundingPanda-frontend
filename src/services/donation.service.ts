@@ -11,7 +11,3 @@ export const getMyDonations = async (userId?: string) => {
     const response = await apiClient.get('/donations/me');
     return response.data.data;
 };
-
-export default {
-    getMyDonations,
-};

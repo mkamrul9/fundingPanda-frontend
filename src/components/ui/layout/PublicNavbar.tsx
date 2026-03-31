@@ -15,12 +15,12 @@ export default function PublicNavbar() {
     const isActive = (path: string) => pathname === path;
 
     const navLinks = [
-        { href: "/", label: "Home" },
-        { href: "/projects", label: "Tutors" },
-        { href: "/login", label: "Login" },
-        { href: "/register", label: "Register" },
+        { href: "/projects", label: "Explore Ideas" },
         { href: "/leaderboard", label: "Leaderboard" },
-        { href: "/faq", label: "Help Center" },
+        { href: "/newsletter", label: "Updates and News" },
+        { href: "/contact", label: "Contact Us" },
+        { href: "/faq", label: "Help" },
+        { href: "/about", label: "About Us" },
     ];
 
     return (

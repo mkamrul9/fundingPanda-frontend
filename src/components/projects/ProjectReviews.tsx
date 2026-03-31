@@ -129,11 +129,11 @@ export default function ProjectReviews({ projectId, studentId, projectStatus }: 
                             </div>
                         ))
                     ) : (
-                        <div className="py-6 text-center text-neutral-500">
+                        <p className="whitespace-pre-wrap wrap-break-word text-sm italic text-neutral-600">
                             {projectStatus === "COMPLETED"
                                 ? "No reviews yet. Be the first to share your thoughts!"
                                 : "Reviews will unlock once the student marks this project as Completed."}
-                        </div>
+                        </p>
                     )}
                 </div>
             </CardContent>

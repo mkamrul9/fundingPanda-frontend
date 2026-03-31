@@ -27,10 +27,3 @@ export const sendTextMessage = async (payload: { receiverId: string; content: st
     const response = await apiClient.post('/messages', payload);
     return response.data.data;
 };
-
-export default {
-    getChatHistory,
-    getConversations,
-    uploadChatImage,
-    sendTextMessage,
-};

@@ -5,6 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import PublicNavbar from "@/components/ui/layout/PublicNavbar";
 import { subscribeToNewsletter } from "@/services/marketing.service";
+import { extractApiErrorMessage } from "@/lib/api-error";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,8 +20,8 @@ export default function NewsletterPage() {
             toast.success("Subscribed successfully!");
             setEmail("");
         },
-        onError: () => {
-            toast.error("Subscription failed. Please try again.");
+        onError: (error: unknown) => {
+            toast.error(extractApiErrorMessage(error, "Subscription failed. Please try again."));
         },
     });
 
@@ -64,16 +65,16 @@ export default function NewsletterPage() {
                         Join sponsors and researchers getting weekly project highlights, platform improvements, and impact stories from FundingPanda.
                     </p>
 
-                    <form onSubmit={handleSubscribe} className="mx-auto flex max-w-md gap-2">
+                    <form onSubmit={handleSubscribe} className="mx-auto flex w-full max-w-md flex-col gap-2 sm:flex-row">
                         <Input
                             type="email"
                             placeholder="Enter your email address..."
-                            className="h-12 text-base"
+                            className="h-12 flex-1 text-base"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
                         />
-                        <Button type="submit" size="lg" className="h-12 px-8" disabled={subscribeMutation.isPending}>
+                        <Button type="submit" size="lg" className="h-12 w-full px-8 sm:w-auto" disabled={subscribeMutation.isPending}>
                             {subscribeMutation.isPending ? "Joining..." : "Subscribe"}
                         </Button>
                     </form>
@@ -110,8 +111,8 @@ export default function NewsletterPage() {
 
                 <section className="mt-14">
                     <div className="mb-4 flex items-center gap-2">
-                    <CalendarDays className="h-5 w-5 text-primary" />
-                    <h3 className="text-xl font-bold text-neutral-900">Latest Bulletin Preview</h3>
+                        <CalendarDays className="h-5 w-5 text-primary" />
+                        <h3 className="text-xl font-bold text-neutral-900">Latest Bulletin Preview</h3>
                     </div>
 
                     <div className="mt-4 grid gap-8 md:grid-cols-2">

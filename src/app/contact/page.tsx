@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { submitContactForm } from "@/services/marketing.service";
+import { extractApiErrorMessage } from "@/lib/api-error";
 import Link from "next/link";
 
 import PublicNavbar from "@/components/ui/layout/PublicNavbar";
@@ -22,8 +23,8 @@ export default function ContactPage() {
             toast.success("Message sent successfully! Our team will get back to you within 24 hours.");
             setFormData({ name: "", email: "", subject: "", message: "" });
         },
-        onError: () => {
-            toast.error("Message could not be sent. Please try again in a moment.");
+        onError: (error: unknown) => {
+            toast.error(extractApiErrorMessage(error, "Message could not be sent. Please try again in a moment."));
         },
     });
 

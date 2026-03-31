@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useSession } from "@/lib/auth-client";
 import { socket } from "@/lib/socket";
 import { getConversations, getChatHistory, uploadChatImage, sendTextMessage } from "@/services/message.service";
+import { getUserById } from "@/services/user.service";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -40,7 +41,7 @@ export default function MessagesPage() {
     const { data: session } = useSession();
     const currentUserId = session?.user?.id;
 
-    const [activeContact, setActiveContact] = useState<any | null>(null);
+    const [activeContact, setActiveContact] = useState<ConversationItem | null>(null);
     const [activePane, setActivePane] = useState<"conversations" | "chat">("chat");
     const [messages, setMessages] = useState<Message[]>([]);
     const [newMessage, setNewMessage] = useState("");
@@ -109,7 +110,7 @@ export default function MessagesPage() {
         // Let the server bind this socket to the authenticated user's room
         try {
             socket.emit("join_own_room", currentUserId);
-        } catch (err) {
+        } catch {
             // ignore emit errors
         }
 
@@ -156,22 +157,44 @@ export default function MessagesPage() {
         };
     }, [currentUserId, queryClient]);
 
-    // Auto-select contact from ?contact=ID immediately (fallback when conversations empty)
+    // Auto-select contact from ?contact=ID, even if this is the first message and no conversation exists yet.
     useEffect(() => {
         const preferredContactId = contactParam || (typeof window !== 'undefined' ? localStorage.getItem('lastMessageContactId') : null);
         if (!preferredContactId) return;
         if (activeContact) return; // don't override a user-picked contact
         if (preferredContactId === currentUserId) return;
 
-        const found = contacts?.find?.((c: any) => c.id === preferredContactId);
+        const found = contacts?.find?.((c) => c.id === preferredContactId);
         if (found) {
             setActiveContact(found);
             setActivePane("chat");
             return;
         }
 
-        // If not found in existing conversations, do not create a synthetic self/unknown chat.
-    }, [contactParam, contacts, activeContact]);
+        void (async () => {
+            try {
+                const user = await getUserById(preferredContactId);
+                if (!user?.id || user.id === currentUserId) return;
+
+                setActiveContact({
+                    id: user.id,
+                    name: user.name || "User",
+                    role: (user.role || "USER").toString(),
+                    unreadCount: 0,
+                });
+                setActivePane("chat");
+            } catch {
+                // Keep the message UI functional even if profile fetch fails.
+                setActiveContact({
+                    id: preferredContactId,
+                    name: "New Contact",
+                    role: "USER",
+                    unreadCount: 0,
+                });
+                setActivePane("chat");
+            }
+        })();
+    }, [contactParam, contacts, activeContact, currentUserId]);
 
     useEffect(() => {
         if (activeContact || !contacts.length) return;
@@ -277,9 +300,9 @@ export default function MessagesPage() {
     };
 
     return (
-        <div className="flex h-[calc(100vh-6rem)] flex-col gap-4 animate-in fade-in duration-500">
+        <div className="flex h-[calc(100dvh-7.5rem)] min-h-0 flex-col gap-4 animate-in fade-in duration-500 md:h-[calc(100vh-6rem)]">
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
                 <Button
                     variant={activePane === "conversations" ? "default" : "outline"}
                     onClick={() => setActivePane("conversations")}
@@ -376,7 +399,7 @@ export default function MessagesPage() {
                                             return (
                                                 <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
                                                     <div
-                                                        className={`max-w-[70%] rounded-2xl px-4 py-2 ${isMe
+                                                        className={`max-w-[85%] rounded-2xl px-4 py-2 sm:max-w-[70%] ${isMe
                                                             ? "bg-primary text-primary-foreground rounded-br-sm"
                                                             : "bg-white border text-neutral-900 rounded-bl-sm shadow-sm"
                                                             }`}
@@ -387,7 +410,7 @@ export default function MessagesPage() {
                                                                     <img
                                                                         src={msg.imageUrl || msg.content}
                                                                         alt="Chat attachment"
-                                                                        className="mt-1 max-w-50 rounded-md transition-opacity hover:opacity-90"
+                                                                        className="mt-1 max-h-64 w-full max-w-xs rounded-md object-cover transition-opacity hover:opacity-90"
                                                                     />
                                                                 </a>
                                                             ) : msg.content}

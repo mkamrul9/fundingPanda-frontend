@@ -159,7 +159,7 @@ export default function PublicUserProfilePage() {
                         {user.bio ? (
                             <p className="text-neutral-600 max-w-2xl leading-relaxed">{user.bio}</p>
                         ) : (
-                            <p className="text-neutral-400 italic">This user hasn't added a bio yet.</p>
+                            <p className="text-neutral-400 italic">This user has not added a bio yet.</p>
                         )}
 
                     </div>
@@ -215,7 +215,7 @@ export default function PublicUserProfilePage() {
                                 <Card key={i} className="overflow-hidden"><Skeleton className="h-48 w-full rounded-none" /><CardHeader><Skeleton className="h-6 w-full" /></CardHeader></Card>
                             ))
                         ) : projects && projects.length > 0 ? (
-                            projects.map((project: any) => (
+                            projects.map((project: ProfileProject) => (
                                 <Card key={project.id} className="flex flex-col overflow-hidden transition-all hover:shadow-lg hover:-translate-y-1 duration-300">
                                     <div className="aspect-video w-full bg-slate-100 overflow-hidden relative">
                                         {project.images?.[0] ? (

@@ -52,7 +52,7 @@ export default function SponsorDonationsPage() {
             <div className="flex flex-col items-center justify-center py-24 text-center">
                 <ShieldAlert className="h-16 w-16 text-neutral-300 mb-4" />
                 <h2 className="text-2xl font-bold">Access Denied</h2>
-                <p className="text-neutral-500">This dashboard is for Sponsors only. Please view "My Projects" instead.</p>
+                <p className="text-neutral-500">This dashboard is for Sponsors only. Please view &quot;My Projects&quot; instead.</p>
             </div>
         );
     }
@@ -169,7 +169,7 @@ export default function SponsorDonationsPage() {
                             <div className="py-12 text-center flex flex-col items-center justify-center bg-neutral-50 rounded-xl border-2 border-dashed">
                                 <Receipt className="h-12 w-12 text-neutral-300 mb-3" />
                                 <h3 className="text-lg font-medium text-neutral-900">No donations yet</h3>
-                                <p className="text-neutral-500 mb-4 text-sm">You haven't funded any projects. Start exploring ideas to make an impact!</p>
+                                <p className="text-neutral-500 mb-4 text-sm">You have not funded any projects. Start exploring ideas to make an impact!</p>
                                 <Link href="/projects">
                                     <Button variant="outline">Explore Projects</Button>
                                 </Link>
