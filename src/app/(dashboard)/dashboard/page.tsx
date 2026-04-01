@@ -77,7 +77,7 @@ export default function DashboardPage() {
     });
 
     const { data: myClaims = [], isLoading: loadingClaims } = useQuery({
-        queryKey: ["myResourceClaims", user.id],
+        queryKey: ["myResourceClaims", user?.id],
         queryFn: getMyResourceClaims,
         enabled: isStudent,
         refetchOnMount: "always",

@@ -80,7 +80,11 @@ export default function MessagesPage() {
 
     const { data: chatHistory, isLoading: loadingHistory } = useQuery<Message[]>({
         queryKey: ["chatHistory", activeContact?.id],
-        queryFn: () => getChatHistory(activeContact.id),
+        queryFn: ({ queryKey }) => {
+            const [, contactId] = queryKey as [string, string | undefined];
+            if (!contactId) return Promise.resolve([]);
+            return getChatHistory(contactId);
+        },
         enabled: !!activeContact?.id,
         staleTime: 0,
         gcTime: 0,
