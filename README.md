@@ -42,6 +42,11 @@ The frontend consumes the FundingPanda backend API from the sibling backend proj
 - FundingPanda backend running locally or deployed
 - Google Generative AI API key for PandaBot
 
+## Live deployments
+
+- Frontend (Vercel): https://funding-panda-frontend.vercel.app/
+- Backend (Render): https://fundingpanda-backend.onrender.com/
+
 ## Getting Started
 
 1. Install dependencies
@@ -72,6 +77,15 @@ GOOGLE_GENERATIVE_AI_API_KEY=your_google_ai_key
 # Optional analytics endpoint used by src/app/api/chat/route.ts
 # Example: http://localhost:5000/api/v1
 BACKEND_API_URL=http://localhost:5000/api/v1
+```
+
+Production values (deployed app):
+
+```bash
+NEXT_PUBLIC_API_URL=https://fundingpanda-backend.onrender.com/api/v1
+NEXT_PUBLIC_BACKEND_URL=https://fundingpanda-backend.onrender.com
+NEXT_PUBLIC_AUTH_URL=https://fundingpanda-backend.onrender.com
+BACKEND_API_URL=https://fundingpanda-backend.onrender.com/api/v1
 ```
 
 3. Start development server
