@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import { useForm } from "@tanstack/react-form";
 import Link from "next/link";
 import { toast } from "sonner";
-import { signUp, useSession } from "@/lib/auth-client";
+import { signIn, signUp, useSession } from "@/lib/auth-client";
 import { registerSchema, nameSchema, registerEmailSchema, registerPasswordSchema, registerUniversitySchema, registerBioSchema } from "@/lib/validations/auth";
+import { Chrome, Github } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +20,8 @@ export default function RegisterPage() {
     const router = useRouter();
     const { data: session } = useSession();
     const [isLoading, setIsLoading] = useState(false);
+    const [activeSocialProvider, setActiveSocialProvider] = useState<"google" | "github" | null>(null);
+    const isGoogleDisabled = process.env.NEXT_PUBLIC_DISABLE_GOOGLE_OAUTH === "true";
 
     useEffect(() => {
         if (session?.user) {
@@ -58,6 +61,33 @@ export default function RegisterPage() {
             return "Invalid registration information. Please check your inputs.";
         }
         return err.message || "Signup failed. Please try again.";
+    };
+
+    const handleSocialRegister = async (provider: "google" | "github") => {
+        if (provider === "google" && isGoogleDisabled) {
+            toast.info("Google OAuth is currently disabled. Use GitHub or email sign up.");
+            return;
+        }
+
+        setActiveSocialProvider(provider);
+        setIsLoading(true);
+
+        try {
+            const result = await signIn.social({
+                provider,
+                callbackURL: `${resolveFrontendBaseUrl()}/dashboard`,
+            });
+
+            if (result?.error) {
+                toast.error(result.error.message || `Failed to initialize ${provider} signup.`);
+                setIsLoading(false);
+                setActiveSocialProvider(null);
+            }
+        } catch {
+            toast.error(`Failed to initialize ${provider} signup.`);
+            setIsLoading(false);
+            setActiveSocialProvider(null);
+        }
     };
 
     const Form = useForm({
@@ -300,6 +330,35 @@ export default function RegisterPage() {
                             {isLoading ? "Creating account..." : "Sign up"}
                         </Button>
                     </form>
+
+                    <div className="relative my-6">
+                        <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
+                        <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">Or continue with</span></div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <Button
+                            variant="outline"
+                            type="button"
+                            onClick={() => handleSocialRegister("google")}
+                            disabled={isLoading || isGoogleDisabled}
+                            className="gap-2"
+                        >
+                            <Chrome className="h-4 w-4" />
+                            {isGoogleDisabled ? "Google (Off)" : "Google"}
+                        </Button>
+
+                        <Button
+                            variant="outline"
+                            type="button"
+                            onClick={() => handleSocialRegister("github")}
+                            disabled={isLoading}
+                            className="gap-2"
+                        >
+                            <Github className="h-4 w-4" />
+                            GitHub
+                        </Button>
+                    </div>
                 </CardContent>
                 <CardFooter className="flex justify-center border-t p-4">
                     <p className="text-sm text-neutral-600">

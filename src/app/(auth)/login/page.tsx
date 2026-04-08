@@ -21,6 +21,13 @@ export default function LoginPage() {
     const [activeSocialProvider, setActiveSocialProvider] = useState<"google" | "github" | null>(null);
     const isGoogleDisabled = process.env.NEXT_PUBLIC_DISABLE_GOOGLE_OAUTH === "true";
 
+    const resolveFrontendBaseUrl = () => {
+        const explicitFrontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL?.trim();
+        const currentOrigin = typeof window !== "undefined" ? window.location.origin : "";
+        const rawBase = explicitFrontendUrl || currentOrigin || "http://localhost:3000";
+        return rawBase.replace(/\/$/, "");
+    };
+
     useEffect(() => {
         if (session?.user) {
             router.replace("/dashboard");
@@ -40,7 +47,7 @@ export default function LoginPage() {
             const result = await signIn.email({
                 email,
                 password,
-                callbackURL: "/dashboard",
+                callbackURL: `${resolveFrontendBaseUrl()}/dashboard`,
             });
 
             if (result.error) {
@@ -58,14 +65,14 @@ export default function LoginPage() {
     };
 
     const handleDemoAdmin = () => {
-        setEmail("admin@fundingpanda.com");
-        setPassword("password123");
+        setEmail("admin@panda.com");
+        setPassword("12345678");
         toast.info("Admin credentials auto-filled. Click Sign In.");
     };
 
     const handleDemoStudent = () => {
-        setEmail("student@university.edu");
-        setPassword("password123");
+        setEmail("student@panda.com");
+        setPassword("12345678");
         toast.info("Student credentials auto-filled. Click Sign In.");
     };
 
@@ -81,7 +88,7 @@ export default function LoginPage() {
         try {
             const result = await signIn.social({
                 provider,
-                callbackURL: "/dashboard",
+                callbackURL: `${resolveFrontendBaseUrl()}/dashboard`,
             });
 
             if (result?.error) {
