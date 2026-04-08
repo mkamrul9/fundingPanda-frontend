@@ -156,6 +156,53 @@ export const getAllProjectsPaginated = async (params: Record<string, string | nu
     };
 };
 
+export const getExploreProjects = async (params: {
+    searchTerm?: string;
+    category?: string;
+    university?: string;
+    status?: string;
+    sortBy?: string;
+    page?: number;
+    limit?: number;
+}) => {
+    const query = new URLSearchParams();
+
+    // Public listing endpoint currently enforces approved-only projects server-side.
+    query.append("status", params.status || "APPROVED");
+
+    if (params.searchTerm) {
+        query.append("searchTerm", params.searchTerm);
+    }
+
+    // QueryBuilder supports nested relation filtering on student.university.
+    if (params.university) {
+        query.append("student.university", params.university);
+    }
+
+    // Include relation data required by the listing cards and category filter client pass.
+    query.append("include", "student,categories");
+
+    if (params.page) {
+        query.append("page", String(params.page));
+    }
+
+    if (params.limit) {
+        query.append("limit", String(params.limit));
+    }
+
+    const sortValue = params.sortBy || "createdAt_desc";
+    const [field, order] = sortValue.split("_");
+    query.append("sortBy", field || "createdAt");
+    query.append("sortOrder", order === "asc" ? "asc" : "desc");
+
+    const response = await apiClient.get(`/projects?${query.toString()}`);
+
+    return {
+        data: response.data.data,
+        meta: response.data.meta,
+    };
+};
+
 export const getProjectById = async (projectId: string) => {
     const response = await apiClient.get(`/projects/${projectId}`);
     return response.data.data;

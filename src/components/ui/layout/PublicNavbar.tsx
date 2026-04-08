@@ -16,7 +16,7 @@ export default function PublicNavbar() {
     const isActive = (path: string) => pathname === path;
 
     const navLinks = [
-        { href: "/projects", label: "Explore Ideas" },
+        { href: "/explore", label: "Explore Ideas" },
         { href: "/leaderboard", label: "Leaderboard" },
         { href: "/newsletter", label: "Updates and News" },
         { href: "/contact", label: "Contact Us" },
