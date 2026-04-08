@@ -7,7 +7,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { signIn, signUp, useSession } from "@/lib/auth-client";
 import { registerSchema, nameSchema, registerEmailSchema, registerPasswordSchema, registerUniversitySchema, registerBioSchema } from "@/lib/validations/auth";
-import { Chrome, Eye, EyeOff } from "lucide-react";
+import { Chrome, Eye, EyeOff, Globe } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,9 +20,10 @@ export default function RegisterPage() {
     const router = useRouter();
     const { data: session } = useSession();
     const [isLoading, setIsLoading] = useState(false);
-    const [activeSocialProvider, setActiveSocialProvider] = useState<"google" | null>(null);
+    const [activeSocialProvider, setActiveSocialProvider] = useState<"google" | "facebook" | null>(null);
     const [showPassword, setShowPassword] = useState(false);
     const isGoogleDisabled = process.env.NEXT_PUBLIC_DISABLE_GOOGLE_OAUTH === "true";
+    const isFacebookDisabled = process.env.NEXT_PUBLIC_DISABLE_FACEBOOK_OAUTH === "true";
 
     useEffect(() => {
         if (session?.user) {
@@ -64,9 +65,14 @@ export default function RegisterPage() {
         return err.message || "Signup failed. Please try again.";
     };
 
-    const handleSocialRegister = async (provider: "google") => {
+    const handleSocialRegister = async (provider: "google" | "facebook") => {
         if (provider === "google" && isGoogleDisabled) {
             toast.info("Google OAuth is currently disabled. Use email sign up.");
+            return;
+        }
+
+        if (provider === "facebook" && isFacebookDisabled) {
+            toast.info("Facebook OAuth is currently disabled. Use email sign up.");
             return;
         }
 
@@ -348,7 +354,7 @@ export default function RegisterPage() {
                         <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">Or continue with</span></div>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-4">
+                    <div className="grid grid-cols-1 gap-3">
                         <Button
                             variant="outline"
                             type="button"
@@ -358,6 +364,16 @@ export default function RegisterPage() {
                         >
                             <Chrome className="h-4 w-4" />
                             {isGoogleDisabled ? "Google (Off)" : "Google"}
+                        </Button>
+                        <Button
+                            variant="outline"
+                            type="button"
+                            onClick={() => handleSocialRegister("facebook")}
+                            disabled={isLoading || isFacebookDisabled}
+                            className="gap-2"
+                        >
+                            <Globe className="h-4 w-4" />
+                            {isFacebookDisabled ? "Facebook (Off)" : "Facebook"}
                         </Button>
                     </div>
                 </CardContent>

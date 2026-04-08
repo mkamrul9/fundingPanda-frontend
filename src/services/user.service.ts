@@ -6,12 +6,12 @@ export const getUserProfile = async () => {
     return response.data.data; // Assuming your backend wraps data in { success: true, data: { ... } }
 };
 
-export const updateUserProfile = async (payload: { name: string; bio?: string; university?: string }) => {
+export const updateUserProfile = async (payload: { name: string; bio?: string; university?: string; role?: "STUDENT" | "SPONSOR" }) => {
     const response = await apiClient.patch('/users/me', payload);
     return response.data.data;
 };
 
-export const updateProfile = async (data: { name?: string; bio?: string; university?: string }) => {
+export const updateProfile = async (data: { name?: string; bio?: string; university?: string; role?: "STUDENT" | "SPONSOR" }) => {
     const response = await apiClient.patch('/users/me', data);
     return response.data.data;
 };

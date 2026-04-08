@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { UserCircle, Save } from "lucide-react";
 
 export default function SettingsPage() {
@@ -23,6 +24,7 @@ export default function SettingsPage() {
         name: undefined as string | undefined,
         bio: undefined as string | undefined,
         university: undefined as string | undefined,
+        role: undefined as "STUDENT" | "SPONSOR" | undefined,
     });
     const [passwordData, setPasswordData] = useState({
         currentPassword: "",
@@ -55,6 +57,7 @@ export default function SettingsPage() {
             name: formData.name ?? session?.user?.name ?? "",
             bio: formData.bio ?? ((session?.user as unknown as { bio?: string })?.bio || ""),
             university: formData.university ?? ((session?.user as unknown as { university?: string })?.university || ""),
+            role: formData.role ?? ((session?.user as unknown as { role?: "STUDENT" | "SPONSOR" | "ADMIN" })?.role as "STUDENT" | "SPONSOR" | undefined),
         });
     };
 
@@ -135,6 +138,28 @@ export default function SettingsPage() {
                                     onChange={(e) => setFormData({ ...formData, university: e.target.value })}
                                     disabled={updateMutation.isPending}
                                 />
+                            </div>
+                        )}
+
+                        {(currentUser?.role === "STUDENT" || currentUser?.role === "SPONSOR") && (
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Account Role</label>
+                                <Select
+                                    value={formData.role ?? currentUser.role}
+                                    onValueChange={(value: "STUDENT" | "SPONSOR") => setFormData({ ...formData, role: value })}
+                                    disabled={updateMutation.isPending}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select role" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="STUDENT">Student</SelectItem>
+                                        <SelectItem value="SPONSOR">Sponsor</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <p className="text-xs text-muted-foreground">
+                                    Social login users can switch between Student and Sponsor here.
+                                </p>
                             </div>
                         )}
 
