@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import { signIn, useSession } from "@/lib/auth-client";
-import { ShieldAlert, GraduationCap, Lock, Mail, Chrome, Github } from "lucide-react";
+import { ShieldAlert, GraduationCap, Lock, Mail, Chrome } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +18,7 @@ export default function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
-    const [activeSocialProvider, setActiveSocialProvider] = useState<"google" | "github" | null>(null);
+    const [activeSocialProvider, setActiveSocialProvider] = useState<"google" | null>(null);
     const isGoogleDisabled = process.env.NEXT_PUBLIC_DISABLE_GOOGLE_OAUTH === "true";
 
     const resolveFrontendBaseUrl = () => {
@@ -76,7 +76,7 @@ export default function LoginPage() {
         toast.info("Student credentials auto-filled. Click Sign In.");
     };
 
-    const handleSocialLogin = async (provider: "google" | "github") => {
+    const handleSocialLogin = async (provider: "google") => {
         if (provider === "google" && isGoogleDisabled) {
             toast.info("Google OAuth is currently disabled. Use Demo Admin/Student or GitHub login.");
             return;
@@ -191,7 +191,7 @@ export default function LoginPage() {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4">
                         <Button
                             variant="outline"
                             type="button"
@@ -201,17 +201,6 @@ export default function LoginPage() {
                         >
                             <Chrome className="h-4 w-4" />
                             {isGoogleDisabled ? "Google (Off)" : "Google"}
-                        </Button>
-
-                        <Button
-                            variant="outline"
-                            type="button"
-                            onClick={() => handleSocialLogin("github")}
-                            disabled={isLoading}
-                            className="gap-2"
-                        >
-                            <Github className="h-4 w-4" />
-                            GitHub
                         </Button>
                     </div>
                 </CardContent>

@@ -7,7 +7,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { signIn, signUp, useSession } from "@/lib/auth-client";
 import { registerSchema, nameSchema, registerEmailSchema, registerPasswordSchema, registerUniversitySchema, registerBioSchema } from "@/lib/validations/auth";
-import { Chrome, Github } from "lucide-react";
+import { Chrome } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,7 +20,7 @@ export default function RegisterPage() {
     const router = useRouter();
     const { data: session } = useSession();
     const [isLoading, setIsLoading] = useState(false);
-    const [activeSocialProvider, setActiveSocialProvider] = useState<"google" | "github" | null>(null);
+    const [activeSocialProvider, setActiveSocialProvider] = useState<"google" | null>(null);
     const isGoogleDisabled = process.env.NEXT_PUBLIC_DISABLE_GOOGLE_OAUTH === "true";
 
     useEffect(() => {
@@ -63,7 +63,7 @@ export default function RegisterPage() {
         return err.message || "Signup failed. Please try again.";
     };
 
-    const handleSocialRegister = async (provider: "google" | "github") => {
+    const handleSocialRegister = async (provider: "google") => {
         if (provider === "google" && isGoogleDisabled) {
             toast.info("Google OAuth is currently disabled. Use GitHub or email sign up.");
             return;
@@ -336,7 +336,7 @@ export default function RegisterPage() {
                         <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">Or continue with</span></div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4">
                         <Button
                             variant="outline"
                             type="button"
@@ -346,17 +346,6 @@ export default function RegisterPage() {
                         >
                             <Chrome className="h-4 w-4" />
                             {isGoogleDisabled ? "Google (Off)" : "Google"}
-                        </Button>
-
-                        <Button
-                            variant="outline"
-                            type="button"
-                            onClick={() => handleSocialRegister("github")}
-                            disabled={isLoading}
-                            className="gap-2"
-                        >
-                            <Github className="h-4 w-4" />
-                            GitHub
                         </Button>
                     </div>
                 </CardContent>
