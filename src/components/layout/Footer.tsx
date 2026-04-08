@@ -43,9 +43,9 @@ export default function Footer() {
                             Bridging the gap between brilliant academic research and the industry sponsors who can bring sustainable prototypes to life.
                         </p>
                         <div className="flex gap-4">
-                            <a href="#" className="text-slate-400 transition-colors hover:text-emerald-400"><Twitter className="h-5 w-5" /></a>
-                            <a href="#" className="text-slate-400 transition-colors hover:text-emerald-400"><Github className="h-5 w-5" /></a>
-                            <a href="#" className="text-slate-400 transition-colors hover:text-emerald-400"><Linkedin className="h-5 w-5" /></a>
+                            <a href="https://x.com" target="_blank" rel="noreferrer" className="text-slate-400 transition-colors hover:text-emerald-400"><Twitter className="h-5 w-5" /></a>
+                            <a href="https://github.com/mkamrul9" target="_blank" rel="noreferrer" className="text-slate-400 transition-colors hover:text-emerald-400"><Github className="h-5 w-5" /></a>
+                            <a href="https://www.linkedin.com" target="_blank" rel="noreferrer" className="text-slate-400 transition-colors hover:text-emerald-400"><Linkedin className="h-5 w-5" /></a>
                         </div>
                     </div>
 
