@@ -2,13 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useForm } from "@tanstack/react-form";
 import Link from "next/link";
 import { toast } from "sonner";
-import { signIn, authClient, useSession } from "@/lib/auth-client";
-import { getEmailVerificationStatus } from "@/services/user.service";
-import { loginSchema, emailSchema, passwordSchema } from "@/lib/validations/auth";
-import { Eye, EyeOff } from "lucide-react";
+import { signIn, useSession } from "@/lib/auth-client";
+import { ShieldAlert, GraduationCap, Lock, Mail, Chrome, Github } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,8 +15,11 @@ import { Label } from "@/components/ui/label";
 export default function LoginPage() {
     const router = useRouter();
     const { data: session } = useSession();
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
-    const [showPassword, setShowPassword] = useState(false);
+    const [activeSocialProvider, setActiveSocialProvider] = useState<"google" | "github" | null>(null);
+    const isGoogleDisabled = process.env.NEXT_PUBLIC_DISABLE_GOOGLE_OAUTH === "true";
 
     useEffect(() => {
         if (session?.user) {
@@ -27,275 +27,189 @@ export default function LoginPage() {
         }
     }, [session, router]);
 
-    const parseAuthError = (raw: unknown) => {
-        const err = (raw ?? {}) as {
-            status?: number;
-            code?: string;
-            message?: string;
-        };
+    const handleLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
 
-        const code = (err.code || "").toUpperCase();
-        const message = (err.message || "").toLowerCase();
-
-        const isUserMissing =
-            code.includes("USER_NOT_FOUND") ||
-            code.includes("ACCOUNT_NOT_FOUND") ||
-            message.includes("user not found") ||
-            message.includes("account not found") ||
-            message.includes("no account") ||
-            message.includes("not registered") ||
-            message.includes("does not exist");
-
-        const isInvalidCredential =
-            code.includes("INVALID_EMAIL_OR_PASSWORD") ||
-            code.includes("INVALID_CREDENTIAL") ||
-            message.includes("invalid email or password") ||
-            message.includes("incorrect email or password") ||
-            message.includes("invalid credentials") ||
-            message.includes("wrong password");
-
-        const isUnverifiedUser =
-            code.includes("EMAIL_NOT_VERIFIED") ||
-            code.includes("UNVERIFIED") ||
-            message.includes("email not verified") ||
-            message.includes("verify your email") ||
-            message.includes("verification required");
-
-        const isBannedUser =
-            code.includes("BANNED") ||
-            code.includes("BLOCKED") ||
-            message.includes("banned") ||
-            message.includes("blocked") ||
-            message.includes("suspended");
-
-        if (err.status === 404 || isUserMissing) {
-            return "This email has no account yet. Please register first.";
+        if (!email || !password) {
+            toast.error("Please enter both email and password.");
+            return;
         }
-        if (isUnverifiedUser) {
-            return "Your email is not verified yet. Please verify your email first.";
-        }
-        if (err.status === 403 || isBannedUser) {
-            return "You are banned from this platform.";
-        }
-        if (
-            err.status === 401 ||
-            isInvalidCredential
-        ) {
-            return "Incorrect email or password. Please try again.";
-        }
-        return err.message || "Authentication failed. Please try again.";
-    };
 
-    const resolveFrontendBaseUrl = () => {
-        const explicitFrontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL?.trim();
-        const currentOrigin = typeof window !== "undefined" ? window.location.origin : "";
-        const rawBase = explicitFrontendUrl || currentOrigin || "http://localhost:3000";
-        return rawBase.replace(/\/$/, "");
-    };
+        setIsLoading(true);
+        try {
+            const result = await signIn.email({
+                email,
+                password,
+                callbackURL: "/dashboard",
+            });
 
-    const Form = useForm({
-        defaultValues: {
-            email: "",
-            password: "",
-        },
-        onSubmit: async ({ value }) => {
-            const validation = loginSchema.safeParse(value);
-            if (!validation.success) {
-                toast.error("Please fix the errors before submitting.");
+            if (result.error) {
+                toast.error(result.error.message || "Invalid credentials. Please try again.");
                 return;
             }
 
-            // Use BetterAuth lifecycle callbacks so UI updates align with auth flow
-            try {
-                await signIn.email(
-                    {
-                        email: value.email,
-                        password: value.password,
-                        callbackURL: `${resolveFrontendBaseUrl()}/login`,
-                    },
-                    {
-                        onRequest: () => {
-                            setIsLoading(true);
-                        },
-                        onSuccess: () => {
-                            void (async () => {
-                                try {
-                                    const session = await authClient.getSession();
-                                    setIsLoading(false);
-                                    if (session?.data?.user) {
-                                        toast.success("Successfully logged in!");
-                                        router.replace("/dashboard");
-                                        return;
-                                    }
-                                    toast.error("Login succeeded but session cookie was blocked. In Incognito, allow third-party cookies for this site or use normal mode.");
-                                } catch {
-                                    setIsLoading(false);
-                                    toast.error("Login succeeded but session check failed. In Incognito, cookie restrictions can block login.");
-                                }
-                            })();
-                        },
-                        onError: async (ctx: unknown) => {
-                            setIsLoading(false);
-                            const rawError = (ctx as { error?: unknown })?.error ?? ctx;
-                            const errorObj = (rawError ?? {}) as { code?: string; message?: string };
-                            const code = (errorObj.code || '').toUpperCase();
-                            const message = (errorObj.message || '').toLowerCase();
+            toast.success("Welcome back!");
+            router.push("/dashboard");
+        } catch {
+            toast.error("An unexpected error occurred.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-                            if (
-                                code.includes('EMAIL_NOT_VERIFIED') ||
-                                code.includes('UNVERIFIED') ||
-                                message.includes('email not verified') ||
-                                message.includes('verify your email')
-                            ) {
-                                toast.error('Please verify your email before logging in.');
-                                router.push(`/verify-email?email=${encodeURIComponent(value.email)}`);
-                                return;
-                            }
+    const handleDemoAdmin = () => {
+        setEmail("admin@fundingpanda.com");
+        setPassword("password123");
+        toast.info("Admin credentials auto-filled. Click Sign In.");
+    };
 
-                            if (
-                                code.includes('INVALID_EMAIL_OR_PASSWORD') ||
-                                code.includes('INVALID_CREDENTIAL') ||
-                                message.includes('invalid email or password') ||
-                                message.includes('incorrect email or password')
-                            ) {
-                                try {
-                                    const status = await getEmailVerificationStatus(value.email);
-                                    if (!status.exists) {
-                                        toast.error('No account found with this email. Please create an account first.');
-                                        return;
-                                    }
-                                } catch {
-                                    // Keep fallback message below if status lookup fails.
-                                }
-                            }
+    const handleDemoStudent = () => {
+        setEmail("student@university.edu");
+        setPassword("password123");
+        toast.info("Student credentials auto-filled. Click Sign In.");
+    };
 
-                            if (
-                                code.includes('BANNED') ||
-                                code.includes('BLOCKED') ||
-                                message.includes('banned') ||
-                                message.includes('blocked') ||
-                                message.includes('suspended')
-                            ) {
-                                toast.error('You are banned from this platform.');
-                                return;
-                            }
+    const handleSocialLogin = async (provider: "google" | "github") => {
+        if (provider === "google" && isGoogleDisabled) {
+            toast.info("Google OAuth is currently disabled. Use Demo Admin/Student or GitHub login.");
+            return;
+        }
 
-                            const errorMessage = parseAuthError(rawError);
-                            toast.error(errorMessage);
-                        },
-                    }
-                );
-            } catch (err) {
-                setIsLoading(false);
-                toast.error(parseAuthError(err));
-            }
-        },
-    });
+        setActiveSocialProvider(provider);
+        setIsLoading(true);
+
+        try {
+            await signIn.social({
+                provider,
+                callbackURL: "/dashboard",
+            });
+        } catch {
+            toast.error(`Failed to initialize ${provider} login.`);
+            setIsLoading(false);
+            setActiveSocialProvider(null);
+        }
+    };
 
     return (
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <Card className="border-0 shadow-none bg-transparent w-full max-w-md">
+        <div className="w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <Card className="w-full border-primary/10 shadow-xl">
                 <CardHeader className="space-y-1 text-center">
-                    <div className="flex justify-start">
-                        <Link href="/" className="text-sm font-semibold text-primary hover:underline">
-                            Home
-                        </Link>
-                    </div>
-                    <CardTitle className="text-2xl font-bold tracking-tight">Welcome back</CardTitle>
-                    <CardDescription>Enter your email and password to access your account.</CardDescription>
+                    <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
+                    <CardDescription>Enter your credentials to access your dashboard.</CardDescription>
                 </CardHeader>
-                <CardContent>
-                    <form
-                        onSubmit={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            Form.handleSubmit();
-                        }}
-                        className="space-y-4"
-                    >
-                        <Form.Field
-                            name="email"
-                            validators={{
-                                onChange: ({ value }) => {
-                                    const res = emailSchema.safeParse(value);
-                                    return res.success ? undefined : res.error.issues[0].message;
-                                },
-                            }}
-                        >
-                            {(field) => (
-                                <div className="space-y-2">
-                                    <Label htmlFor={field.name}>Email</Label>
-                                    <Input
-                                        id={field.name}
-                                        type="email"
-                                        placeholder="panda@university.edu"
-                                        value={field.state.value}
-                                        onChange={(e) => field.handleChange(e.target.value)}
-                                        onBlur={field.handleBlur}
-                                        disabled={isLoading}
-                                    />
-                                    {field.state.meta.errors.length > 0 && (
-                                        <p className="text-sm text-red-500">{field.state.meta.errors[0]}</p>
-                                    )}
-                                </div>
-                            )}
-                        </Form.Field>
 
-                        <Form.Field
-                            name="password"
-                            validators={{
-                                onChange: ({ value }) => {
-                                    const res = passwordSchema.safeParse(value);
-                                    return res.success ? undefined : res.error.issues[0].message;
-                                },
-                            }}
-                        >
-                            {(field) => (
-                                <div className="space-y-2">
-                                    <div className="flex items-center justify-between">
-                                        <Label htmlFor={field.name}>Password</Label>
-                                        <Link href="/forgot-password" className="text-sm text-primary hover:underline">
-                                            Forgot password?
-                                        </Link>
-                                    </div>
-                                    <div className="relative">
-                                        <Input
-                                            id={field.name}
-                                            type={showPassword ? "text" : "password"}
-                                            value={field.state.value}
-                                            onChange={(e) => field.handleChange(e.target.value)}
-                                            onBlur={field.handleBlur}
-                                            disabled={isLoading}
-                                            className="pr-10"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowPassword(!showPassword)}
-                                            className="absolute right-0 top-0 h-full px-3 py-2 text-muted-foreground hover:text-foreground focus:outline-none"
-                                            disabled={isLoading}
-                                        >
-                                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                        </button>
-                                    </div>
-                                    {field.state.meta.errors.length > 0 && (
-                                        <p className="text-sm text-destructive">{field.state.meta.errors[0]}</p>
-                                    )}
-                                </div>
-                            )}
-                        </Form.Field>
+                <CardContent className="space-y-4">
+                    <div className="mb-4 grid grid-cols-2 gap-2 rounded-lg border border-emerald-100 bg-emerald-50 p-3 dark:border-emerald-900 dark:bg-emerald-950/30">
+                        <span className="col-span-2 mb-1 text-center text-xs font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-400">
+                            Demo Quick Access
+                        </span>
 
-                        <Button type="submit" className="w-full" disabled={isLoading}>
-                            {isLoading ? "Signing in..." : "Sign in"}
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            type="button"
+                            onClick={handleDemoAdmin}
+                            className="gap-1 border-emerald-200 text-xs hover:bg-emerald-100"
+                        >
+                            <ShieldAlert className="h-3 w-3" />
+                            Admin
+                        </Button>
+
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            type="button"
+                            onClick={handleDemoStudent}
+                            className="gap-1 border-emerald-200 text-xs hover:bg-emerald-100"
+                        >
+                            <GraduationCap className="h-3 w-3" />
+                            Student
+                        </Button>
+                    </div>
+
+                    <form onSubmit={handleLogin} className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="email">Email</Label>
+                            <div className="relative">
+                                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    placeholder="name@university.edu"
+                                    className="pl-10"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    disabled={isLoading}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                                <Label htmlFor="password">Password</Label>
+                                <Link href="/forgot-password" className="text-xs text-primary hover:underline">
+                                    Forgot password?
+                                </Link>
+                            </div>
+                            <div className="relative">
+                                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    id="password"
+                                    type="password"
+                                    className="pl-10"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    disabled={isLoading}
+                                />
+                            </div>
+                        </div>
+
+                        <Button className="w-full" type="submit" disabled={isLoading}>
+                            {isLoading && !activeSocialProvider ? "Signing in..." : "Sign In"}
                         </Button>
                     </form>
+
+                    <div className="relative my-6">
+                        <div className="absolute inset-0 flex items-center">
+                            <span className="w-full border-t" />
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase">
+                            <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <Button
+                            variant="outline"
+                            type="button"
+                            onClick={() => handleSocialLogin("google")}
+                            disabled={isLoading || isGoogleDisabled}
+                            className="gap-2"
+                        >
+                            <Chrome className="h-4 w-4" />
+                            {isGoogleDisabled ? "Google (Off)" : "Google"}
+                        </Button>
+
+                        <Button
+                            variant="outline"
+                            type="button"
+                            onClick={() => handleSocialLogin("github")}
+                            disabled={isLoading}
+                            className="gap-2"
+                        >
+                            <Github className="h-4 w-4" />
+                            GitHub
+                        </Button>
+                    </div>
                 </CardContent>
-                <CardFooter className="flex justify-center border-t border-border/50 p-4">
-                    <p className="text-sm text-muted-foreground">
-                        Don&apos;t have an account? {" "}
+
+                <CardFooter className="flex flex-col gap-4 text-center">
+                    <div className="text-sm text-muted-foreground">
+                        Don&apos;t have an account?{" "}
                         <Link href="/register" className="font-semibold text-primary hover:underline">
-                            Sign up
+                            Create an account
                         </Link>
-                    </p>
+                    </div>
                 </CardFooter>
             </Card>
         </div>
