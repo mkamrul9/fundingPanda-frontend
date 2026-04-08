@@ -35,6 +35,10 @@
 :root {
   --background: hsl(210, 40%, 98%);
   --foreground: hsl(222.2, 84%, 4.9%);
+  --app-bg:
+    radial-gradient(1200px 700px at -10% -10%, hsl(153 70% 82% / 0.45), transparent 58%),
+    radial-gradient(1000px 640px at 110% 0%, hsl(178 68% 83% / 0.38), transparent 56%),
+    linear-gradient(180deg, hsl(153 55% 97%), hsl(205 45% 97%));
   --card: hsl(0, 0%, 100%);
   --card-foreground: hsl(222.2, 84%, 4.9%);
   --popover: hsl(0, 0%, 100%);
@@ -61,6 +65,10 @@
 .dark {
   --background: hsl(222.2, 84%, 4.9%);
   --foreground: hsl(210, 40%, 98%);
+  --app-bg:
+    radial-gradient(1100px 620px at -15% -10%, hsl(153 62% 28% / 0.34), transparent 60%),
+    radial-gradient(980px 620px at 115% 0%, hsl(178 70% 24% / 0.28), transparent 58%),
+    linear-gradient(180deg, hsl(222 45% 8%), hsl(214 35% 9%));
   --card: hsl(222.2, 84%, 4.9%);
   --card-foreground: hsl(210, 40%, 98%);
   --popover: hsl(222.2, 84%, 4.9%);
@@ -89,6 +97,9 @@
   }
   body {
     background-color: var(--color-background, var(--background));
+    background-image: var(--app-bg);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
     color: var(--color-foreground, var(--foreground));
   }
 

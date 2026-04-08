@@ -227,62 +227,62 @@ export default function ExplorePage() {
                         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                             {isLoading
                                 ? Array.from({ length: PAGE_LIMIT }).map((_, i) => (
-                                      <Card key={i} className="flex h-full flex-col overflow-hidden">
-                                          <Skeleton className="h-40 w-full rounded-none" />
-                                          <CardHeader>
-                                              <Skeleton className="h-5 w-3/4" />
-                                          </CardHeader>
-                                          <CardContent className="flex-1 space-y-2">
-                                              <Skeleton className="h-4 w-full" />
-                                              <Skeleton className="h-4 w-2/3" />
-                                          </CardContent>
-                                          <CardFooter>
-                                              <Skeleton className="h-9 w-full" />
-                                          </CardFooter>
-                                      </Card>
-                                  ))
+                                    <Card key={i} className="flex h-full flex-col overflow-hidden">
+                                        <Skeleton className="h-40 w-full rounded-none" />
+                                        <CardHeader>
+                                            <Skeleton className="h-5 w-3/4" />
+                                        </CardHeader>
+                                        <CardContent className="flex-1 space-y-2">
+                                            <Skeleton className="h-4 w-full" />
+                                            <Skeleton className="h-4 w-2/3" />
+                                        </CardContent>
+                                        <CardFooter>
+                                            <Skeleton className="h-9 w-full" />
+                                        </CardFooter>
+                                    </Card>
+                                ))
                                 : projects.map((project) => {
-                                      const progress = Math.min(
-                                          100,
-                                          Math.round(((project.raisedAmount || 0) / Math.max(project.goalAmount || 1, 1)) * 100)
-                                      );
+                                    const progress = Math.min(
+                                        100,
+                                        Math.round(((project.raisedAmount || 0) / Math.max(project.goalAmount || 1, 1)) * 100)
+                                    );
 
-                                      return (
-                                          <Card key={project.id} className="flex h-full flex-col overflow-hidden bg-card transition-shadow hover:shadow-lg">
-                                              <div className="relative h-40 bg-linear-to-br from-emerald-100 to-teal-50 dark:from-emerald-900/40 dark:to-teal-900/20">
-                                                  <Badge className="absolute right-3 top-3 bg-white/90 text-emerald-800 hover:bg-white">
-                                                      {project.status}
-                                                  </Badge>
-                                              </div>
+                                    return (
+                                        <Card key={project.id} className="flex h-full flex-col overflow-hidden bg-card transition-shadow hover:shadow-lg">
+                                            <div className="relative h-40 bg-linear-to-br from-emerald-100 to-teal-50 dark:from-emerald-900/40 dark:to-teal-900/20">
+                                                <Badge className="absolute right-3 top-3 bg-white/90 text-emerald-800 hover:bg-white">
+                                                    {project.status}
+                                                </Badge>
+                                            </div>
 
-                                              <CardHeader className="pb-2">
-                                                  <CardTitle className="line-clamp-1 text-lg" title={project.title}>
-                                                      {project.title}
-                                                  </CardTitle>
-                                              </CardHeader>
+                                            <CardHeader className="pb-2">
+                                                <CardTitle className="line-clamp-1 text-lg" title={project.title}>
+                                                    {project.title}
+                                                </CardTitle>
+                                            </CardHeader>
 
-                                              <CardContent className="flex-1 pb-4">
-                                                  <p className="mb-4 line-clamp-3 text-sm text-muted-foreground">{project.description}</p>
+                                            <CardContent className="flex-1 pb-4">
+                                                <p className="mb-4 line-clamp-3 text-sm text-muted-foreground">{project.description}</p>
 
-                                                  <div className="mt-auto space-y-2">
-                                                      <div className="h-1.5 w-full rounded-full bg-secondary">
-                                                          <div className="h-1.5 rounded-full bg-emerald-500" style={{ width: `${progress}%` }} />
-                                                      </div>
-                                                      <div className="flex justify-between text-xs font-bold">
-                                                          <span className="text-emerald-600">${project.raisedAmount?.toLocaleString() || 0}</span>
-                                                          <span className="text-muted-foreground">Goal: ${project.goalAmount?.toLocaleString() || 0}</span>
-                                                      </div>
-                                                  </div>
-                                              </CardContent>
+                                                <div className="mt-auto space-y-2">
+                                                    <div className="h-1.5 w-full rounded-full bg-secondary">
+                                                        <div className="h-1.5 rounded-full bg-emerald-500" style={{ width: `${progress}%` }} />
+                                                    </div>
+                                                    <div className="flex justify-between text-xs font-bold">
+                                                        <span className="text-emerald-600">${project.raisedAmount?.toLocaleString() || 0}</span>
+                                                        <span className="text-muted-foreground">Goal: ${project.goalAmount?.toLocaleString() || 0}</span>
+                                                    </div>
+                                                </div>
+                                            </CardContent>
 
-                                              <CardFooter className="mt-4 border-t bg-muted/20 px-6 pb-4 pt-0">
-                                                  <Link href={`/projects/${project.id}`} className="mt-4 w-full">
-                                                      <Button className="w-full">View Details</Button>
-                                                  </Link>
-                                              </CardFooter>
-                                          </Card>
-                                      );
-                                  })}
+                                            <CardFooter className="mt-4 border-t bg-muted/20 px-6 pb-4 pt-0">
+                                                <Link href={`/projects/${project.id}`} className="mt-4 w-full">
+                                                    <Button className="w-full">View Details</Button>
+                                                </Link>
+                                            </CardFooter>
+                                        </Card>
+                                    );
+                                })}
                         </div>
 
                         {!isLoading && projects.length === 0 && (

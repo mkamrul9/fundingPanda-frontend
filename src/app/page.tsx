@@ -138,9 +138,9 @@ export default function HomePage() {
 
             <main className="flex-1">
                 {/* SECTION 1: HERO */}
-                <section className="relative flex min-h-[70vh] flex-col items-center justify-center overflow-hidden px-4 py-24 text-center">
-                    <div className="absolute inset-0 -z-10 bg-emerald-50 dark:bg-emerald-950/20" />
-                    <div className="absolute -right-24 -top-24 h-96 w-96 rounded-full bg-emerald-200 opacity-30 blur-3xl animate-pulse dark:bg-emerald-900" />
+                <section className="relative flex min-h-[70vh] flex-col items-center justify-center overflow-hidden bg-linear-to-br from-emerald-100 via-background to-teal-100 px-4 py-24 text-center dark:from-emerald-950 dark:via-slate-950 dark:to-teal-950">
+                    <div className="absolute -left-32 top-12 -z-10 h-80 w-80 rounded-full bg-emerald-300/35 blur-3xl dark:bg-emerald-700/25" />
+                    <div className="absolute -right-24 -top-24 -z-10 h-96 w-96 rounded-full bg-teal-300/35 opacity-40 blur-3xl animate-pulse dark:bg-teal-700/25" />
 
                     <Badge className="mb-6 bg-emerald-100 text-emerald-800 hover:bg-emerald-200 dark:bg-emerald-900/50 dark:text-emerald-300">
                         Over $2M in Academic Funding Raised
@@ -182,39 +182,41 @@ export default function HomePage() {
                 </section>
 
                 {/* SECTION 3: HOW IT WORKS */}
-                <section className="container mx-auto px-4 py-24">
-                    <div className="mb-16 text-center">
-                        <h2 className="mb-4 text-3xl font-bold">How FundingPanda Works</h2>
-                        <p className="mx-auto max-w-2xl text-muted-foreground">A transparent, three-step process to take ideas out of the lab and into the real world.</p>
-                    </div>
-                    <div className="grid gap-8 md:grid-cols-3">
-                        {[
-                            {
-                                icon: Lightbulb,
-                                title: "1. Pitch the Idea",
-                                desc: "Students submit their project designs, detailing the problem, solution, and required funding.",
-                            },
-                            {
-                                icon: HeartHandshake,
-                                title: "2. Secure Funding",
-                                desc: "Industry sponsors review approved projects and donate cash or physical resources.",
-                            },
-                            {
-                                icon: Rocket,
-                                title: "3. Build & Review",
-                                desc: "Students post timeline updates. Sponsors review projects after successful completion.",
-                            },
-                        ].map((step) => (
-                            <Card key={step.title} className="border-0 bg-card text-card-foreground shadow-lg">
-                                <CardContent className="pt-8 text-center">
-                                    <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-100 dark:bg-emerald-900/50">
-                                        <step.icon className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
-                                    </div>
-                                    <h3 className="mb-3 text-xl font-bold">{step.title}</h3>
-                                    <p className="text-muted-foreground">{step.desc}</p>
-                                </CardContent>
-                            </Card>
-                        ))}
+                <section className="bg-linear-to-b from-emerald-50/75 to-background py-24 dark:from-emerald-950/20 dark:to-background">
+                    <div className="container mx-auto px-4">
+                        <div className="mb-16 text-center">
+                            <h2 className="mb-4 text-3xl font-bold">How FundingPanda Works</h2>
+                            <p className="mx-auto max-w-2xl text-muted-foreground">A transparent, three-step process to take ideas out of the lab and into the real world.</p>
+                        </div>
+                        <div className="grid gap-8 md:grid-cols-3">
+                            {[
+                                {
+                                    icon: Lightbulb,
+                                    title: "1. Pitch the Idea",
+                                    desc: "Students submit their project designs, detailing the problem, solution, and required funding.",
+                                },
+                                {
+                                    icon: HeartHandshake,
+                                    title: "2. Secure Funding",
+                                    desc: "Industry sponsors review approved projects and donate cash or physical resources.",
+                                },
+                                {
+                                    icon: Rocket,
+                                    title: "3. Build & Review",
+                                    desc: "Students post timeline updates. Sponsors review projects after successful completion.",
+                                },
+                            ].map((step) => (
+                                <Card key={step.title} className="border-0 bg-card text-card-foreground shadow-lg">
+                                    <CardContent className="pt-8 text-center">
+                                        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-100 dark:bg-emerald-900/50">
+                                            <step.icon className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
+                                        </div>
+                                        <h3 className="mb-3 text-xl font-bold">{step.title}</h3>
+                                        <p className="text-muted-foreground">{step.desc}</p>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
                     </div>
                 </section>
 
@@ -243,84 +245,86 @@ export default function HomePage() {
                 </section>
 
                 {/* SECTION 5: TRENDING PROJECTS */}
-                <section className="container mx-auto px-4 py-24">
-                    <div className="mb-12 flex items-end justify-between">
-                        <div>
-                            <h2 className="mb-2 text-3xl font-bold">Trending Projects</h2>
-                            <p className="text-muted-foreground">Top-performing approved projects based on progress and momentum.</p>
+                <section className="bg-linear-to-b from-background via-emerald-50/45 to-background py-24 dark:via-emerald-950/18">
+                    <div className="container mx-auto px-4">
+                        <div className="mb-12 flex items-end justify-between">
+                            <div>
+                                <h2 className="mb-2 text-3xl font-bold">Trending Projects</h2>
+                                <p className="text-muted-foreground">Top-performing approved projects based on progress and momentum.</p>
+                            </div>
+                            <Link href="/projects" className="hidden font-semibold text-emerald-600 hover:underline sm:block dark:text-emerald-400">
+                                View All →
+                            </Link>
                         </div>
-                        <Link href="/projects" className="hidden font-semibold text-emerald-600 hover:underline sm:block dark:text-emerald-400">
-                            View All →
-                        </Link>
-                    </div>
 
-                    {projectsLoading ? (
-                        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                            {Array.from({ length: 4 }).map((_, idx) => (
-                                <Card key={idx} className="overflow-hidden">
-                                    <Skeleton className="h-48 w-full rounded-none" />
-                                    <CardHeader>
-                                        <Skeleton className="h-5 w-3/4" />
-                                    </CardHeader>
-                                    <CardContent className="space-y-3">
-                                        <Skeleton className="h-4 w-full" />
-                                        <Skeleton className="h-2 w-full" />
-                                    </CardContent>
-                                </Card>
-                            ))}
-                        </div>
-                    ) : trendingProjects.length > 0 ? (
-                        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                            {trendingProjects.map((project) => {
-                                const goal = project.goalAmount || 1;
-                                const progress = Math.min(100, Math.round((project.raisedAmount / goal) * 100));
-                                return (
-                                    <Card key={project.id} className="flex flex-col overflow-hidden transition-shadow hover:shadow-xl">
-                                        <div className="relative h-48 overflow-hidden bg-muted">
-                                            {project.images?.[0] ? (
-                                                <div
-                                                    role="img"
-                                                    aria-label={project.title}
-                                                    className="h-full w-full bg-cover bg-center"
-                                                    style={{ backgroundImage: `url(${project.images[0]})` }}
-                                                />
-                                            ) : (
-                                                <div className="flex h-full items-center justify-center bg-emerald-50 text-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400/40">
-                                                    <Leaf className="h-14 w-14" />
-                                                </div>
-                                            )}
-                                        </div>
+                        {projectsLoading ? (
+                            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                                {Array.from({ length: 4 }).map((_, idx) => (
+                                    <Card key={idx} className="overflow-hidden">
+                                        <Skeleton className="h-48 w-full rounded-none" />
                                         <CardHeader>
-                                            <div className="mb-2 flex items-center justify-between gap-2">
-                                                <Badge variant="secondary" className="bg-primary/10 text-primary">
-                                                    {project.categories?.[0]?.name || "Innovation"}
-                                                </Badge>
-                                                <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">{progress}% funded</span>
-                                            </div>
-                                            <CardTitle className="line-clamp-2 text-lg">{project.title}</CardTitle>
+                                            <Skeleton className="h-5 w-3/4" />
                                         </CardHeader>
-                                        <CardContent className="flex-1">
-                                            <p className="mb-4 line-clamp-2 text-sm text-muted-foreground">{project.description}</p>
-                                            <div className="mb-2 h-2 rounded-full bg-secondary">
-                                                <div className="h-2 rounded-full bg-emerald-500" style={{ width: `${progress}%` }} />
-                                            </div>
-                                            <div className="flex items-center justify-between text-xs">
-                                                <span className="font-semibold text-emerald-600 dark:text-emerald-400">${project.raisedAmount.toLocaleString()} raised</span>
-                                                <span className="text-muted-foreground">Goal ${project.goalAmount.toLocaleString()}</span>
-                                            </div>
-                                            <Link href={`/projects/${project.id}`}>
-                                                <Button className="mt-4 w-full">Open Project</Button>
-                                            </Link>
+                                        <CardContent className="space-y-3">
+                                            <Skeleton className="h-4 w-full" />
+                                            <Skeleton className="h-2 w-full" />
                                         </CardContent>
                                     </Card>
-                                );
-                            })}
-                        </div>
-                    ) : (
-                        <div className="rounded-xl border border-dashed bg-card p-12 text-center text-muted-foreground">
-                            No approved projects available right now.
-                        </div>
-                    )}
+                                ))}
+                            </div>
+                        ) : trendingProjects.length > 0 ? (
+                            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                                {trendingProjects.map((project) => {
+                                    const goal = project.goalAmount || 1;
+                                    const progress = Math.min(100, Math.round((project.raisedAmount / goal) * 100));
+                                    return (
+                                        <Card key={project.id} className="flex flex-col overflow-hidden transition-shadow hover:shadow-xl">
+                                            <div className="relative h-48 overflow-hidden bg-muted">
+                                                {project.images?.[0] ? (
+                                                    <div
+                                                        role="img"
+                                                        aria-label={project.title}
+                                                        className="h-full w-full bg-cover bg-center"
+                                                        style={{ backgroundImage: `url(${project.images[0]})` }}
+                                                    />
+                                                ) : (
+                                                    <div className="flex h-full items-center justify-center bg-emerald-50 text-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400/40">
+                                                        <Leaf className="h-14 w-14" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <CardHeader>
+                                                <div className="mb-2 flex items-center justify-between gap-2">
+                                                    <Badge variant="secondary" className="bg-primary/10 text-primary">
+                                                        {project.categories?.[0]?.name || "Innovation"}
+                                                    </Badge>
+                                                    <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">{progress}% funded</span>
+                                                </div>
+                                                <CardTitle className="line-clamp-2 text-lg">{project.title}</CardTitle>
+                                            </CardHeader>
+                                            <CardContent className="flex-1">
+                                                <p className="mb-4 line-clamp-2 text-sm text-muted-foreground">{project.description}</p>
+                                                <div className="mb-2 h-2 rounded-full bg-secondary">
+                                                    <div className="h-2 rounded-full bg-emerald-500" style={{ width: `${progress}%` }} />
+                                                </div>
+                                                <div className="flex items-center justify-between text-xs">
+                                                    <span className="font-semibold text-emerald-600 dark:text-emerald-400">${project.raisedAmount.toLocaleString()} raised</span>
+                                                    <span className="text-muted-foreground">Goal ${project.goalAmount.toLocaleString()}</span>
+                                                </div>
+                                                <Link href={`/projects/${project.id}`}>
+                                                    <Button className="mt-4 w-full">Open Project</Button>
+                                                </Link>
+                                            </CardContent>
+                                        </Card>
+                                    );
+                                })}
+                            </div>
+                        ) : (
+                            <div className="rounded-xl border border-dashed bg-card p-12 text-center text-muted-foreground">
+                                No approved projects available right now.
+                            </div>
+                        )}
+                    </div>
                 </section>
 
                 {/* SECTION 6: EXPLORE BY CATEGORY */}
@@ -376,31 +380,33 @@ export default function HomePage() {
                 </section>
 
                 {/* SECTION 7: STORIES OF SUCCESS (MARQUEE RIGHT TO LEFT) */}
-                <section className="container mx-auto px-4 py-24">
-                    <h2 className="mb-4 text-center text-3xl font-bold">Stories of Success</h2>
-                    <p className="mx-auto mb-12 max-w-2xl text-center text-muted-foreground">
-                        Real voices from students and sponsors using FundingPanda.
-                    </p>
+                <section className="bg-linear-to-b from-background via-teal-50/45 to-background py-24 dark:via-teal-950/18">
+                    <div className="container mx-auto px-4">
+                        <h2 className="mb-4 text-center text-3xl font-bold">Stories of Success</h2>
+                        <p className="mx-auto mb-12 max-w-2xl text-center text-muted-foreground">
+                            Real voices from students and sponsors using FundingPanda.
+                        </p>
 
-                    <div className="marquee-shell">
-                        <div className="marquee-track">
-                            {scrollingTestimonials.map((item, idx) => (
-                                <Card key={`${item.initials}-${idx}`} className="marquee-item">
-                                    <CardContent className="pt-6">
-                                        <div className="mb-4 flex items-center gap-3">
-                                            <Avatar className="h-10 w-10">
-                                                <AvatarImage src={item.image} alt={item.name} />
-                                                <AvatarFallback>{item.initials}</AvatarFallback>
-                                            </Avatar>
-                                            <div>
-                                                <p className="text-sm font-semibold">{item.name}</p>
-                                                <p className="text-xs text-muted-foreground">{item.role}</p>
+                        <div className="marquee-shell">
+                            <div className="marquee-track">
+                                {scrollingTestimonials.map((item, idx) => (
+                                    <Card key={`${item.initials}-${idx}`} className="marquee-item">
+                                        <CardContent className="pt-6">
+                                            <div className="mb-4 flex items-center gap-3">
+                                                <Avatar className="h-10 w-10">
+                                                    <AvatarImage src={item.image} alt={item.name} />
+                                                    <AvatarFallback>{item.initials}</AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                    <p className="text-sm font-semibold">{item.name}</p>
+                                                    <p className="text-xs text-muted-foreground">{item.role}</p>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <p className="text-sm italic text-muted-foreground">&quot;{item.quote}&quot;</p>
-                                    </CardContent>
-                                </Card>
-                            ))}
+                                            <p className="text-sm italic text-muted-foreground">&quot;{item.quote}&quot;</p>
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -441,25 +447,27 @@ export default function HomePage() {
                 </section>
 
                 {/* SECTION 9: NEWSLETTER */}
-                <section className="container mx-auto px-4 py-16">
-                    <div className="flex flex-col items-center justify-between gap-8 rounded-3xl bg-emerald-600 p-8 text-white shadow-2xl dark:bg-emerald-800 md:flex-row md:p-12">
-                        <div className="max-w-xl text-left">
-                            <h3 className="mb-2 text-3xl font-bold">Join the Innovation Newsletter</h3>
-                            <p className="text-emerald-100">Get a weekly digest of the top 5 most promising projects actively seeking sponsors.</p>
-                        </div>
-                        <div className="flex w-full gap-2 md:w-auto">
-                            <input
-                                type="email"
-                                placeholder="Email address"
-                                className="h-12 w-full rounded-lg border border-white/50 bg-white px-4 text-neutral-900 placeholder:text-neutral-500 shadow-sm outline-none ring-0 focus:border-white md:w-72"
-                            />
-                            <Button variant="secondary" className="h-12 shrink-0 font-bold">Subscribe</Button>
+                <section className="bg-linear-to-b from-emerald-50/70 to-background py-16 dark:from-emerald-950/22 dark:to-background">
+                    <div className="container mx-auto px-4">
+                        <div className="flex flex-col items-center justify-between gap-8 rounded-3xl bg-emerald-600 p-8 text-white shadow-2xl dark:bg-emerald-800 md:flex-row md:p-12">
+                            <div className="max-w-xl text-left">
+                                <h3 className="mb-2 text-3xl font-bold">Join the Innovation Newsletter</h3>
+                                <p className="text-emerald-100">Get a weekly digest of the top 5 most promising projects actively seeking sponsors.</p>
+                            </div>
+                            <div className="flex w-full gap-2 md:w-auto">
+                                <input
+                                    type="email"
+                                    placeholder="Email address"
+                                    className="h-12 w-full rounded-lg border border-white/50 bg-white px-4 text-neutral-900 placeholder:text-neutral-500 shadow-sm outline-none ring-0 focus:border-white md:w-72"
+                                />
+                                <Button variant="secondary" className="h-12 shrink-0 font-bold">Subscribe</Button>
+                            </div>
                         </div>
                     </div>
                 </section>
 
                 {/* SECTION 10: CTA */}
-                <section className="py-24 text-center">
+                <section className="bg-linear-to-b from-background via-emerald-50/40 to-background py-24 text-center dark:via-emerald-950/15">
                     <ShieldCheck className="mx-auto mb-6 h-16 w-16 text-emerald-500" />
                     <h2 className="mb-6 text-4xl font-extrabold tracking-tight">Ready to build the future?</h2>
                     <p className="mb-10 text-xl text-muted-foreground">Join students and sponsors making meaningful innovation happen.</p>
@@ -498,7 +506,7 @@ export default function HomePage() {
                 </section>
 
                 {/* SECTION 12: APP FLOW (SPONSOR) */}
-                <section className="py-20">
+                <section className="bg-linear-to-b from-teal-50/55 to-background py-20 dark:from-teal-950/15 dark:to-background">
                     <div className="container mx-auto px-4">
                         <h2 className="mb-4 text-center text-3xl font-bold">Sponsor App Flow</h2>
                         <p className="mx-auto mb-12 max-w-2xl text-center text-muted-foreground">How sponsors discover, evaluate, fund, and track projects.</p>

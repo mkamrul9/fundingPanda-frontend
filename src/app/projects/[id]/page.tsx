@@ -10,7 +10,7 @@ import { isAxiosError } from "axios";
 import { useSession } from "@/lib/auth-client";
 import { User } from "@/types";
 
-import { getProjectById, getProjectPitchDocDownloadUrl, markProjectAsCompleted } from "@/services/project.service";
+import { getExploreProjects, getProjectById, getProjectPitchDocDownloadUrl, markProjectAsCompleted } from "@/services/project.service";
 import { createCheckoutSession } from "@/services/payment.service";
 import { getMyDonations } from "@/services/donation.service";
 import ProjectTimeline from "@/components/projects/ProjectTimeline";
@@ -27,7 +27,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FileText, Leaf, GraduationCap, Calendar, Share2, Heart, ArrowLeft, MessageSquare, Download } from "lucide-react";
+import { FileText, GraduationCap, Calendar, Share2, Heart, ArrowLeft, MessageSquare, Download, Link2, MapPin, Target, Wallet } from "lucide-react";
 
 type ProjectDetail = {
     id: string;
@@ -61,6 +61,7 @@ export default function ProjectDetailsPage() {
     const isSponsor = currentUser?.role === "SPONSOR";
     const [isDonateModalOpen, setIsDonateModalOpen] = useState(false);
     const [donationAmount, setDonationAmount] = useState<number>(50);
+    const [activeImageIndex, setActiveImageIndex] = useState(0);
 
     const checkoutMutation = useMutation({
         mutationFn: createCheckoutSession,
@@ -88,6 +89,12 @@ export default function ProjectDetailsPage() {
     const { data: project, isLoading, isError } = useQuery<ProjectDetail>({
         queryKey: ["project", projectId],
         queryFn: () => getProjectById(projectId),
+        enabled: !!projectId,
+    });
+
+    const { data: relatedData } = useQuery({
+        queryKey: ["relatedProjects", projectId, project?.categories?.[0]?.id],
+        queryFn: () => getExploreProjects({ status: "APPROVED", sortBy: "createdAt_desc", limit: 10 }),
         enabled: !!projectId,
     });
 
@@ -142,6 +149,25 @@ export default function ProjectDetailsPage() {
     const progressPercentage = project.goalAmount > 0
         ? Math.min(Math.round((project.raisedAmount / project.goalAmount) * 100), 100)
         : 0;
+
+    const galleryImages = project.images?.length > 0
+        ? project.images
+        : [
+            "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=2070&auto=format&fit=crop",
+            "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=2070&auto=format&fit=crop",
+            "https://images.unsplash.com/photo-1580983546522-8706bd30fc18?q=80&w=2070&auto=format&fit=crop",
+        ];
+
+    const safeActiveImage = galleryImages[activeImageIndex] || galleryImages[0];
+    const primaryCategoryId = project.categories?.[0]?.id;
+    const relatedProjects = ((relatedData?.data as ProjectDetail[] | undefined) || [])
+        .filter((item) => item.id !== project.id)
+        .filter((item) => {
+            if (!primaryCategoryId) return true;
+            return item.categories?.some((cat) => cat.id === primaryCategoryId);
+        })
+        .slice(0, 3);
+
     const joinedDateLabel = project.student?.createdAt
         ? new Date(project.student.createdAt).toLocaleDateString()
         : "Not available";
@@ -205,30 +231,51 @@ export default function ProjectDetailsPage() {
 
                 <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-3">
                     <div className="space-y-8 lg:col-span-2">
-                        <div className="relative aspect-video w-full overflow-hidden rounded-2xl bg-slate-900 shadow-md">
-                            {project.images?.[0] ? (
-                                <img src={project.images[0]} alt={project.title} className="h-full w-full object-cover opacity-90" />
-                            ) : (
-                                <div className="flex h-full flex-col items-center justify-center bg-emerald-900 text-emerald-100/50">
-                                    <Leaf className="mb-4 h-24 w-24 opacity-50" />
-                                    <p>No prototype images provided.</p>
-                                </div>
-                            )}
-                            <div className="absolute left-4 top-4">
+                        <div>
+                            <div className="mb-4 flex items-center gap-3">
                                 <Badge className="border-0 bg-white px-3 py-1 text-emerald-700 shadow-sm hover:bg-white/90">
                                     {project.categories?.[0]?.name || "Sustainability"}
                                 </Badge>
+                                <Badge variant="secondary">{project.status || "DRAFT"}</Badge>
                             </div>
-                        </div>
 
-                        <div>
                             <h1 className="mb-4 text-3xl font-extrabold tracking-tight text-neutral-900 sm:text-4xl">
                                 {project.title}
                             </h1>
+
+                            <p className="mb-6 flex items-center gap-2 text-muted-foreground">
+                                <GraduationCap className="h-5 w-5" /> By {project.student?.name || "Anonymous Scholar"}
+                            </p>
+
+                            <div className="space-y-4">
+                                <div className="aspect-video w-full overflow-hidden rounded-2xl border bg-muted shadow-md">
+                                    <img src={safeActiveImage} alt={project.title} className="h-full w-full object-cover transition-all duration-500 hover:scale-105" />
+                                </div>
+
+                                <div className="flex gap-3 overflow-x-auto pb-2">
+                                    {galleryImages.map((image, index) => (
+                                        <button
+                                            key={`${image}-${index}`}
+                                            type="button"
+                                            onClick={() => setActiveImageIndex(index)}
+                                            className={`h-24 w-32 shrink-0 overflow-hidden rounded-lg border-2 transition-all ${activeImageIndex === index
+                                                ? "border-primary shadow-md"
+                                                : "border-transparent opacity-65 hover:opacity-100"}`}
+                                            aria-label={`Select project image ${index + 1}`}
+                                        >
+                                            <img src={image} alt={`Thumbnail ${index + 1}`} className="h-full w-full object-cover" />
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        <section>
+                            <h3 className="mb-4 border-b pb-2 text-2xl font-bold">Project Overview</h3>
                             <p className="whitespace-pre-wrap wrap-break-word text-lg leading-relaxed text-neutral-600">
                                 {project.description}
                             </p>
-                        </div>
+                        </section>
 
                         <Separator />
 
@@ -239,7 +286,7 @@ export default function ProjectDetailsPage() {
                                         <FileText className="h-4 w-4" />
                                     </div>
                                     <div>
-                                        <h3 className="font-semibold text-neutral-900">Thesis Pitch Document</h3>
+                                        <h3 className="font-semibold text-neutral-900">Project Pitch Document</h3>
                                         <p className="text-sm text-neutral-500">PDF Format • Full technical specifications</p>
                                     </div>
                                 </div>
@@ -256,8 +303,15 @@ export default function ProjectDetailsPage() {
                             </div>
                         )}
 
-                        <ProjectTimeline projectId={project.id} studentId={project.studentId || ""} />
-                        <ProjectReviews projectId={project.id} studentId={project.studentId || ""} projectStatus={project.status || "DRAFT"} />
+                        <section>
+                            <h3 className="mb-4 border-b pb-2 text-2xl font-bold">Project Timeline</h3>
+                            <ProjectTimeline projectId={project.id} studentId={project.studentId || ""} />
+                        </section>
+
+                        <section>
+                            <h3 className="mb-4 border-b pb-2 text-2xl font-bold">Reviews</h3>
+                            <ProjectReviews projectId={project.id} studentId={project.studentId || ""} projectStatus={project.status || "DRAFT"} />
+                        </section>
                     </div>
 
                     <div className="space-y-6 lg:sticky lg:top-24">
@@ -320,6 +374,40 @@ export default function ProjectDetailsPage() {
 
                         <Card className="shadow-sm">
                             <CardHeader className="border-b pb-4">
+                                <CardTitle className="text-base">Key Specifications</CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-0">
+                                <ul className="divide-y text-sm">
+                                    <li className="flex justify-between p-4">
+                                        <span className="flex items-center gap-2 text-muted-foreground"><Target className="h-4 w-4" /> Status</span>
+                                        <Badge variant="secondary">{project.status || "DRAFT"}</Badge>
+                                    </li>
+                                    <li className="flex justify-between p-4">
+                                        <span className="flex items-center gap-2 text-muted-foreground"><Wallet className="h-4 w-4" /> Min Donation</span>
+                                        <span className="font-medium">$5.00</span>
+                                    </li>
+                                    <li className="flex justify-between p-4">
+                                        <span className="flex items-center gap-2 text-muted-foreground"><Calendar className="h-4 w-4" /> Created</span>
+                                        <span className="font-medium">{new Date(project.createdAt as string).toLocaleDateString()}</span>
+                                    </li>
+                                    <li className="flex justify-between p-4">
+                                        <span className="flex items-center gap-2 text-muted-foreground"><MapPin className="h-4 w-4" /> University</span>
+                                        <span className="max-w-44 truncate font-medium" title={project.student?.university || "N/A"}>{project.student?.university || "N/A"}</span>
+                                    </li>
+                                    <li className="flex justify-between p-4">
+                                        <span className="flex items-center gap-2 text-muted-foreground"><Link2 className="h-4 w-4" /> Pitch Deck</span>
+                                        {(project.pitchDocUrl || project.pitchDoc) ? (
+                                            <a href={getProjectPitchDocDownloadUrl(project.id)} target="_blank" rel="noreferrer" className="font-medium text-primary hover:underline">View</a>
+                                        ) : (
+                                            <span className="font-medium text-muted-foreground">Unavailable</span>
+                                        )}
+                                    </li>
+                                </ul>
+                            </CardContent>
+                        </Card>
+
+                        <Card className="shadow-sm">
+                            <CardHeader className="border-b pb-4">
                                 <CardTitle className="text-base">About the Researcher</CardTitle>
                             </CardHeader>
                             <CardContent className="flex items-start gap-4 pt-4">
@@ -368,6 +456,42 @@ export default function ProjectDetailsPage() {
                         </Card>
                     </div>
                 </div>
+
+                {relatedProjects.length > 0 && (
+                    <section className="mt-20 border-t pt-10">
+                        <h3 className="mb-8 text-2xl font-bold">More from {project.categories?.[0]?.name || "this category"}</h3>
+                        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                            {relatedProjects.map((item) => {
+                                const relatedProgress = Math.min(
+                                    100,
+                                    Math.round(((item.raisedAmount || 0) / Math.max(item.goalAmount || 1, 1)) * 100)
+                                );
+
+                                return (
+                                    <Link key={item.id} href={`/projects/${item.id}`}>
+                                        <Card className="h-full cursor-pointer overflow-hidden bg-card transition-all hover:-translate-y-1 hover:shadow-lg">
+                                            <div className="relative h-32 bg-muted">
+                                                <Badge className="absolute right-2 top-2 bg-white/90 text-neutral-800">{item.status || "APPROVED"}</Badge>
+                                            </div>
+                                            <CardHeader className="pb-2">
+                                                <CardTitle className="line-clamp-1 text-lg">{item.title}</CardTitle>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <div className="mb-2 h-1.5 w-full rounded-full bg-secondary">
+                                                    <div className="h-1.5 rounded-full bg-emerald-500" style={{ width: `${relatedProgress}%` }} />
+                                                </div>
+                                                <div className="flex justify-between text-xs font-bold">
+                                                    <span className="text-emerald-600">${item.raisedAmount?.toLocaleString() || 0}</span>
+                                                    <span className="text-muted-foreground">Goal: ${item.goalAmount?.toLocaleString() || 0}</span>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    </Link>
+                                );
+                            })}
+                        </div>
+                    </section>
+                )}
             </main>
 
             <Dialog open={isDonateModalOpen} onOpenChange={setIsDonateModalOpen}>

@@ -55,7 +55,7 @@ export default function ChatBot() {
     return (
         <div className="fixed bottom-3 right-3 z-50 sm:bottom-6 sm:right-6">
             {isOpen && (
-                <Card className="mb-3 flex h-[min(560px,calc(100dvh-7.5rem))] w-[calc(100vw-1.5rem)] max-w-100 flex-col overflow-hidden rounded-2xl border border-emerald-200/70 bg-white/95 shadow-[0_24px_48px_-20px_rgba(5,150,105,0.45)] backdrop-blur-sm animate-in slide-in-from-bottom-5 sm:w-[calc(100vw-2rem)]">
+                <Card className="mb-3 flex h-[min(500px,calc(100dvh-10rem))] w-[calc(100vw-1.5rem)] max-w-100 flex-col overflow-hidden rounded-2xl border border-emerald-200/70 bg-white/95 shadow-[0_24px_48px_-20px_rgba(5,150,105,0.45)] backdrop-blur-sm animate-in slide-in-from-bottom-5 sm:w-[calc(100vw-2rem)]">
                     <CardHeader className="relative flex flex-row items-center justify-between border-b border-emerald-300/40 bg-linear-to-br from-emerald-600 via-emerald-500 to-teal-500 py-3 text-white">
                         <div className="absolute -left-6 -top-10 h-24 w-24 rounded-full bg-white/15 blur-xl" />
                         <div className="absolute -right-8 -bottom-10 h-24 w-24 rounded-full bg-lime-200/20 blur-xl" />
@@ -170,7 +170,7 @@ export default function ChatBot() {
 
             {!isOpen && (
                 <div className="flex flex-col items-end gap-2">
-                    <p className="rounded-full border border-emerald-200/70 bg-card px-3 py-1 text-xs font-medium text-emerald-700 shadow-sm dark:border-emerald-900/60 dark:text-emerald-400">
+                    <p className="hidden rounded-full border border-emerald-200/70 bg-card px-3 py-1 text-xs font-medium text-emerald-700 shadow-sm dark:border-emerald-900/60 dark:text-emerald-400 sm:block">
                         If you are lost, reach me.
                     </p>
                     <Button

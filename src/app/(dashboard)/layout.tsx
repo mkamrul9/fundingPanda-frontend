@@ -265,7 +265,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                         </Button>
                     </Link>
 
-                    <div className="mt-3 rounded-xl border border-primary/20 bg-linear-to-br from-primary/10 to-background p-3">
+                    <div className="mt-3 rounded-xl border border-primary/20 bg-linear-to-br from-primary/10 to-background p-3 shadow-sm">
                         <div className="mb-3 flex items-center gap-3">
                             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/20 text-sm font-bold text-primary">
                                 {user.name.charAt(0)}
@@ -275,7 +275,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                                 <p className="text-xs uppercase tracking-wide text-muted-foreground">{userRole}</p>
                             </div>
                         </div>
-                        <Button variant="destructive" className="w-full justify-start" onClick={handleLogout}>
+                        <Button
+                            variant="destructive"
+                            className="h-11 w-full justify-center gap-2 text-sm font-bold shadow-md ring-2 ring-destructive/30"
+                            onClick={handleLogout}
+                        >
                             <LogOut className="mr-2 h-4 w-4" />
                             Sign out
                         </Button>
