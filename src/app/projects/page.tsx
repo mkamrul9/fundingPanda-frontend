@@ -74,10 +74,10 @@ export default function ExploreProjectsPage() {
     };
 
     return (
-        <div className="flex min-h-screen flex-col bg-neutral-50">
+        <div className="flex min-h-screen flex-col bg-transparent">
             <PublicNavbar />
 
-            <div className="bg-white border-b py-12">
+            <div className="app-panel border-b py-12">
                 <div className="container mx-auto px-4 md:px-8 text-center max-w-3xl">
                     <h1 className="text-4xl font-extrabold tracking-tight text-neutral-900 mb-4">
                         Explore <span className="text-primary">Ideas</span>
@@ -250,7 +250,7 @@ export default function ExploreProjectsPage() {
                         ) : projects && projects.length > 0 ? (
                             // ... Keep your existing project mapping logic here ...
                             projects.map((project: ProjectItem) => (
-                                <Card key={project.id} className="flex flex-col overflow-hidden transition-all hover:shadow-lg hover:-translate-y-1 duration-300">
+                                <Card key={project.id} className="app-card flex h-full flex-col overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
                                     <div className="aspect-video w-full bg-slate-100 overflow-hidden relative">
                                         {project.images?.[0] ? (
                                             <img src={project.images[0]} alt={project.title} className="object-cover w-full h-full" />
@@ -269,7 +269,7 @@ export default function ExploreProjectsPage() {
                                         <h3 className="line-clamp-2 text-lg font-bold leading-tight">{project.title}</h3>
                                     </CardHeader>
                                     <CardContent className="flex-1 pb-4">
-                                        <p className="whitespace-pre-wrap wrap-break-word text-sm text-neutral-500">{project.description}</p>
+                                        <p className="line-clamp-3 whitespace-pre-wrap wrap-break-word text-sm text-neutral-500">{project.description}</p>
                                     </CardContent>
                                     <CardFooter className="border-t bg-neutral-50/50 p-4">
                                         <div className="flex w-full items-center justify-between">

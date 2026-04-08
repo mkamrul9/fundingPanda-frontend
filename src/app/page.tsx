@@ -133,14 +133,15 @@ export default function HomePage() {
     const scrollingTrusted = [...trustedResearchers, ...trustedResearchers];
 
     return (
-        <div className="flex min-h-screen flex-col bg-background text-foreground">
+        <div className="flex min-h-screen flex-col bg-transparent text-foreground">
             <PublicNavbar />
 
             <main className="flex-1">
                 {/* SECTION 1: HERO */}
-                <section className="relative flex min-h-[70vh] flex-col items-center justify-center overflow-hidden bg-linear-to-br from-emerald-100 via-background to-teal-100 px-4 py-24 text-center dark:from-emerald-950 dark:via-slate-950 dark:to-teal-950">
+                <section className="relative flex min-h-[70vh] flex-col items-center justify-center overflow-hidden bg-linear-to-br from-emerald-200/85 via-background to-cyan-100/80 px-4 py-24 text-center dark:from-emerald-950 dark:via-slate-950 dark:to-cyan-950/60">
                     <div className="absolute -left-32 top-12 -z-10 h-80 w-80 rounded-full bg-emerald-300/35 blur-3xl dark:bg-emerald-700/25" />
                     <div className="absolute -right-24 -top-24 -z-10 h-96 w-96 rounded-full bg-teal-300/35 opacity-40 blur-3xl animate-pulse dark:bg-teal-700/25" />
+                    <div className="absolute bottom-[-120px] left-1/2 -z-10 h-72 w-[68rem] -translate-x-1/2 rounded-full bg-cyan-200/50 blur-3xl dark:bg-cyan-700/20" />
 
                     <Badge className="mb-6 bg-emerald-100 text-emerald-800 hover:bg-emerald-200 dark:bg-emerald-900/50 dark:text-emerald-300">
                         Over $2M in Academic Funding Raised
@@ -166,7 +167,7 @@ export default function HomePage() {
                 </section>
 
                 {/* SECTION 2: TRUSTED BY */}
-                <section className="border-y bg-muted/50 py-12">
+                <section className="app-panel border-y py-12">
                     <div className="container mx-auto px-4 text-center">
                         <p className="mb-8 text-sm font-semibold uppercase tracking-wider text-muted-foreground">Trusted by Researchers &amp; Sponsors from</p>
                         <div className="trusted-shell">
@@ -182,7 +183,7 @@ export default function HomePage() {
                 </section>
 
                 {/* SECTION 3: HOW IT WORKS */}
-                <section className="bg-linear-to-b from-emerald-50/75 to-background py-24 dark:from-emerald-950/20 dark:to-background">
+                <section className="bg-linear-to-b from-emerald-100/70 via-background to-cyan-50/45 py-24 dark:from-emerald-950/22 dark:to-background">
                     <div className="container mx-auto px-4">
                         <div className="mb-16 text-center">
                             <h2 className="mb-4 text-3xl font-bold">How FundingPanda Works</h2>
@@ -206,7 +207,7 @@ export default function HomePage() {
                                     desc: "Students post timeline updates. Sponsors review projects after successful completion.",
                                 },
                             ].map((step) => (
-                                <Card key={step.title} className="border-0 bg-card text-card-foreground shadow-lg">
+                                <Card key={step.title} className="app-card border-0 text-card-foreground">
                                     <CardContent className="pt-8 text-center">
                                         <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-100 dark:bg-emerald-900/50">
                                             <step.icon className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
@@ -245,7 +246,7 @@ export default function HomePage() {
                 </section>
 
                 {/* SECTION 5: TRENDING PROJECTS */}
-                <section className="bg-linear-to-b from-background via-emerald-50/45 to-background py-24 dark:via-emerald-950/18">
+                <section className="bg-linear-to-b from-transparent via-emerald-100/45 to-cyan-50/50 py-24 dark:via-emerald-950/18 dark:to-cyan-950/10">
                     <div className="container mx-auto px-4">
                         <div className="mb-12 flex items-end justify-between">
                             <div>
@@ -278,7 +279,7 @@ export default function HomePage() {
                                     const goal = project.goalAmount || 1;
                                     const progress = Math.min(100, Math.round((project.raisedAmount / goal) * 100));
                                     return (
-                                        <Card key={project.id} className="flex flex-col overflow-hidden transition-shadow hover:shadow-xl">
+                                        <Card key={project.id} className="app-card flex h-full flex-col overflow-hidden transition-shadow hover:shadow-xl">
                                             <div className="relative h-48 overflow-hidden bg-muted">
                                                 {project.images?.[0] ? (
                                                     <div
@@ -302,7 +303,7 @@ export default function HomePage() {
                                                 </div>
                                                 <CardTitle className="line-clamp-2 text-lg">{project.title}</CardTitle>
                                             </CardHeader>
-                                            <CardContent className="flex-1">
+                                            <CardContent className="flex flex-1 flex-col">
                                                 <p className="mb-4 line-clamp-2 text-sm text-muted-foreground">{project.description}</p>
                                                 <div className="mb-2 h-2 rounded-full bg-secondary">
                                                     <div className="h-2 rounded-full bg-emerald-500" style={{ width: `${progress}%` }} />
@@ -311,8 +312,8 @@ export default function HomePage() {
                                                     <span className="font-semibold text-emerald-600 dark:text-emerald-400">${project.raisedAmount.toLocaleString()} raised</span>
                                                     <span className="text-muted-foreground">Goal ${project.goalAmount.toLocaleString()}</span>
                                                 </div>
-                                                <Link href={`/projects/${project.id}`}>
-                                                    <Button className="mt-4 w-full">Open Project</Button>
+                                                <Link href={`/projects/${project.id}`} className="mt-auto pt-4">
+                                                    <Button className="w-full">View Details</Button>
                                                 </Link>
                                             </CardContent>
                                         </Card>
@@ -328,7 +329,7 @@ export default function HomePage() {
                 </section>
 
                 {/* SECTION 6: EXPLORE BY CATEGORY */}
-                <section className="bg-muted/30 py-20">
+                <section className="bg-linear-to-b from-cyan-50/35 via-transparent to-emerald-50/30 py-20 dark:from-cyan-950/12 dark:to-emerald-950/10">
                     <div className="container mx-auto px-4">
                         <h2 className="mb-3 text-center text-3xl font-bold">Explore by Category</h2>
                         <p className="mx-auto mb-10 max-w-2xl text-center text-muted-foreground">
@@ -380,7 +381,7 @@ export default function HomePage() {
                 </section>
 
                 {/* SECTION 7: STORIES OF SUCCESS (MARQUEE RIGHT TO LEFT) */}
-                <section className="bg-linear-to-b from-background via-teal-50/45 to-background py-24 dark:via-teal-950/18">
+                <section className="bg-linear-to-b from-transparent via-teal-100/45 to-cyan-50/35 py-24 dark:via-teal-950/18 dark:to-cyan-950/10">
                     <div className="container mx-auto px-4">
                         <h2 className="mb-4 text-center text-3xl font-bold">Stories of Success</h2>
                         <p className="mx-auto mb-12 max-w-2xl text-center text-muted-foreground">
