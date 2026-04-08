@@ -33,6 +33,7 @@ type ProjectDetail = {
     id: string;
     title: string;
     description: string;
+    createdAt?: string;
     goalAmount: number;
     raisedAmount: number;
     pitchDocUrl?: string | null;
