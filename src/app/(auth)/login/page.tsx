@@ -33,6 +33,17 @@ export default function LoginPage() {
     useEffect(() => {
         if (session?.user) {
             router.replace("/dashboard");
+            return;
+        }
+
+        // Some OAuth providers can return to /login before React session state hydrates.
+        const oauthSuccess = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("oauth") === "success";
+        if (oauthSuccess) {
+            const timer = setTimeout(() => {
+                router.replace("/dashboard");
+            }, 350);
+
+            return () => clearTimeout(timer);
         }
     }, [session, router]);
 
@@ -93,9 +104,11 @@ export default function LoginPage() {
         setIsLoading(true);
 
         try {
+            const dashboardUrl = `${resolveFrontendBaseUrl()}/dashboard?oauth=success`;
             const result = await signIn.social({
                 provider,
-                callbackURL: `${resolveFrontendBaseUrl()}/dashboard`,
+                callbackURL: dashboardUrl,
+                newUserCallbackURL: dashboardUrl,
             });
 
             if (result?.error) {

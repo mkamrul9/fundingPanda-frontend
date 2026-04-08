@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, MessageSquare, Paperclip, Loader2 } from "lucide-react";
+import { Send, MessageSquare, Paperclip, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface Message {
     id: string;
@@ -48,6 +48,7 @@ export default function MessagesPage() {
     const [isUploading, setIsUploading] = useState(false);
     const [uploadStatusText, setUploadStatusText] = useState("");
     const [hasNewIncomingMessage, setHasNewIncomingMessage] = useState(false);
+    const [contactsPage, setContactsPage] = useState(1);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const activeContactIdRef = useRef<string | null>(null);
     const router = useRouter();
@@ -62,6 +63,10 @@ export default function MessagesPage() {
     });
 
     const contacts = (contactsRaw || []).filter((contact) => contact.id !== currentUserId);
+    const CONTACTS_PAGE_SIZE = 9;
+    const contactsTotalPages = Math.max(1, Math.ceil(contacts.length / CONTACTS_PAGE_SIZE));
+    const safeContactsPage = Math.min(contactsPage, contactsTotalPages);
+    const paginatedContacts = contacts.slice((safeContactsPage - 1) * CONTACTS_PAGE_SIZE, safeContactsPage * CONTACTS_PAGE_SIZE);
 
     const queryClient = useQueryClient();
 
@@ -207,6 +212,10 @@ export default function MessagesPage() {
     }, [contacts, activeContact]);
 
     useEffect(() => {
+        setContactsPage((prev) => Math.min(prev, contactsTotalPages));
+    }, [contactsTotalPages]);
+
+    useEffect(() => {
         if (!activeContact?.id) return;
         if (typeof window !== 'undefined') {
             localStorage.setItem('lastMessageContactId', activeContact.id);
@@ -306,7 +315,8 @@ export default function MessagesPage() {
     return (
         <div className="flex h-[calc(100dvh-7.5rem)] min-h-0 flex-col gap-4 animate-in fade-in duration-500 md:h-[calc(100vh-6rem)]">
 
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="app-panel rounded-xl p-2 sm:p-3">
+                <div className="flex flex-wrap items-center gap-2">
                 <Button
                     variant={activePane === "conversations" ? "default" : "outline"}
                     onClick={() => setActivePane("conversations")}
@@ -320,18 +330,19 @@ export default function MessagesPage() {
                 >
                     Message
                 </Button>
+                </div>
             </div>
 
             {activePane === "conversations" && (
-                <Card className="flex flex-1 flex-col overflow-hidden border-r shadow-sm">
-                    <div className="p-4 border-b bg-neutral-50 font-bold flex items-center gap-2">
+                <Card className="flex flex-1 flex-col overflow-hidden border-border/80 bg-card/90 shadow-lg">
+                    <div className="flex items-center gap-2 border-b bg-linear-to-r from-emerald-50 via-card to-teal-50 p-4 font-bold dark:from-emerald-950/40 dark:via-card dark:to-teal-950/30">
                         <MessageSquare className="h-5 w-5 text-primary" /> Messages
                     </div>
                     <ScrollArea className="flex-1">
                         {loadingContacts ? (
                             <div className="p-4 text-center text-neutral-500">Loading contacts...</div>
                         ) : contacts && contacts.length > 0 ? (
-                            contacts.map((contact) => (
+                            paginatedContacts.map((contact) => (
                                 <div
                                     key={contact.id}
                                     onClick={() => {
@@ -339,11 +350,11 @@ export default function MessagesPage() {
                                         setActivePane("chat");
                                         router.replace(`${pathname}?contact=${contact.id}`, { scroll: false });
                                     }}
-                                    className={`flex items-center gap-3 p-4 border-b cursor-pointer transition-colors ${activeContact?.id === contact.id ? "bg-emerald-50 border-l-4 border-l-primary" : "hover:bg-neutral-50"
+                                    className={`group flex cursor-pointer items-center gap-3 border-b p-4 transition-all duration-200 ${activeContact?.id === contact.id ? "bg-primary/10 border-l-4 border-l-primary" : "hover:bg-muted/70"
                                         }`}
                                 >
                                     <Avatar>
-                                        <AvatarFallback className="bg-primary/10 text-primary font-bold">
+                                        <AvatarFallback className="bg-primary/10 font-bold text-primary group-hover:bg-primary/15">
                                             {contact.name.charAt(0)}
                                         </AvatarFallback>
                                     </Avatar>
@@ -364,14 +375,37 @@ export default function MessagesPage() {
                             </div>
                         )}
                     </ScrollArea>
+                    {contactsTotalPages > 1 && (
+                        <div className="flex items-center justify-between border-t bg-muted/20 px-4 py-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                disabled={safeContactsPage <= 1}
+                                onClick={() => setContactsPage((prev) => Math.max(1, prev - 1))}
+                            >
+                                <ChevronLeft className="mr-1 h-4 w-4" /> Prev
+                            </Button>
+                            <span className="text-xs text-muted-foreground">
+                                Contacts page {safeContactsPage} of {contactsTotalPages}
+                            </span>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                disabled={safeContactsPage >= contactsTotalPages}
+                                onClick={() => setContactsPage((prev) => Math.min(contactsTotalPages, prev + 1))}
+                            >
+                                Next <ChevronRight className="ml-1 h-4 w-4" />
+                            </Button>
+                        </div>
+                    )}
                 </Card>
             )}
 
             {activePane === "chat" && (
-                <Card className="flex flex-1 flex-col overflow-hidden shadow-sm">
+                <Card className="flex flex-1 flex-col overflow-hidden border-border/80 bg-card/90 shadow-lg">
                     {activeContact ? (
                         <>
-                            <div className="p-4 border-b bg-white flex items-center gap-3 shadow-sm z-10">
+                            <div className="z-10 flex items-center gap-3 border-b bg-linear-to-r from-card via-card to-emerald-50 p-4 shadow-sm dark:to-emerald-950/25">
                                 <Avatar>
                                     <AvatarFallback className="bg-primary/10 text-primary">{activeContact.name.charAt(0)}</AvatarFallback>
                                 </Avatar>
@@ -393,7 +427,7 @@ export default function MessagesPage() {
                                 </Button>
                             </div>
 
-                            <ScrollArea className="flex-1 p-4 bg-neutral-50/50">
+                            <ScrollArea className="flex-1 bg-linear-to-b from-muted/40 to-background p-4">
                                 {loadingHistory ? (
                                     <div className="text-center text-neutral-500 mt-4">Loading history...</div>
                                 ) : (
@@ -404,8 +438,8 @@ export default function MessagesPage() {
                                                 <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
                                                     <div
                                                         className={`max-w-[85%] rounded-2xl px-4 py-2 sm:max-w-[70%] ${isMe
-                                                            ? "bg-primary text-primary-foreground rounded-br-sm"
-                                                            : "bg-white border text-neutral-900 rounded-bl-sm shadow-sm"
+                                                                ? "rounded-br-sm bg-primary text-primary-foreground shadow-md"
+                                                                : "rounded-bl-sm border bg-card text-neutral-900 shadow-sm"
                                                             }`}
                                                     >
                                                         <div className="text-sm">
@@ -435,7 +469,7 @@ export default function MessagesPage() {
                                 )}
                             </ScrollArea>
 
-                            <div className="p-4 bg-white border-t">
+                            <div className="border-t bg-card/85 p-4">
                                 {isUploading && (
                                     <div className="mb-2 flex items-center gap-2 text-sm text-neutral-500">
                                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -465,7 +499,7 @@ export default function MessagesPage() {
                                         value={newMessage}
                                         onChange={(e) => setNewMessage(e.target.value)}
                                         disabled={isUploading}
-                                        className="flex-1 rounded-full bg-neutral-100 border-transparent focus-visible:ring-primary focus-visible:bg-white"
+                                        className="flex-1 rounded-full border-primary/10 bg-muted/70 focus-visible:ring-primary focus-visible:bg-card"
                                     />
                                     <Button type="submit" size="icon" className="rounded-full shrink-0" disabled={!newMessage.trim() || isUploading}>
                                         <Send className="h-4 w-4" />

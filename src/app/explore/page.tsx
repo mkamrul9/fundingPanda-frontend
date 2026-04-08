@@ -246,10 +246,14 @@ export default function ExplorePage() {
                                         100,
                                         Math.round(((project.raisedAmount || 0) / Math.max(project.goalAmount || 1, 1)) * 100)
                                     );
+                                    const coverImage = project.images?.find((img) => typeof img === "string" && img.trim().length > 0);
 
                                     return (
                                         <Card key={project.id} className="flex h-full flex-col overflow-hidden bg-card transition-shadow hover:shadow-lg">
-                                            <div className="relative h-40 bg-linear-to-br from-emerald-100 to-teal-50 dark:from-emerald-900/40 dark:to-teal-900/20">
+                                            <div
+                                                className={`relative h-40 ${coverImage ? "bg-cover bg-center" : "bg-linear-to-br from-emerald-100 to-teal-50 dark:from-emerald-900/40 dark:to-teal-900/20"}`}
+                                                style={coverImage ? { backgroundImage: `linear-gradient(to top, rgba(15, 23, 42, 0.45), rgba(15, 23, 42, 0.1)), url(${coverImage})` } : undefined}
+                                            >
                                                 <Badge className="absolute right-3 top-3 bg-white/90 text-emerald-800 hover:bg-white">
                                                     {project.status}
                                                 </Badge>
