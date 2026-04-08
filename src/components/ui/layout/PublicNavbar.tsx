@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Leaf, Menu, X } from "lucide-react";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 
 export default function PublicNavbar() {
     const { data: session, isPending } = useSession();
@@ -24,13 +25,13 @@ export default function PublicNavbar() {
     ];
 
     return (
-        <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md">
+        <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md">
             <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
                 <Link href="/" className="flex items-center gap-2">
                     <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
                         <Leaf className="h-5 w-5 text-primary-foreground" />
                     </div>
-                    <span className="text-xl font-bold tracking-tight text-neutral-900">
+                    <span className="text-xl font-bold tracking-tight text-foreground">
                         Funding<span className="text-primary">Panda</span>
                     </span>
                 </Link>
@@ -41,7 +42,7 @@ export default function PublicNavbar() {
                         <Link
                             key={item.href}
                             href={item.href}
-                            className={`text-sm font-medium transition-colors hover:text-primary ${isActive(item.href) ? "text-primary border-b-2 border-primary py-5" : "text-neutral-600"}`}
+                            className={`text-sm font-medium transition-colors hover:text-primary ${isActive(item.href) ? "text-primary border-b-2 border-primary py-5" : "text-muted-foreground"}`}
                         >
                             {item.label}
                         </Link>
@@ -49,8 +50,9 @@ export default function PublicNavbar() {
                 </nav>
 
                 <div className="hidden lg:flex items-center gap-4">
+                    <ThemeToggle />
                     {isPending ? (
-                        <div className="h-9 w-24 animate-pulse rounded-md bg-neutral-200" />
+                        <div className="h-9 w-24 animate-pulse rounded-md bg-muted" />
                     ) : session ? (
                         <Link href="/dashboard">
                             <Button>Dashboard</Button>
@@ -79,13 +81,13 @@ export default function PublicNavbar() {
             </div>
 
             {isMobileMenuOpen && (
-                <div className="border-t bg-white px-4 pb-4 pt-3 shadow-sm lg:hidden">
+                <div className="border-t bg-background px-4 pb-4 pt-3 shadow-sm lg:hidden">
                     <nav className="flex flex-col gap-1">
                         {navLinks.map((item) => (
                             <Link
                                 key={item.href}
                                 href={item.href}
-                                className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${isActive(item.href) ? "bg-primary/10 text-primary" : "text-neutral-700 hover:bg-neutral-100"}`}
+                                className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${isActive(item.href) ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"}`}
                                 onClick={() => setIsMobileMenuOpen(false)}
                             >
                                 {item.label}
@@ -94,8 +96,11 @@ export default function PublicNavbar() {
                     </nav>
 
                     <div className="mt-3 border-t pt-3">
+                        <div className="mb-3 flex justify-end">
+                            <ThemeToggle />
+                        </div>
                         {isPending ? (
-                            <div className="h-9 w-full animate-pulse rounded-md bg-neutral-200" />
+                            <div className="h-9 w-full animate-pulse rounded-md bg-muted" />
                         ) : session ? (
                             <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
                                 <Button className="w-full">Dashboard</Button>

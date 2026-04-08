@@ -11,6 +11,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getMyNotifications } from "@/services/notification.service";
 import { getConversations } from "@/services/message.service";
 import { toast } from "sonner";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 
 type ConversationSummary = {
     unreadCount?: number;
@@ -54,7 +55,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     // Show a loading spinner while checking auth state
     if (isPending) {
         return (
-            <div className="flex min-h-screen items-center justify-center bg-neutral-50">
+            <div className="flex min-h-screen items-center justify-center bg-muted/40">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
         );
@@ -73,9 +74,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     const isActivePath = (path: string) => pathname === path || pathname.startsWith(`${path}/`);
 
     return (
-        <div className="flex min-h-screen flex-col bg-neutral-50 lg:flex-row">
+        <div className="flex min-h-screen flex-col bg-muted/40 lg:flex-row">
             {/* Sidebar Navigation */}
-            <aside className="w-full border-b bg-white lg:flex lg:w-64 lg:flex-col lg:border-b-0 lg:border-r">
+            <aside className="w-full border-b bg-card lg:flex lg:w-64 lg:flex-col lg:border-b-0 lg:border-r">
                 <div className="flex h-16 items-center justify-between border-b px-6">
                     <Link href="/" className="flex items-center gap-2">
                         <Leaf className="h-5 w-5 text-primary" />
@@ -84,15 +85,18 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                         </span>
                     </Link>
 
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="lg:hidden"
-                        onClick={() => setIsSidebarOpen((prev) => !prev)}
-                        aria-label="Toggle dashboard menu"
-                    >
-                        {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-                    </Button>
+                    <div className="flex items-center gap-1">
+                        <ThemeToggle />
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="lg:hidden"
+                            onClick={() => setIsSidebarOpen((prev) => !prev)}
+                            aria-label="Toggle dashboard menu"
+                        >
+                            {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                        </Button>
+                    </div>
                 </div>
 
                 <nav
@@ -261,14 +265,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                         </Button>
                     </Link>
 
-                    <div className="mt-3 rounded-xl border border-primary/20 bg-gradient-to-br from-primary/10 to-emerald-50 p-3">
+                    <div className="mt-3 rounded-xl border border-primary/20 bg-linear-to-br from-primary/10 to-background p-3">
                         <div className="mb-3 flex items-center gap-3">
                             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/20 text-sm font-bold text-primary">
                                 {user.name.charAt(0)}
                             </div>
                             <div className="min-w-0">
-                                <p className="truncate text-sm font-semibold text-neutral-900">{user.name}</p>
-                                <p className="text-xs uppercase tracking-wide text-neutral-500">{userRole}</p>
+                                <p className="truncate text-sm font-semibold text-foreground">{user.name}</p>
+                                <p className="text-xs uppercase tracking-wide text-muted-foreground">{userRole}</p>
                             </div>
                         </div>
                         <Button variant="destructive" className="w-full justify-start" onClick={handleLogout}>

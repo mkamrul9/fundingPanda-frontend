@@ -127,10 +127,10 @@ export default function LoginPage() {
                                         router.replace("/dashboard");
                                         return;
                                     }
-                                    toast.error("Login succeeded but session was not established. Please try again.");
+                                    toast.error("Login succeeded but session cookie was blocked. In Incognito, allow third-party cookies for this site or use normal mode.");
                                 } catch {
                                     setIsLoading(false);
-                                    toast.error("Login succeeded but session check failed. Please try again.");
+                                    toast.error("Login succeeded but session check failed. In Incognito, cookie restrictions can block login.");
                                 }
                             })();
                         },

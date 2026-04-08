@@ -164,3 +164,151 @@
     width: calc(100vw - 16px) !important;
   }
 }
+
+/*
+  Dark-mode compatibility bridge:
+  many pages still use hardcoded light-only Tailwind utilities (bg-white, text-neutral-900, etc).
+  These overrides remap them to semantic theme tokens under .dark for consistent readability.
+*/
+@layer utilities {
+  .dark .bg-white,
+  .dark .bg-white\/95,
+  .dark .bg-white\/80,
+  .dark .bg-white\/50 {
+    background-color: var(--color-card, var(--card)) !important;
+  }
+
+  .dark .bg-neutral-50,
+  .dark .bg-neutral-50\/50,
+  .dark .bg-emerald-50\/30,
+  .dark .bg-slate-50,
+  .dark .bg-gray-50,
+  .dark .bg-amber-50,
+  .dark .bg-orange-50,
+  .dark .bg-emerald-50,
+  .dark .bg-lime-50 {
+    background-color: color-mix(in srgb, var(--color-muted, var(--muted)) 88%, transparent) !important;
+  }
+
+  .dark .bg-neutral-100,
+  .dark .bg-slate-100,
+  .dark .bg-gray-100 {
+    background-color: var(--color-muted, var(--muted)) !important;
+  }
+
+  .dark .bg-emerald-100,
+  .dark .bg-lime-100,
+  .dark .bg-green-100 {
+    background-color: color-mix(in srgb, var(--color-primary, var(--primary)) 22%, transparent) !important;
+  }
+
+  .dark .text-black,
+  .dark .text-neutral-900,
+  .dark .text-neutral-800,
+  .dark .text-gray-900,
+  .dark .text-slate-900 {
+    color: var(--color-foreground, var(--foreground)) !important;
+  }
+
+  .dark .text-neutral-700,
+  .dark .text-neutral-600,
+  .dark .text-neutral-500,
+  .dark .text-neutral-400,
+  .dark .text-gray-700,
+  .dark .text-gray-600,
+  .dark .text-slate-700,
+  .dark .text-slate-600 {
+    color: var(--color-muted-foreground, var(--muted-foreground)) !important;
+  }
+
+  .dark .text-emerald-900,
+  .dark .text-emerald-800,
+  .dark .text-emerald-700,
+  .dark .text-emerald-600,
+  .dark .text-green-900,
+  .dark .text-green-800,
+  .dark .text-green-700,
+  .dark .text-green-600,
+  .dark .text-lime-900,
+  .dark .text-lime-800,
+  .dark .text-lime-700,
+  .dark .text-lime-600 {
+    color: color-mix(in srgb, var(--color-primary, var(--primary)) 68%, white 32%) !important;
+  }
+
+  .dark .text-emerald-500,
+  .dark .text-emerald-400,
+  .dark .text-green-500,
+  .dark .text-green-400,
+  .dark .text-lime-500,
+  .dark .text-lime-400 {
+    color: color-mix(in srgb, var(--color-primary, var(--primary)) 55%, white 45%) !important;
+  }
+
+  .dark .text-emerald-300,
+  .dark .text-emerald-200,
+  .dark .text-green-300,
+  .dark .text-green-200,
+  .dark .text-lime-300,
+  .dark .text-lime-200 {
+    color: color-mix(in srgb, var(--color-primary, var(--primary)) 42%, white 58%) !important;
+  }
+
+  .dark .text-emerald-100\/50,
+  .dark .text-emerald-100\/60,
+  .dark .text-emerald-100\/70,
+  .dark .text-emerald-200\/50,
+  .dark .text-emerald-200\/60 {
+    color: color-mix(in srgb, var(--color-primary, var(--primary)) 38%, white 62%) !important;
+  }
+
+  .dark .border-emerald-200,
+  .dark .border-emerald-100,
+  .dark .border-green-200,
+  .dark .border-lime-200 {
+    border-color: color-mix(in srgb, var(--color-primary, var(--primary)) 38%, var(--color-border, var(--border)) 62%) !important;
+  }
+
+  .dark .border-emerald-200\/90,
+  .dark .border-emerald-200\/70,
+  .dark .border-emerald-300\/40,
+  .dark .border-emerald-100\/80 {
+    border-color: color-mix(in srgb, var(--color-primary, var(--primary)) 34%, var(--color-border, var(--border)) 66%) !important;
+  }
+
+  .dark .border-neutral-100,
+  .dark .border-neutral-200,
+  .dark .border-neutral-300,
+  .dark .border-gray-200,
+  .dark .border-slate-200 {
+    border-color: var(--color-border, var(--border)) !important;
+  }
+
+  .dark .hover\:bg-neutral-50:hover,
+  .dark .hover\:bg-neutral-100:hover,
+  .dark .hover\:bg-slate-50:hover,
+  .dark .hover\:bg-gray-50:hover,
+  .dark .hover\:bg-emerald-50:hover {
+    background-color: color-mix(in srgb, var(--color-muted, var(--muted)) 82%, transparent) !important;
+  }
+
+  .dark .hover\:text-emerald-700:hover,
+  .dark .hover\:text-emerald-600:hover,
+  .dark .hover\:text-emerald-500:hover,
+  .dark .hover\:text-green-700:hover,
+  .dark .hover\:text-green-600:hover,
+  .dark .hover\:text-lime-700:hover,
+  .dark .hover\:text-lime-600:hover,
+  .dark .hover\:text-emerald-400:hover {
+    color: color-mix(in srgb, var(--color-primary, var(--primary)) 62%, white 38%) !important;
+  }
+
+  .dark .hover\:text-neutral-900:hover,
+  .dark .hover\:text-black:hover {
+    color: var(--color-foreground, var(--foreground)) !important;
+  }
+
+  .dark .open\:bg-white[open] {
+    background-color: var(--color-card, var(--card)) !important;
+  }
+}
