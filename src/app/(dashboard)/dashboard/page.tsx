@@ -13,6 +13,7 @@ import { getMyResourceClaims } from "@/services/resource.service";
 import { getMyNotifications } from "@/services/notification.service";
 import { getPlatformAnalytics, getPendingProjects } from "@/services/admin.service";
 import { ArrowUpRight, Bell, FolderKanban, HandCoins, ShieldCheck, Users } from "lucide-react";
+import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 type DashboardProject = {
     id: string;
@@ -23,6 +24,7 @@ type DashboardProject = {
 
 type DonationRow = {
     amount: number;
+    createdAt?: string;
     project?: {
         id: string;
         title: string;
@@ -45,6 +47,8 @@ const percent = (part: number, total: number) => {
     if (!total) return 0;
     return Math.min(100, Math.round((part / total) * 100));
 };
+
+const CHART_COLORS = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6", "#14b8a6"];
 
 export default function DashboardPage() {
     const { data: session } = useSession();
@@ -140,6 +144,46 @@ export default function DashboardPage() {
     }, [myDonations]);
 
     const unreadNotifications = notifications?.unreadCount ?? 0;
+
+    const adminBarData = useMemo(() => {
+        if (!adminAnalytics) return [];
+        return [
+            { label: "Users", value: adminAnalytics.totalUsers ?? 0 },
+            { label: "Projects", value: adminAnalytics.totalProjects ?? 0 },
+            { label: "Pending", value: adminAnalytics.pendingProjects ?? 0 },
+            { label: "Resources", value: adminAnalytics.totalResources ?? 0 },
+        ];
+    }, [adminAnalytics]);
+
+    const adminPieData = useMemo(() => {
+        if (!adminAnalytics) return [];
+        const pending = adminAnalytics.pendingProjects ?? 0;
+        const totalProjects = adminAnalytics.totalProjects ?? 0;
+        const reviewed = Math.max(0, totalProjects - pending);
+        return [
+            { name: "Pending", value: pending },
+            { name: "Reviewed", value: reviewed },
+        ];
+    }, [adminAnalytics]);
+
+    const sponsorTrendData = useMemo(() => {
+        return myDonations
+            .slice(0, 10)
+            .map((item, index) => ({
+                index: index + 1,
+                amount: Number(item.amount || 0),
+            }))
+            .reverse();
+    }, [myDonations]);
+
+    const studentStatusData = useMemo(() => {
+        return [
+            { name: "Draft", value: studentMetrics.draftCount },
+            { name: "In Review", value: studentMetrics.inReviewCount },
+            { name: "Approved", value: studentMetrics.approvedCount },
+            { name: "Completed", value: studentMetrics.completedCount },
+        ].filter((item) => item.value > 0);
+    }, [studentMetrics]);
 
     if (!session || !user) return null;
 
@@ -239,6 +283,55 @@ export default function DashboardPage() {
                             )}
                         </CardContent>
                     </Card>
+
+                    <div className="grid gap-4 lg:grid-cols-2">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Platform Footprint</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="h-64 w-full">
+                                    {loadingAdminAnalytics ? (
+                                        <Skeleton className="h-full w-full" />
+                                    ) : (
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <BarChart data={adminBarData}>
+                                                <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
+                                                <XAxis dataKey="label" tickLine={false} axisLine={false} />
+                                                <YAxis tickLine={false} axisLine={false} />
+                                                <Tooltip formatter={(value) => [Number(value).toLocaleString(), "Count"]} />
+                                                <Bar dataKey="value" fill="#10b981" radius={[6, 6, 0, 0]} />
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    )}
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Moderation Distribution</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="h-64 w-full">
+                                    {loadingAdminAnalytics ? (
+                                        <Skeleton className="h-full w-full" />
+                                    ) : (
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <PieChart>
+                                                <Pie data={adminPieData} dataKey="value" nameKey="name" innerRadius={56} outerRadius={82} paddingAngle={3}>
+                                                    {adminPieData.map((entry, index) => (
+                                                        <Cell key={`${entry.name}-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                                                    ))}
+                                                </Pie>
+                                                <Tooltip formatter={(value) => [Number(value).toLocaleString(), "Projects"]} />
+                                            </PieChart>
+                                        </ResponsiveContainer>
+                                    )}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
                 </>
             )}
 
@@ -271,6 +364,29 @@ export default function DashboardPage() {
                             <div className="rounded-xl border bg-neutral-50 p-4">
                                 <p className="text-xs uppercase text-neutral-500">Average donation size</p>
                                 <p className="mt-1 text-2xl font-bold">{currency(sponsorMetrics.donationCount ? sponsorMetrics.totalDonated / sponsorMetrics.donationCount : 0)}</p>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Recent Donation Trend</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="h-64 w-full">
+                                {loadingDonations ? (
+                                    <Skeleton className="h-full w-full" />
+                                ) : (
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <LineChart data={sponsorTrendData}>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
+                                            <XAxis dataKey="index" tickLine={false} axisLine={false} />
+                                            <YAxis tickLine={false} axisLine={false} tickFormatter={(value) => `$${Number(value).toLocaleString()}`} />
+                                            <Tooltip formatter={(value) => [`$${Number(value).toLocaleString()}`, "Donation"]} />
+                                            <Line type="monotone" dataKey="amount" stroke="#10b981" strokeWidth={3} dot={{ r: 3 }} />
+                                        </LineChart>
+                                    </ResponsiveContainer>
+                                )}
                             </div>
                         </CardContent>
                     </Card>
@@ -319,6 +435,30 @@ export default function DashboardPage() {
                                 <div className="h-3 rounded-full bg-neutral-100">
                                     <div className="h-3 rounded-full bg-gradient-to-r from-emerald-500 to-primary" style={{ width: `${studentMetrics.progressPercent}%` }} />
                                 </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Project Status Mix</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="h-64 w-full">
+                                {(loadingProjects || loadingClaims) ? (
+                                    <Skeleton className="h-full w-full" />
+                                ) : (
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <PieChart>
+                                            <Pie data={studentStatusData} dataKey="value" nameKey="name" innerRadius={55} outerRadius={84} paddingAngle={3}>
+                                                {studentStatusData.map((entry, index) => (
+                                                    <Cell key={`${entry.name}-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                                                ))}
+                                            </Pie>
+                                            <Tooltip formatter={(value) => [Number(value).toLocaleString(), "Projects"]} />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                )}
                             </div>
                         </CardContent>
                     </Card>

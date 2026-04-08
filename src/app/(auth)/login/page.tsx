@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import { signIn, useSession } from "@/lib/auth-client";
-import { ShieldAlert, GraduationCap, Lock, Mail, Chrome } from "lucide-react";
+import { ShieldAlert, GraduationCap, Lock, Mail, Chrome, Eye, EyeOff } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,7 @@ export default function LoginPage() {
     const { data: session } = useSession();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [activeSocialProvider, setActiveSocialProvider] = useState<"google" | null>(null);
     const isGoogleDisabled = process.env.NEXT_PUBLIC_DISABLE_GOOGLE_OAUTH === "true";
@@ -78,7 +79,7 @@ export default function LoginPage() {
 
     const handleSocialLogin = async (provider: "google") => {
         if (provider === "google" && isGoogleDisabled) {
-            toast.info("Google OAuth is currently disabled. Use Demo Admin/Student or GitHub login.");
+            toast.info("Google OAuth is currently disabled. Use Demo Admin/Student login.");
             return;
         }
 
@@ -168,12 +169,20 @@ export default function LoginPage() {
                                 <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                                 <Input
                                     id="password"
-                                    type="password"
-                                    className="pl-10"
+                                    type={showPassword ? "text" : "password"}
+                                    className="pl-10 pr-10"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     disabled={isLoading}
                                 />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword((prev) => !prev)}
+                                    className="absolute right-0 top-0 h-full px-3 py-2 text-muted-foreground hover:text-foreground"
+                                    disabled={isLoading}
+                                >
+                                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                </button>
                             </div>
                         </div>
 

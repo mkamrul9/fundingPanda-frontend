@@ -7,7 +7,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { signIn, signUp, useSession } from "@/lib/auth-client";
 import { registerSchema, nameSchema, registerEmailSchema, registerPasswordSchema, registerUniversitySchema, registerBioSchema } from "@/lib/validations/auth";
-import { Chrome } from "lucide-react";
+import { Chrome, Eye, EyeOff } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,7 @@ export default function RegisterPage() {
     const { data: session } = useSession();
     const [isLoading, setIsLoading] = useState(false);
     const [activeSocialProvider, setActiveSocialProvider] = useState<"google" | null>(null);
+    const [showPassword, setShowPassword] = useState(false);
     const isGoogleDisabled = process.env.NEXT_PUBLIC_DISABLE_GOOGLE_OAUTH === "true";
 
     useEffect(() => {
@@ -65,7 +66,7 @@ export default function RegisterPage() {
 
     const handleSocialRegister = async (provider: "google") => {
         if (provider === "google" && isGoogleDisabled) {
-            toast.info("Google OAuth is currently disabled. Use GitHub or email sign up.");
+            toast.info("Google OAuth is currently disabled. Use email sign up.");
             return;
         }
 
@@ -232,14 +233,25 @@ export default function RegisterPage() {
                             {(field) => (
                                 <div className="space-y-2">
                                     <Label htmlFor={field.name}>Password</Label>
-                                    <Input
-                                        id={field.name}
-                                        type="password"
-                                        value={field.state.value}
-                                        onChange={(e) => field.handleChange(e.target.value)}
-                                        onBlur={field.handleBlur}
-                                        disabled={isLoading}
-                                    />
+                                    <div className="relative">
+                                        <Input
+                                            id={field.name}
+                                            type={showPassword ? "text" : "password"}
+                                            value={field.state.value}
+                                            onChange={(e) => field.handleChange(e.target.value)}
+                                            onBlur={field.handleBlur}
+                                            disabled={isLoading}
+                                            className="pr-10"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword((prev) => !prev)}
+                                            className="absolute right-0 top-0 h-full px-3 py-2 text-muted-foreground hover:text-foreground"
+                                            disabled={isLoading}
+                                        >
+                                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                        </button>
+                                    </div>
                                     {field.state.meta.errors.length > 0 && (
                                         <p className="text-sm text-red-500">{field.state.meta.errors[0]}</p>
                                     )}
