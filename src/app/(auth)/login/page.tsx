@@ -79,10 +79,16 @@ export default function LoginPage() {
         setIsLoading(true);
 
         try {
-            await signIn.social({
+            const result = await signIn.social({
                 provider,
                 callbackURL: "/dashboard",
             });
+
+            if (result?.error) {
+                toast.error(result.error.message || `Failed to initialize ${provider} login.`);
+                setIsLoading(false);
+                setActiveSocialProvider(null);
+            }
         } catch {
             toast.error(`Failed to initialize ${provider} login.`);
             setIsLoading(false);
