@@ -7,6 +7,7 @@ import { useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Leaf, Menu, X } from "lucide-react";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import { ProfileDropdown } from "@/components/layout/ProfileDropdown";
 
 export default function PublicNavbar() {
     const { data: session, isPending } = useSession();
@@ -54,16 +55,14 @@ export default function PublicNavbar() {
                     {isPending ? (
                         <div className="h-9 w-24 animate-pulse rounded-md bg-muted" />
                     ) : session ? (
-                        <Link href="/dashboard">
-                            <Button>Dashboard</Button>
-                        </Link>
+                        <ProfileDropdown />
                     ) : (
                         <>
-                            <Link href="/login">
-                                <Button variant="ghost">Log in</Button>
+                            <Link href="/login" className="hidden sm:block">
+                                <Button variant="ghost">Sign In</Button>
                             </Link>
                             <Link href="/register">
-                                <Button>Sign up</Button>
+                                <Button>Get Started</Button>
                             </Link>
                         </>
                     )}
@@ -102,16 +101,16 @@ export default function PublicNavbar() {
                         {isPending ? (
                             <div className="h-9 w-full animate-pulse rounded-md bg-muted" />
                         ) : session ? (
-                            <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
-                                <Button className="w-full">Dashboard</Button>
-                            </Link>
+                            <div className="flex justify-end">
+                                <ProfileDropdown />
+                            </div>
                         ) : (
                             <div className="flex flex-col gap-2">
                                 <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
-                                    <Button variant="outline" className="w-full">Log in</Button>
+                                    <Button variant="outline" className="w-full">Sign In</Button>
                                 </Link>
                                 <Link href="/register" onClick={() => setIsMobileMenuOpen(false)}>
-                                    <Button className="w-full">Sign up</Button>
+                                    <Button className="w-full">Get Started</Button>
                                 </Link>
                             </div>
                         )}

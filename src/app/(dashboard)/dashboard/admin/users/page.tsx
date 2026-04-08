@@ -1,18 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useSession } from "@/lib/auth-client";
-import { getAllUsers, toggleUserBan, verifyUser } from "@/services/admin.service";
-import { extractApiErrorMessage } from "@/lib/api-error";
+import { getAllUsers } from "@/services/admin.service";
 import { User } from "@/types";
-import { toast } from "sonner";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ShieldAlert, Users, Mail, Calendar } from "lucide-react";
+import { ShieldAlert, Users, Mail, Calendar, Search, ChevronLeft, ChevronRight } from "lucide-react";
 
 type PlatformUser = {
     id: string;
@@ -36,42 +35,27 @@ type UsersQueryResponse = {
 
 export default function AdminUsersPage() {
     const { data: session } = useSession();
-    const queryClient = useQueryClient();
+    const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
-    const PAGE_SIZE = 6;
+    const itemsPerPage = 8;
     const currentUser = session?.user as unknown as User | undefined;
     const isAdmin = currentUser?.role === "ADMIN";
 
     const { data: usersResponse, isLoading } = useQuery<UsersQueryResponse>({
-        queryKey: ["allUsers", currentPage],
-        queryFn: () => getAllUsers({ page: currentPage, limit: PAGE_SIZE }),
+        queryKey: ["allUsers", "directory"],
+        queryFn: () => getAllUsers({ page: 1, limit: 500 }),
         enabled: isAdmin,
     });
 
     const users = usersResponse?.data ?? [];
-    const totalPages = Math.max(1, Number(usersResponse?.meta?.totalPage ?? 1));
-
-    const banMutation = useMutation({
-        mutationFn: ({ userId, isBanned }: { userId: string; isBanned: boolean }) => toggleUserBan(userId, isBanned),
-        onSuccess: (_data, variables) => {
-            toast.success(variables.isBanned ? "User banned successfully." : "User unbanned successfully.");
-            queryClient.invalidateQueries({ queryKey: ["allUsers"] });
-        },
-        onError: (error: unknown) => {
-            toast.error(extractApiErrorMessage(error, "Failed to update user ban status."));
-        },
+    const filteredUsers = users.filter((user) => {
+        const q = searchTerm.trim().toLowerCase();
+        if (!q) return true;
+        return user.name?.toLowerCase().includes(q) || user.email?.toLowerCase().includes(q);
     });
 
-    const verifyMutation = useMutation({
-        mutationFn: ({ userId, isVerified }: { userId: string; isVerified: boolean }) => verifyUser(userId, isVerified),
-        onSuccess: (_data, variables) => {
-            toast.success(variables.isVerified ? "User marked as verified." : "User verification removed.");
-            queryClient.invalidateQueries({ queryKey: ["allUsers"] });
-        },
-        onError: (error: unknown) => {
-            toast.error(extractApiErrorMessage(error, "Failed to update user verification status."));
-        },
-    });
+    const totalPages = Math.max(1, Math.ceil(filteredUsers.length / itemsPerPage));
+    const currentTableData = filteredUsers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
     if (!isAdmin) {
         return (
@@ -92,135 +76,59 @@ export default function AdminUsersPage() {
             </div>
 
             <Card>
-                <CardHeader>
-                    <CardTitle>User Directory</CardTitle>
-                    <CardDescription>A complete list of accounts registered on FundingPanda.</CardDescription>
+                <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <CardTitle>User Directory</CardTitle>
+                        <CardDescription>A complete list of accounts registered on FundingPanda.</CardDescription>
+                    </div>
+                    <div className="relative w-full sm:w-72">
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            type="search"
+                            placeholder="Search by name or email..."
+                            className="bg-background pl-8"
+                            value={searchTerm}
+                            onChange={(e) => {
+                                setSearchTerm(e.target.value);
+                                setCurrentPage(1);
+                            }}
+                        />
+                    </div>
                 </CardHeader>
                 <CardContent>
-                    <div className="space-y-3 md:hidden">
-                        {isLoading ? (
-                            Array.from({ length: 4 }).map((_, i) => (
-                                <div key={i} className="rounded-lg border bg-white p-4">
-                                    <Skeleton className="h-5 w-32" />
-                                    <Skeleton className="mt-2 h-4 w-48" />
-                                    <div className="mt-3 grid grid-cols-2 gap-2">
-                                        <Skeleton className="h-6 w-20 rounded-full" />
-                                        <Skeleton className="h-6 w-20 rounded-full" />
-                                        <Skeleton className="h-6 w-24 rounded-full" />
-                                        <Skeleton className="h-4 w-28" />
-                                    </div>
-                                    <div className="mt-3 flex gap-2">
-                                        <Skeleton className="h-8 w-24" />
-                                        <Skeleton className="h-8 w-24" />
-                                    </div>
-                                </div>
-                            ))
-                        ) : users.map((user) => (
-                            <div key={user.id} className="rounded-lg border bg-white p-4">
-                                <p className="font-semibold text-neutral-900">{user.name}</p>
-                                <p className="mt-1 text-sm text-neutral-600 break-all">{user.email}</p>
-
-                                <div className="mt-3 flex flex-wrap gap-2">
-                                    <Badge variant={user.role === "ADMIN" ? "destructive" : user.role === "SPONSOR" ? "default" : "secondary"}>
-                                        {user.role}
-                                    </Badge>
-                                    <Badge variant={user.isBanned ? "destructive" : "secondary"}>
-                                        {user.isBanned ? "BANNED" : "ACTIVE"}
-                                    </Badge>
-                                    <Badge variant={user.isVerified ? "default" : "outline"}>
-                                        {user.isVerified ? "VERIFIED" : "UNVERIFIED"}
-                                    </Badge>
-                                </div>
-
-                                <p className="mt-3 text-xs text-neutral-500">Joined {new Date(user.createdAt).toLocaleDateString()}</p>
-
-                                <div className="mt-3 flex flex-wrap gap-2">
-                                    <Button
-                                        variant={user.isVerified ? "outline" : "default"}
-                                        size="sm"
-                                        disabled={verifyMutation.isPending || user.id === currentUser?.id}
-                                        onClick={() => verifyMutation.mutate({ userId: user.id, isVerified: !Boolean(user.isVerified) })}
-                                    >
-                                        {user.isVerified ? "Unverify" : "Verify"}
-                                    </Button>
-                                    <Button
-                                        variant={user.isBanned ? "outline" : "destructive"}
-                                        size="sm"
-                                        disabled={banMutation.isPending || user.id === currentUser?.id || user.role === "ADMIN"}
-                                        onClick={() => banMutation.mutate({ userId: user.id, isBanned: !Boolean(user.isBanned) })}
-                                    >
-                                        {user.isBanned ? "Unban" : "Ban"}
-                                    </Button>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-
-                    <div className="hidden overflow-x-auto md:block">
+                    <div className="overflow-x-auto rounded-md border">
                         <table className="w-full text-left text-sm">
-                            <thead className="border-b bg-neutral-50 text-xs uppercase text-neutral-500">
+                            <thead className="border-b bg-muted/50 text-xs uppercase text-muted-foreground">
                                 <tr>
                                     <th className="px-6 py-3">Name</th>
                                     <th className="px-6 py-3">Email</th>
                                     <th className="px-6 py-3">Role</th>
-                                    <th className="px-6 py-3">Status</th>
-                                    <th className="px-6 py-3">Trust</th>
                                     <th className="px-6 py-3">Joined Date</th>
-                                    <th className="px-6 py-3 text-right">Action</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody className="divide-y">
                                 {isLoading ? (
                                     Array.from({ length: 5 }).map((_, i) => (
-                                        <tr key={i} className="border-b">
+                                        <tr key={i}>
                                             <td className="px-6 py-4"><Skeleton className="h-4 w-32" /></td>
                                             <td className="px-6 py-4"><Skeleton className="h-4 w-48" /></td>
                                             <td className="px-6 py-4"><Skeleton className="h-6 w-16 rounded-full" /></td>
-                                            <td className="px-6 py-4"><Skeleton className="h-6 w-20 rounded-full" /></td>
-                                            <td className="px-6 py-4"><Skeleton className="h-6 w-20 rounded-full" /></td>
                                             <td className="px-6 py-4"><Skeleton className="h-4 w-24" /></td>
-                                            <td className="px-6 py-4"><Skeleton className="ml-auto h-8 w-20" /></td>
                                         </tr>
                                     ))
-                                ) : users.map((user) => (
-                                    <tr key={user.id} className="border-b bg-white hover:bg-neutral-50">
-                                        <td className="px-6 py-4 font-medium text-neutral-900">{user.name}</td>
-                                        <td className="flex items-center gap-2 px-6 py-4"><Mail className="h-4 w-4 text-neutral-400" /> {user.email}</td>
+                                ) : currentTableData.map((user) => (
+                                    <tr key={user.id} className="bg-card transition-colors hover:bg-muted/50">
+                                        <td className="px-6 py-4 font-medium">{user.name}</td>
+                                        <td className="px-6 py-4">
+                                            <span className="flex items-center gap-2"><Mail className="h-4 w-4 text-muted-foreground" /> {user.email}</span>
+                                        </td>
                                         <td className="px-6 py-4">
                                             <Badge variant={user.role === "ADMIN" ? "destructive" : user.role === "SPONSOR" ? "default" : "secondary"}>
                                                 {user.role}
                                             </Badge>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <Badge variant={user.isBanned ? "destructive" : "secondary"}>
-                                                {user.isBanned ? "BANNED" : "ACTIVE"}
-                                            </Badge>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <Badge variant={user.isVerified ? "default" : "outline"}>
-                                                {user.isVerified ? "VERIFIED" : "UNVERIFIED"}
-                                            </Badge>
-                                        </td>
-                                        <td className="flex items-center gap-2 px-6 py-4"><Calendar className="h-4 w-4 text-neutral-400" /> {new Date(user.createdAt).toLocaleDateString()}</td>
-                                        <td className="px-6 py-4 text-right">
-                                            <div className="flex items-center justify-end gap-2">
-                                                <Button
-                                                    variant={user.isVerified ? "outline" : "default"}
-                                                    size="sm"
-                                                    disabled={verifyMutation.isPending || user.id === currentUser?.id}
-                                                    onClick={() => verifyMutation.mutate({ userId: user.id, isVerified: !Boolean(user.isVerified) })}
-                                                >
-                                                    {user.isVerified ? "Unverify" : "Verify"}
-                                                </Button>
-                                                <Button
-                                                    variant={user.isBanned ? "outline" : "destructive"}
-                                                    size="sm"
-                                                    disabled={banMutation.isPending || user.id === currentUser?.id || user.role === "ADMIN"}
-                                                    onClick={() => banMutation.mutate({ userId: user.id, isBanned: !Boolean(user.isBanned) })}
-                                                >
-                                                    {user.isBanned ? "Unban" : "Ban"}
-                                                </Button>
-                                            </div>
+                                            <span className="flex items-center gap-2"><Calendar className="h-4 w-4 text-muted-foreground" /> {new Date(user.createdAt).toLocaleDateString()}</span>
                                         </td>
                                     </tr>
                                 ))}
@@ -228,24 +136,21 @@ export default function AdminUsersPage() {
                         </table>
                     </div>
 
-                    {!isLoading && users.length > 0 && (
-                        <div className="mt-4 flex flex-col items-center justify-between gap-3 border-t pt-4 sm:flex-row">
-                            <p className="text-sm text-neutral-500">Page {currentPage} of {totalPages}</p>
-                            <div className="flex items-center gap-2">
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                                    disabled={currentPage <= 1}
-                                >
-                                    Previous
+                    {currentTableData.length === 0 && !isLoading && (
+                        <div className="py-8 text-center text-muted-foreground">No users match your search.</div>
+                    )}
+
+                    {totalPages > 1 && (
+                        <div className="mt-4 flex items-center justify-between">
+                            <p className="text-sm text-muted-foreground">
+                                Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredUsers.length)} of {filteredUsers.length} users
+                            </p>
+                            <div className="flex gap-2">
+                                <Button variant="outline" size="sm" onClick={() => setCurrentPage((p) => p - 1)} disabled={currentPage === 1}>
+                                    <ChevronLeft className="h-4 w-4" />
                                 </Button>
-                                <Button
-                                    size="sm"
-                                    onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-                                    disabled={currentPage >= totalPages}
-                                >
-                                    Next
+                                <Button variant="outline" size="sm" onClick={() => setCurrentPage((p) => p + 1)} disabled={currentPage === totalPages}>
+                                    <ChevronRight className="h-4 w-4" />
                                 </Button>
                             </div>
                         </div>
