@@ -28,11 +28,11 @@ const faqItems = [
 
 export default function FaqPage() {
   return (
-    <div className="flex min-h-screen flex-col bg-neutral-50">
+    <div className="flex min-h-screen flex-col bg-transparent">
       <PublicNavbar />
 
       <main className="container mx-auto flex max-w-4xl flex-1 px-4 py-16">
-        <div className="w-full rounded-2xl border bg-white p-8 shadow-sm md:p-12">
+        <div className="app-panel w-full rounded-2xl p-8 shadow-sm md:p-12">
           <div className="mb-8">
             <h1 className="mb-3 flex items-center gap-2 text-4xl font-extrabold text-neutral-900">
               <CircleHelp className="h-9 w-9 text-primary" /> Help Center / FAQ
@@ -42,7 +42,7 @@ export default function FaqPage() {
 
           <div className="space-y-4">
             {faqItems.map((item, index) => (
-              <details key={index} className="group rounded-xl border bg-neutral-50 p-4 open:bg-white open:shadow-sm">
+              <details key={index} className="group rounded-xl border bg-neutral-50/75 p-4 open:bg-white open:shadow-sm dark:bg-muted/30">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-base font-semibold text-neutral-900">
                   <span>{item.q}</span>
                   <ChevronDown className="h-4 w-4 shrink-0 text-neutral-500 transition-transform group-open:rotate-180" />

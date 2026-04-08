@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Mail, Zap, Globe, Newspaper, CalendarDays, ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 export default function NewsletterPage() {
     const [email, setEmail] = useState("");
@@ -50,12 +51,12 @@ export default function NewsletterPage() {
     ];
 
     return (
-        <div className="flex min-h-screen flex-col bg-neutral-50">
+        <div className="flex min-h-screen flex-col bg-transparent">
             <PublicNavbar />
 
             <main className="container mx-auto flex max-w-6xl flex-1 flex-col px-4 py-20">
-                <section className="mb-16 text-center">
-                    <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100">
+                <section className="app-panel mb-16 rounded-2xl px-6 py-12 text-center sm:px-10">
+                    <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 ring-8 ring-emerald-100/50 dark:bg-emerald-900/40">
                         <Mail className="h-10 w-10 text-emerald-600" />
                     </div>
                     <h1 className="mb-6 text-4xl font-extrabold text-neutral-900 md:text-5xl">
@@ -81,7 +82,7 @@ export default function NewsletterPage() {
                 </section>
 
                 <section className="grid gap-6 lg:grid-cols-2">
-                    <div className="rounded-xl border bg-white p-6 shadow-sm">
+                    <div className="app-card rounded-xl p-6">
                         <h2 className="mb-4 flex items-center gap-2 text-xl font-bold text-neutral-900">
                             <Newspaper className="h-5 w-5 text-primary" /> What You Will Receive
                         </h2>
@@ -93,13 +94,13 @@ export default function NewsletterPage() {
                         </ul>
                     </div>
 
-                    <div className="rounded-xl border bg-white p-6 shadow-sm">
+                    <div className="app-card rounded-xl p-6">
                         <h2 className="mb-4 flex items-center gap-2 text-xl font-bold text-neutral-900">
                             <CalendarDays className="h-5 w-5 text-primary" /> Platform Blogs and News
                         </h2>
                         <div className="space-y-3">
                             {updates.map((item) => (
-                                <div key={item.title} className="rounded-lg border bg-neutral-50 p-4">
+                                <div key={item.title} className="rounded-lg border bg-neutral-50/70 p-4 dark:bg-muted/30">
                                     <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-primary">{item.category}</div>
                                     <h3 className="mb-1 font-semibold text-neutral-900">{item.title}</h3>
                                     <p className="text-sm text-neutral-600">{item.summary}</p>
@@ -116,20 +117,24 @@ export default function NewsletterPage() {
                     </div>
 
                     <div className="mt-4 grid gap-8 md:grid-cols-2">
-                        <Card className="border-0 bg-white shadow-md">
+                        <Card className="app-card border-0 shadow-md">
                             <CardContent className="space-y-4 p-8">
                                 <Zap className="h-8 w-8 text-amber-500" />
                                 <h3 className="text-xl font-bold">This Week: Top 5 New Prototypes</h3>
                                 <p className="text-neutral-600">See the newest climate-tech and healthcare prototypes recently approved for sponsorship.</p>
-                                <div className="inline-flex items-center gap-1 text-sm font-medium text-primary">Read bulletin <ArrowRight className="h-4 w-4" /></div>
+                                <Link href="/newsletter/bulletin" className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">
+                                    Read bulletin <ArrowRight className="h-4 w-4" />
+                                </Link>
                             </CardContent>
                         </Card>
-                        <Card className="border-0 bg-white shadow-md">
+                        <Card className="app-card border-0 shadow-md">
                             <CardContent className="space-y-4 p-8">
                                 <Globe className="h-8 w-8 text-blue-500" />
                                 <h3 className="text-xl font-bold">Monthly Impact Snapshot</h3>
                                 <p className="text-neutral-600">Track completed projects, sponsor activity, and platform growth in one concise update.</p>
-                                <div className="inline-flex items-center gap-1 text-sm font-medium text-primary">View report <ArrowRight className="h-4 w-4" /></div>
+                                <Link href="/newsletter/report" className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">
+                                    View report <ArrowRight className="h-4 w-4" />
+                                </Link>
                             </CardContent>
                         </Card>
                     </div>

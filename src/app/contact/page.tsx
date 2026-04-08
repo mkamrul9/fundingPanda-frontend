@@ -38,10 +38,12 @@ export default function ContactPage() {
     };
 
     return (
-        <div className="flex min-h-screen flex-col bg-neutral-50">
+        <div className="flex min-h-screen flex-col bg-transparent">
             <PublicNavbar />
 
-            <div className="bg-slate-900 py-20 text-center text-white">
+            <div className="relative overflow-hidden bg-slate-900 py-20 text-center text-white">
+                <div className="absolute -left-20 top-0 h-60 w-60 rounded-full bg-emerald-400/20 blur-3xl" />
+                <div className="absolute -right-16 bottom-0 h-72 w-72 rounded-full bg-cyan-400/20 blur-3xl" />
                 <div className="container mx-auto px-4">
                     <h1 className="mb-4 text-4xl font-extrabold md:text-5xl">Get in Touch</h1>
                     <p className="mx-auto max-w-2xl text-lg text-slate-300">
@@ -78,7 +80,7 @@ export default function ContactPage() {
                             </div>
                         </div>
 
-                        <div className="rounded-xl border bg-white p-6 shadow-sm">
+                        <div className="app-card rounded-xl p-6">
                             <h4 className="mb-2 flex items-center gap-2 font-bold text-neutral-900">
                                 <MessageSquare className="h-5 w-5 text-primary" /> FAQ
                             </h4>
@@ -92,7 +94,7 @@ export default function ContactPage() {
                     </div>
 
                     <div className="md:col-span-2">
-                        <Card className="border-0 shadow-lg ring-1 ring-neutral-200">
+                        <Card className="app-card border-0 shadow-lg ring-1 ring-neutral-200/60">
                             <CardContent className="p-8">
                                 <form onSubmit={handleSubmit} className="space-y-6">
                                     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">

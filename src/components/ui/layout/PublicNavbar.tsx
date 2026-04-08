@@ -95,17 +95,24 @@ export default function PublicNavbar() {
                     </nav>
 
                     <div className="mt-3 border-t pt-3">
-                        <div className="mb-3 flex justify-end">
-                            <ThemeToggle />
-                        </div>
                         {isPending ? (
                             <div className="h-9 w-full animate-pulse rounded-md bg-muted" />
                         ) : session ? (
-                            <div className="flex justify-end">
-                                <ProfileDropdown />
+                            <div className="mb-2 flex items-center justify-between rounded-lg border border-border/70 bg-card/70 px-3 py-2">
+                                <div>
+                                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Account</p>
+                                    <p className="text-sm font-medium text-foreground">Quick Navigation</p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <ThemeToggle />
+                                    <ProfileDropdown />
+                                </div>
                             </div>
                         ) : (
                             <div className="flex flex-col gap-2">
+                                <div className="mb-1 flex justify-end">
+                                    <ThemeToggle />
+                                </div>
                                 <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
                                     <Button variant="outline" className="w-full">Sign In</Button>
                                 </Link>

@@ -129,12 +129,12 @@ export default function LeaderboardPage() {
     const studentPages = Math.max(1, Math.ceil(studentList.length / PAGE_SIZE));
 
     return (
-        <div className="flex min-h-screen flex-col bg-neutral-50">
+        <div className="flex min-h-screen flex-col bg-transparent">
             <PublicNavbar />
 
             <main className="container mx-auto flex max-w-4xl flex-1 flex-col px-4 py-12">
-                <div className="mb-12 animate-in slide-in-from-bottom-4 fade-in text-center duration-500">
-                    <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-amber-100">
+                <div className="app-panel mb-12 animate-in rounded-2xl px-6 py-10 text-center duration-500 slide-in-from-bottom-4 fade-in">
+                    <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-amber-100 ring-8 ring-amber-100/50 dark:bg-amber-900/40">
                         <Trophy className="h-10 w-10 text-amber-600" />
                     </div>
                     <h1 className="mb-4 text-4xl font-extrabold tracking-tight text-neutral-900">
@@ -169,7 +169,7 @@ export default function LeaderboardPage() {
                         pagedSponsors.map((sponsor, index) => (
                             <Card
                                 key={sponsor.id}
-                                className={`overflow-hidden transition-all hover:-translate-y-1 hover:shadow-md ${((sponsorPage - 1) * PAGE_SIZE + index) === 0 ? "border-amber-300 ring-1 ring-amber-300 shadow-amber-100" : ""}`}
+                                className={`app-card overflow-hidden transition-all hover:-translate-y-1 hover:shadow-md ${((sponsorPage - 1) * PAGE_SIZE + index) === 0 ? "border-amber-300 ring-1 ring-amber-300 shadow-amber-100" : ""}`}
                             >
                                 <CardContent className="flex flex-col items-stretch p-0 sm:flex-row sm:items-center">
                                     <div className={`flex h-14 w-full items-center justify-center sm:h-auto sm:w-24 sm:self-stretch ${((sponsorPage - 1) * PAGE_SIZE + index) === 0 ? "bg-amber-50" : ((sponsorPage - 1) * PAGE_SIZE + index) === 1 ? "bg-slate-50" : ((sponsorPage - 1) * PAGE_SIZE + index) === 2 ? "bg-orange-50" : "border-b bg-neutral-50 sm:border-b-0 sm:border-r"}`}>
@@ -241,7 +241,7 @@ export default function LeaderboardPage() {
                         ))
                     ) : topStudents && topStudents.length > 0 ? (
                         pagedStudents.map((student, index) => (
-                            <Card key={student.id} className="overflow-hidden transition-all hover:-translate-y-1 hover:shadow-md">
+                            <Card key={student.id} className="app-card overflow-hidden transition-all hover:-translate-y-1 hover:shadow-md">
                                 <CardContent className="flex flex-col items-stretch p-0 sm:flex-row sm:items-center">
                                     <div className={`flex h-14 w-full items-center justify-center sm:h-auto sm:w-24 sm:self-stretch ${((studentPage - 1) * PAGE_SIZE + index) === 0 ? "bg-emerald-50" : ((studentPage - 1) * PAGE_SIZE + index) === 1 ? "bg-slate-50" : ((studentPage - 1) * PAGE_SIZE + index) === 2 ? "bg-lime-50" : "border-b bg-neutral-50 sm:border-b-0 sm:border-r"}`}>
                                         {getRankBadge((studentPage - 1) * PAGE_SIZE + index)}
