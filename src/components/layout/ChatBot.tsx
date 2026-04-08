@@ -88,6 +88,9 @@ export default function ChatBot() {
                                     <p className="px-4 text-sm leading-relaxed text-neutral-600">
                                         Hi! I am your FundingPanda assistant. How can I help you navigate the platform today?
                                     </p>
+                                    <p className="-mt-3 px-4 text-xs font-medium text-emerald-700 dark:text-emerald-400">
+                                        If you are lost, reach me.
+                                    </p>
 
                                     <div className="flex w-full flex-col gap-2 px-2">
                                         {faqs.map((faq) => (
@@ -166,12 +169,17 @@ export default function ChatBot() {
             )}
 
             {!isOpen && (
-                <Button
-                    onClick={() => setIsOpen(true)}
-                    className="flex h-14 w-14 items-center justify-center rounded-full bg-linear-to-br from-emerald-600 to-teal-500 shadow-[0_14px_28px_-10px_rgba(5,150,105,0.7)] transition-all duration-300 hover:scale-105 hover:from-emerald-500 hover:to-teal-500"
-                >
-                    <MessageCircle className="h-6 w-6" />
-                </Button>
+                <div className="flex flex-col items-end gap-2">
+                    <p className="rounded-full border border-emerald-200/70 bg-card px-3 py-1 text-xs font-medium text-emerald-700 shadow-sm dark:border-emerald-900/60 dark:text-emerald-400">
+                        If you are lost, reach me.
+                    </p>
+                    <Button
+                        onClick={() => setIsOpen(true)}
+                        className="flex h-14 w-14 items-center justify-center rounded-full bg-linear-to-br from-emerald-600 to-teal-500 shadow-[0_14px_28px_-10px_rgba(5,150,105,0.7)] transition-all duration-300 hover:scale-105 hover:from-emerald-500 hover:to-teal-500"
+                    >
+                        <MessageCircle className="h-6 w-6" />
+                    </Button>
+                </div>
             )}
         </div>
     );
