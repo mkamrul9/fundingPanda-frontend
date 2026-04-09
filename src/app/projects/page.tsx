@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { getAllProjectsPaginated, getCategories } from "@/services/project.service";
 
@@ -31,8 +30,6 @@ type ProjectItem = {
 };
 
 export default function ExploreProjectsPage() {
-    const searchParams = useSearchParams();
-    const initialCategory = searchParams.get("category") || searchParams.get("categoryId") || "ALL";
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const PAGE_SIZE = 6;
@@ -42,7 +39,7 @@ export default function ExploreProjectsPage() {
         searchTerm: "",       // Maps to backend search (Title/Description)
         studentName: "",      // Maps to backend student.name
         university: "",       // Maps to backend student.university
-        category: initialCategory,
+        category: "ALL",
         fundingStatus: "ALL", // Maps to a backend custom filter logic (e.g., raisedAmount >= goalAmount)
         startDate: "",
         endDate: "",
@@ -50,10 +47,12 @@ export default function ExploreProjectsPage() {
     });
 
     useEffect(() => {
-        const categoryFromUrl = searchParams.get("category") || searchParams.get("categoryId") || "ALL";
+        if (typeof window === "undefined") return;
+        const params = new URLSearchParams(window.location.search);
+        const categoryFromUrl = params.get("category") || params.get("categoryId") || "ALL";
         setFilters((prev) => ({ ...prev, category: categoryFromUrl }));
         setCurrentPage(1);
-    }, [searchParams]);
+    }, []);
 
     const { data: categories } = useQuery({
         queryKey: ["categories"],
