@@ -130,32 +130,9 @@ export default function LoginPage() {
 
         try {
             const dashboardUrl = `${resolveFrontendBaseUrl()}/dashboard?oauth=success`;
-            const result = await signIn.social({
-                provider,
-                callbackURL: dashboardUrl,
-                newUserCallbackURL: dashboardUrl,
-            });
-
-            if (result?.error) {
-                toast.error(result.error.message || `Failed to initialize ${provider} login.`);
-                setIsLoading(false);
-                setActiveSocialProvider(null);
-                return;
-            }
-
-            const rawRedirectUrl = (result as unknown as { url?: string; data?: { url?: string } })?.url
-                || (result as unknown as { data?: { url?: string } })?.data?.url;
-
-            if (rawRedirectUrl) {
-                const resolvedRedirectUrl = rawRedirectUrl.startsWith("http")
-                    ? rawRedirectUrl
-                    : `${resolveAuthBaseUrl()}${rawRedirectUrl.startsWith("/") ? "" : "/"}${rawRedirectUrl}`;
-                window.location.assign(resolvedRedirectUrl);
-                return;
-            }
-
-            // Fallback: if provider flow initialized without explicit URL payload, route to dashboard.
-            router.replace("/dashboard");
+            const startUrl = `${resolveAuthBaseUrl()}/api/auth/start/${provider}?callbackURL=${encodeURIComponent(dashboardUrl)}&newUserCallbackURL=${encodeURIComponent(dashboardUrl)}&errorCallbackURL=${encodeURIComponent(`${resolveFrontendBaseUrl()}/login?oauth=error`)}`;
+            window.location.assign(startUrl);
+            return;
         } catch {
             toast.error(`Failed to initialize ${provider} login.`);
             setIsLoading(false);

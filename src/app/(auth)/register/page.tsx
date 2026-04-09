@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "@tanstack/react-form";
 import Link from "next/link";
 import { toast } from "sonner";
-import { signIn, signUp, useSession } from "@/lib/auth-client";
+import { signUp, useSession } from "@/lib/auth-client";
 import { registerSchema, nameSchema, registerEmailSchema, registerPasswordSchema, registerUniversitySchema, registerBioSchema } from "@/lib/validations/auth";
 import { Chrome, Eye, EyeOff } from "lucide-react";
 
@@ -87,31 +87,9 @@ export default function RegisterPage() {
 
         try {
             const dashboardUrl = `${resolveFrontendBaseUrl()}/dashboard?oauth=success`;
-            const result = await signIn.social({
-                provider,
-                callbackURL: dashboardUrl,
-                newUserCallbackURL: dashboardUrl,
-            });
-
-            if (result?.error) {
-                toast.error(result.error.message || `Failed to initialize ${provider} signup.`);
-                setIsLoading(false);
-                setActiveSocialProvider(null);
-                return;
-            }
-
-            const rawRedirectUrl = (result as unknown as { url?: string; data?: { url?: string } })?.url
-                || (result as unknown as { data?: { url?: string } })?.data?.url;
-
-            if (rawRedirectUrl) {
-                const resolvedRedirectUrl = rawRedirectUrl.startsWith("http")
-                    ? rawRedirectUrl
-                    : `${resolveAuthBaseUrl()}${rawRedirectUrl.startsWith("/") ? "" : "/"}${rawRedirectUrl}`;
-                window.location.assign(resolvedRedirectUrl);
-                return;
-            }
-
-            router.replace("/dashboard");
+            const startUrl = `${resolveAuthBaseUrl()}/api/auth/start/${provider}?callbackURL=${encodeURIComponent(dashboardUrl)}&newUserCallbackURL=${encodeURIComponent(dashboardUrl)}&errorCallbackURL=${encodeURIComponent(`${resolveFrontendBaseUrl()}/login?oauth=error`)}`;
+            window.location.assign(startUrl);
+            return;
         } catch {
             toast.error(`Failed to initialize ${provider} signup.`);
             setIsLoading(false);
