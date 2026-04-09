@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
-import { signIn, useSession } from "@/lib/auth-client";
+import { authClient, signIn, useSession } from "@/lib/auth-client";
 import { ShieldAlert, GraduationCap, Lock, Mail, Chrome, Eye, EyeOff } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -42,20 +42,39 @@ export default function LoginPage() {
     };
 
     useEffect(() => {
+        let cancelled = false;
+
         if (session?.user) {
             router.replace("/dashboard");
             return;
         }
 
-        // Some OAuth providers can return to /login before React session state hydrates.
-        const oauthSuccess = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("oauth") === "success";
-        if (oauthSuccess) {
-            const timer = setTimeout(() => {
-                router.replace("/dashboard");
-            }, 350);
+        if (typeof window !== "undefined") {
+            const searchParams = new URLSearchParams(window.location.search);
+            const oauthSuccess = searchParams.get("oauth") === "success";
+            const oauthReturn = oauthSuccess || searchParams.has("code") || searchParams.has("state");
 
-            return () => clearTimeout(timer);
+            // When OAuth returns to /login in production, session hook can lag behind cookie write.
+            // Poll session endpoint briefly and force redirect once session becomes available.
+            if (oauthReturn) {
+                void (async () => {
+                    for (let i = 0; i < 8; i++) {
+                        const result = await authClient.getSession();
+                        const hasUser = Boolean((result as { data?: { user?: unknown } })?.data?.user);
+                        if (hasUser && !cancelled) {
+                            router.replace("/dashboard");
+                            return;
+                        }
+
+                        await new Promise((resolve) => setTimeout(resolve, 500));
+                    }
+                })();
+            }
         }
+
+        return () => {
+            cancelled = true;
+        };
     }, [session, router]);
 
     const handleLogin = async (e: React.FormEvent) => {
