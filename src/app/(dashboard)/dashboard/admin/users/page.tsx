@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "@/lib/auth-client";
-import { getAllUsers } from "@/services/admin.service";
+import { getAllUsers, toggleUserBan, verifyUser } from "@/services/admin.service";
 import { User } from "@/types";
+import { toast } from "sonner";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -35,8 +36,10 @@ type UsersQueryResponse = {
 
 export default function AdminUsersPage() {
     const { data: session } = useSession();
+    const queryClient = useQueryClient();
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
+    const [pendingActionKey, setPendingActionKey] = useState<string | null>(null);
     const itemsPerPage = 8;
     const currentUser = session?.user as unknown as User | undefined;
     const isAdmin = currentUser?.role === "ADMIN";
@@ -46,6 +49,48 @@ export default function AdminUsersPage() {
         queryFn: () => getAllUsers({ page: 1, limit: 500 }),
         enabled: isAdmin,
     });
+
+    const refreshUsers = async () => {
+        await queryClient.invalidateQueries({ queryKey: ["allUsers", "directory"] });
+    };
+
+    const banMutation = useMutation({
+        mutationFn: ({ userId, isBanned }: { userId: string; isBanned: boolean }) => toggleUserBan(userId, isBanned),
+        onSuccess: async (_, variables) => {
+            toast.success(variables.isBanned ? "User banned successfully." : "User unbanned successfully.");
+            await refreshUsers();
+        },
+        onError: () => {
+            toast.error("Failed to update ban status.");
+        },
+        onSettled: () => {
+            setPendingActionKey(null);
+        },
+    });
+
+    const verifyMutation = useMutation({
+        mutationFn: ({ userId, isVerified }: { userId: string; isVerified: boolean }) => verifyUser(userId, isVerified),
+        onSuccess: async (_, variables) => {
+            toast.success(variables.isVerified ? "User verified successfully." : "User verification removed.");
+            await refreshUsers();
+        },
+        onError: () => {
+            toast.error("Failed to update verification status.");
+        },
+        onSettled: () => {
+            setPendingActionKey(null);
+        },
+    });
+
+    const handleToggleBan = (userId: string, nextBannedState: boolean) => {
+        setPendingActionKey(`ban:${userId}`);
+        banMutation.mutate({ userId, isBanned: nextBannedState });
+    };
+
+    const handleToggleVerify = (userId: string, nextVerifiedState: boolean) => {
+        setPendingActionKey(`verify:${userId}`);
+        verifyMutation.mutate({ userId, isVerified: nextVerifiedState });
+    };
 
     const users = usersResponse?.data ?? [];
     const filteredUsers = users.filter((user) => {
@@ -103,7 +148,9 @@ export default function AdminUsersPage() {
                                     <th className="px-6 py-3">Name</th>
                                     <th className="px-6 py-3">Email</th>
                                     <th className="px-6 py-3">Role</th>
+                                    <th className="px-6 py-3">Status</th>
                                     <th className="px-6 py-3">Joined Date</th>
+                                    <th className="px-6 py-3 text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y">
@@ -113,7 +160,9 @@ export default function AdminUsersPage() {
                                             <td className="px-6 py-4"><Skeleton className="h-4 w-32" /></td>
                                             <td className="px-6 py-4"><Skeleton className="h-4 w-48" /></td>
                                             <td className="px-6 py-4"><Skeleton className="h-6 w-16 rounded-full" /></td>
+                                            <td className="px-6 py-4"><Skeleton className="h-6 w-24 rounded-full" /></td>
                                             <td className="px-6 py-4"><Skeleton className="h-4 w-24" /></td>
+                                            <td className="px-6 py-4"><Skeleton className="ml-auto h-8 w-32 rounded-md" /></td>
                                         </tr>
                                     ))
                                 ) : currentTableData.map((user) => (
@@ -128,7 +177,37 @@ export default function AdminUsersPage() {
                                             </Badge>
                                         </td>
                                         <td className="px-6 py-4">
+                                            <div className="flex flex-col gap-1">
+                                                <Badge variant={user.isBanned ? "destructive" : "secondary"}>
+                                                    {user.isBanned ? "Banned" : "Active"}
+                                                </Badge>
+                                                <Badge variant={user.isVerified ? "default" : "outline"}>
+                                                    {user.isVerified ? "Verified" : "Unverified"}
+                                                </Badge>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
                                             <span className="flex items-center gap-2"><Calendar className="h-4 w-4 text-muted-foreground" /> {new Date(user.createdAt).toLocaleDateString()}</span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex sm:min-w-56 justify-end gap-2 max-sm:flex-col">
+                                                <Button
+                                                    size="sm"
+                                                    variant={user.isBanned ? "secondary" : "destructive"}
+                                                    disabled={user.role === "ADMIN" || pendingActionKey === `ban:${user.id}` || banMutation.isPending}
+                                                    onClick={() => handleToggleBan(user.id, !Boolean(user.isBanned))}
+                                                >
+                                                    {user.isBanned ? "Unban" : "Ban"}
+                                                </Button>
+                                                <Button
+                                                    size="sm"
+                                                    variant={user.isVerified ? "outline" : "default"}
+                                                    disabled={user.role === "ADMIN" || pendingActionKey === `verify:${user.id}` || verifyMutation.isPending}
+                                                    onClick={() => handleToggleVerify(user.id, !Boolean(user.isVerified))}
+                                                >
+                                                    {user.isVerified ? "Unverify" : "Verify"}
+                                                </Button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}

@@ -155,8 +155,8 @@ export default function LoginPage() {
                 </CardHeader>
 
                 <CardContent className="space-y-4">
-                    <div className="mb-4 grid grid-cols-3 gap-2 rounded-lg border border-emerald-100 bg-emerald-50 p-3 dark:border-emerald-900 dark:bg-emerald-950/30">
-                        <span className="col-span-3 mb-1 text-center text-xs font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-400">
+                    <div className="mb-4 grid grid-cols-1 gap-2 rounded-lg border border-emerald-100 bg-emerald-50 p-3 sm:grid-cols-3 dark:border-emerald-900 dark:bg-emerald-950/30">
+                        <span className="mb-1 text-center text-xs font-bold uppercase tracking-wider text-emerald-800 sm:col-span-3 dark:text-emerald-400">
                             Demo Quick Access
                         </span>
 
