@@ -37,6 +37,18 @@ export default function RegisterPage() {
         return rawBase.replace(/\/$/, "");
     };
 
+    const resolveAuthBaseUrl = () => {
+        const explicitAuthUrl = process.env.NEXT_PUBLIC_AUTH_URL?.trim();
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL?.trim();
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
+        const rawBase = explicitAuthUrl || backendUrl || apiUrl || "http://localhost:5000";
+
+        return rawBase
+            .replace(/\/api\/auth\/?$/, "")
+            .replace(/\/api\/v1\/?$/, "")
+            .replace(/\/$/, "");
+    };
+
     const parseSignupError = (raw: unknown) => {
         const err = (raw ?? {}) as {
             status?: number;
@@ -74,16 +86,32 @@ export default function RegisterPage() {
         setIsLoading(true);
 
         try {
+            const dashboardUrl = `${resolveFrontendBaseUrl()}/dashboard?oauth=success`;
             const result = await signIn.social({
                 provider,
-                callbackURL: `${resolveFrontendBaseUrl()}/dashboard`,
+                callbackURL: dashboardUrl,
+                newUserCallbackURL: dashboardUrl,
             });
 
             if (result?.error) {
                 toast.error(result.error.message || `Failed to initialize ${provider} signup.`);
                 setIsLoading(false);
                 setActiveSocialProvider(null);
+                return;
             }
+
+            const rawRedirectUrl = (result as unknown as { url?: string; data?: { url?: string } })?.url
+                || (result as unknown as { data?: { url?: string } })?.data?.url;
+
+            if (rawRedirectUrl) {
+                const resolvedRedirectUrl = rawRedirectUrl.startsWith("http")
+                    ? rawRedirectUrl
+                    : `${resolveAuthBaseUrl()}${rawRedirectUrl.startsWith("/") ? "" : "/"}${rawRedirectUrl}`;
+                window.location.assign(resolvedRedirectUrl);
+                return;
+            }
+
+            router.replace("/dashboard");
         } catch {
             toast.error(`Failed to initialize ${provider} signup.`);
             setIsLoading(false);

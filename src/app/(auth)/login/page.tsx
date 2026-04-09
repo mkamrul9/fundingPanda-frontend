@@ -29,6 +29,18 @@ export default function LoginPage() {
         return rawBase.replace(/\/$/, "");
     };
 
+    const resolveAuthBaseUrl = () => {
+        const explicitAuthUrl = process.env.NEXT_PUBLIC_AUTH_URL?.trim();
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL?.trim();
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
+        const rawBase = explicitAuthUrl || backendUrl || apiUrl || "http://localhost:5000";
+
+        return rawBase
+            .replace(/\/api\/auth\/?$/, "")
+            .replace(/\/api\/v1\/?$/, "")
+            .replace(/\/$/, "");
+    };
+
     useEffect(() => {
         if (session?.user) {
             router.replace("/dashboard");
@@ -109,7 +121,22 @@ export default function LoginPage() {
                 toast.error(result.error.message || `Failed to initialize ${provider} login.`);
                 setIsLoading(false);
                 setActiveSocialProvider(null);
+                return;
             }
+
+            const rawRedirectUrl = (result as unknown as { url?: string; data?: { url?: string } })?.url
+                || (result as unknown as { data?: { url?: string } })?.data?.url;
+
+            if (rawRedirectUrl) {
+                const resolvedRedirectUrl = rawRedirectUrl.startsWith("http")
+                    ? rawRedirectUrl
+                    : `${resolveAuthBaseUrl()}${rawRedirectUrl.startsWith("/") ? "" : "/"}${rawRedirectUrl}`;
+                window.location.assign(resolvedRedirectUrl);
+                return;
+            }
+
+            // Fallback: if provider flow initialized without explicit URL payload, route to dashboard.
+            router.replace("/dashboard");
         } catch {
             toast.error(`Failed to initialize ${provider} login.`);
             setIsLoading(false);
