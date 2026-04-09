@@ -325,7 +325,7 @@ export default function HomePage() {
                                             <CardHeader>
                                                 <div className="mb-2 flex items-center justify-between gap-2">
                                                     <Badge variant="secondary" className="bg-primary/10 text-primary">
-                                                        {project.categories?.[0]?.name || "Innovation"}
+                                                        {project.categories?.[0]?.name || "Uncategorized"}
                                                     </Badge>
                                                     <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">{progress}% funded</span>
                                                 </div>

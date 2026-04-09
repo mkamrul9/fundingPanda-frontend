@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import { authClient, signIn, useSession } from "@/lib/auth-client";
-import { ShieldAlert, GraduationCap, Lock, Mail, Chrome, Eye, EyeOff } from "lucide-react";
+import { ShieldAlert, GraduationCap, HandCoins, Lock, Mail, Chrome, Eye, EyeOff } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -119,6 +119,12 @@ export default function LoginPage() {
         toast.info("Student credentials auto-filled. Click Sign In.");
     };
 
+    const handleDemoSponsor = () => {
+        setEmail("sponsor@panda.com");
+        setPassword("12345678");
+        toast.info("Sponsor credentials auto-filled. Click Sign In.");
+    };
+
     const handleSocialLogin = async (provider: "google") => {
         if (provider === "google" && isGoogleDisabled) {
             toast.info("Google OAuth is currently disabled. Use Demo Admin/Student login.");
@@ -149,8 +155,8 @@ export default function LoginPage() {
                 </CardHeader>
 
                 <CardContent className="space-y-4">
-                    <div className="mb-4 grid grid-cols-2 gap-2 rounded-lg border border-emerald-100 bg-emerald-50 p-3 dark:border-emerald-900 dark:bg-emerald-950/30">
-                        <span className="col-span-2 mb-1 text-center text-xs font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-400">
+                    <div className="mb-4 grid grid-cols-3 gap-2 rounded-lg border border-emerald-100 bg-emerald-50 p-3 dark:border-emerald-900 dark:bg-emerald-950/30">
+                        <span className="col-span-3 mb-1 text-center text-xs font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-400">
                             Demo Quick Access
                         </span>
 
@@ -174,6 +180,17 @@ export default function LoginPage() {
                         >
                             <GraduationCap className="h-3 w-3" />
                             Student
+                        </Button>
+
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            type="button"
+                            onClick={handleDemoSponsor}
+                            className="gap-1 border-emerald-200 text-xs hover:bg-emerald-100"
+                        >
+                            <HandCoins className="h-3 w-3" />
+                            Sponsor
                         </Button>
                     </div>
 

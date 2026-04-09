@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { getAllProjectsPaginated, getCategories } from "@/services/project.service";
 
@@ -30,6 +31,8 @@ type ProjectItem = {
 };
 
 export default function ExploreProjectsPage() {
+    const searchParams = useSearchParams();
+    const initialCategory = searchParams.get("category") || searchParams.get("categoryId") || "ALL";
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const PAGE_SIZE = 6;
@@ -39,12 +42,18 @@ export default function ExploreProjectsPage() {
         searchTerm: "",       // Maps to backend search (Title/Description)
         studentName: "",      // Maps to backend student.name
         university: "",       // Maps to backend student.university
-        category: "ALL",
+        category: initialCategory,
         fundingStatus: "ALL", // Maps to a backend custom filter logic (e.g., raisedAmount >= goalAmount)
         startDate: "",
         endDate: "",
         sortBy: "-createdAt"  // Default: Newest first
     });
+
+    useEffect(() => {
+        const categoryFromUrl = searchParams.get("category") || searchParams.get("categoryId") || "ALL";
+        setFilters((prev) => ({ ...prev, category: categoryFromUrl }));
+        setCurrentPage(1);
+    }, [searchParams]);
 
     const { data: categories } = useQuery({
         queryKey: ["categories"],
@@ -263,7 +272,7 @@ export default function ExploreProjectsPage() {
                                     <CardHeader className="pb-4">
                                         <div className="mb-2 flex items-center justify-between">
                                             <Badge variant="secondary" className="text-xs font-medium text-primary bg-primary/10">
-                                                {project.categories?.[0]?.name || "Sustainability"}
+                                                {project.categories?.[0]?.name || "Uncategorized"}
                                             </Badge>
                                         </div>
                                         <h3 className="line-clamp-2 text-lg font-bold leading-tight">{project.title}</h3>

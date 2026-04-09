@@ -40,12 +40,14 @@ const toProjectFormData = (payload: UpsertProjectPayload, files?: UploadFilesPay
 
 export const getPublicProjects = async () => {
     // We only want to show projects that Admins have approved!
-    const response = await apiClient.get('/projects?status=APPROVED&limit=6');
+    const response = await apiClient.get('/projects?status=APPROVED&limit=6&include=categories');
     return response.data.data;
 };
 
 export const getAllProjects = async (params: Record<string, string | number> = {}) => {
     const query = new URLSearchParams({ status: "APPROVED" });
+
+    query.append("include", "student,categories");
 
     const sortValue = String(params.sortBy ?? "-createdAt");
     if (sortValue.startsWith("-")) {
@@ -68,6 +70,10 @@ export const getAllProjects = async (params: Record<string, string | number> = {
 
     if (params.university) {
         query.append("student.university", String(params.university));
+    }
+
+    if (params.category && String(params.category) !== "ALL") {
+        query.append("categories.some.id", String(params.category));
     }
 
     if (params.startDate) {
@@ -85,6 +91,7 @@ export const getAllProjects = async (params: Record<string, string | number> = {
         "searchTerm",
         "studentName",
         "university",
+        "category",
         "startDate",
         "endDate",
     ]);
@@ -101,6 +108,8 @@ export const getAllProjects = async (params: Record<string, string | number> = {
 
 export const getAllProjectsPaginated = async (params: Record<string, string | number> = {}) => {
     const query = new URLSearchParams({ status: "APPROVED" });
+
+    query.append("include", "student,categories");
 
     const sortValue = String(params.sortBy ?? "-createdAt");
     if (sortValue.startsWith("-")) {
@@ -125,6 +134,10 @@ export const getAllProjectsPaginated = async (params: Record<string, string | nu
         query.append("student.university", String(params.university));
     }
 
+    if (params.category && String(params.category) !== "ALL") {
+        query.append("categories.some.id", String(params.category));
+    }
+
     if (params.startDate) {
         query.append("createdAt[gte]", String(params.startDate));
     }
@@ -139,6 +152,7 @@ export const getAllProjectsPaginated = async (params: Record<string, string | nu
         "searchTerm",
         "studentName",
         "university",
+        "category",
         "startDate",
         "endDate",
     ]);
