@@ -12,6 +12,7 @@ import { getMyNotifications } from "@/services/notification.service";
 import { getConversations } from "@/services/message.service";
 import { toast } from "sonner";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import { ProfileDropdown } from "@/components/layout/ProfileDropdown";
 
 type ConversationSummary = {
     unreadCount?: number;
@@ -288,9 +289,36 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             </aside>
 
             {/* Main Content Area */}
-            <main className="flex-1 overflow-y-auto p-4 lg:p-8">
-                {children}
-            </main>
+            <div className="flex min-h-screen flex-1 flex-col">
+                <header className="sticky top-0 z-30 border-b bg-background/85 backdrop-blur">
+                    <div className="flex h-16 items-center justify-between px-4 lg:px-8">
+                        <div>
+                            <p className="text-sm font-semibold text-foreground">Dashboard</p>
+                            <p className="text-xs text-muted-foreground capitalize">{userRole.toLowerCase()} workspace</p>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <Button variant="outline" size="sm" asChild>
+                                <Link href="/dashboard/notifications" className="gap-2">
+                                    <Bell className="h-4 w-4" />
+                                    Alerts
+                                    {unreadNotificationCount > 0 && (
+                                        <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-semibold text-primary-foreground">
+                                            {unreadNotificationCount > 99 ? "99+" : unreadNotificationCount}
+                                        </span>
+                                    )}
+                                </Link>
+                            </Button>
+                            <ThemeToggle />
+                            <ProfileDropdown />
+                        </div>
+                    </div>
+                </header>
+
+                <main className="flex-1 overflow-y-auto p-4 lg:p-8">
+                    {children}
+                </main>
+            </div>
         </div>
     );
 }

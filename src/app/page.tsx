@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import PublicNavbar from "@/components/ui/layout/PublicNavbar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +12,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getCategories, getPublicProjects } from "@/services/project.service";
+import { subscribeToNewsletter } from "@/services/marketing.service";
+import { extractApiErrorMessage } from "@/lib/api-error";
+import { toast } from "sonner";
 import {
     ArrowRight,
     Bot,
@@ -107,6 +111,30 @@ const trustedResearchers = [
 ];
 
 export default function HomePage() {
+    const [newsletterEmail, setNewsletterEmail] = useState("");
+
+    const newsletterMutation = useMutation({
+        mutationFn: (email: string) => subscribeToNewsletter(email),
+        onSuccess: () => {
+            toast.success("Thanks for subscribing. Weekly updates are on the way.");
+            setNewsletterEmail("");
+        },
+        onError: (error: unknown) => {
+            toast.error(extractApiErrorMessage(error, "Subscription failed. Please try again."));
+        },
+    });
+
+    const handleNewsletterSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        const email = newsletterEmail.trim();
+        if (!email) {
+            toast.error("Please enter your email address.");
+            return;
+        }
+
+        newsletterMutation.mutate(email);
+    };
+
     const { data: projects = [], isLoading: projectsLoading } = useQuery<Project[]>({
         queryKey: ["publicProjects", "home"],
         queryFn: getPublicProjects,
@@ -455,14 +483,19 @@ export default function HomePage() {
                                 <h3 className="mb-2 text-3xl font-bold">Join the Innovation Newsletter</h3>
                                 <p className="text-emerald-100">Get a weekly digest of the top 5 most promising projects actively seeking sponsors.</p>
                             </div>
-                            <div className="flex w-full gap-2 md:w-auto">
+                            <form onSubmit={handleNewsletterSubmit} className="flex w-full gap-2 md:w-auto">
                                 <input
                                     type="email"
+                                    value={newsletterEmail}
+                                    onChange={(e) => setNewsletterEmail(e.target.value)}
                                     placeholder="Email address"
                                     className="h-12 w-full rounded-lg border border-white/50 bg-white px-4 text-neutral-900 placeholder:text-neutral-500 shadow-sm outline-none ring-0 focus:border-white md:w-72"
+                                    disabled={newsletterMutation.isPending}
                                 />
-                                <Button variant="secondary" className="h-12 shrink-0 font-bold">Subscribe</Button>
-                            </div>
+                                <Button type="submit" variant="secondary" className="h-12 shrink-0 font-bold" disabled={newsletterMutation.isPending}>
+                                    {newsletterMutation.isPending ? "Subscribing..." : "Subscribe"}
+                                </Button>
+                            </form>
                         </div>
                     </div>
                 </section>
